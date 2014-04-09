@@ -4,10 +4,10 @@
   <info>
     <name>investigations-auto-assigner</name>
     <display-name>Investigations Auto-Assigner</display-name>
-    <version>@Plugin_Version@</version> <!-- will be replaced from script -->
+    <version>@Plugin_Version@</version>
     <vendor>
-      <name>@Plugin_Vendor@</name>  <!-- will be replaced from script -->
-      <url>@Plugin_Vendor_Url@</url> <!-- will be replaced from script -->
+      <name>@Plugin_Vendor@</name>
+      <url>@Plugin_Vendor_Url@</url>
     </vendor>
   </info>
   <deployment use-separate-classloader="true"/>
