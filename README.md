@@ -1,2 +1,0 @@
-teamcity-investigations-auto-assigner
-=====================================
