@@ -35,12 +35,15 @@ import java.util.concurrent.ExecutorService;
  */
 public class NewTestsAndProblemsDispatcher {
   @NotNull private final NewTestsAndProblemsProcessor myProcessor;
+  @NotNull private final BuildsManager myBuildsManager;
   @NotNull private final ExecutorService myQueue;
 
   public NewTestsAndProblemsDispatcher(@NotNull final BuildTestsEventDispatcher buildTestsEventDispatcher,
                                        @NotNull final BuildServerListenerEventDispatcher buildServerListenerEventDispatcher,
-                                       @NotNull final NewTestsAndProblemsProcessor processor) {
+                                       @NotNull final NewTestsAndProblemsProcessor processor,
+                                       @NotNull final BuildsManager buildsManager) {
     myProcessor = processor;
+    myBuildsManager = buildsManager;
     myQueue = ExecutorsFactory.newExecutor("Investigator-Auto-Assigner-");
 
     buildTestsEventDispatcher.addListener(new BuildTestsListener() {
@@ -84,7 +87,9 @@ public class NewTestsAndProblemsDispatcher {
   private void onBuildProblemOccurred(@NotNull final BuildEx build, @NotNull final BuildProblemData problem) {
     myQueue.submit(new Runnable() {
       public void run() {
-        for (BuildProblem buildProblem : build.getBuildProblems()) {
+        final List<BuildProblem> buildProblems = build.getBuildProblems();
+        BuildProblemImpl.fillIsNew(buildProblems, myBuildsManager, build); // workaround
+        for (BuildProblem buildProblem : buildProblems) {
           if (buildProblem.getBuildProblemData().equals(problem)) {
             if (buildProblem instanceof BuildProblemImpl) {
               myProcessor.onBuildProblemOccurred(build, (BuildProblemImpl) buildProblem);
