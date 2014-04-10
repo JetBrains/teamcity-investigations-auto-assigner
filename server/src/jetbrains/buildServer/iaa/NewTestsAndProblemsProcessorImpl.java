@@ -17,16 +17,25 @@
 package jetbrains.buildServer.iaa;
 
 import com.intellij.openapi.util.Pair;
+import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.BuildProject;
 import jetbrains.buildServer.responsibility.*;
 import jetbrains.buildServer.responsibility.impl.BuildProblemResponsibilityEntryImpl;
 import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.serverSide.buildLog.BuildLogReaderEx;
 import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
+import jetbrains.buildServer.serverSide.problems.BuildLogCompileErrorCollector;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.tests.TestName;
 import jetbrains.buildServer.users.SUser;
 import jetbrains.buildServer.util.Dates;
+import jetbrains.buildServer.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
+
+import static jetbrains.buildServer.serverSide.impl.problems.types.CompilationErrorTypeDetailsProvider.COMPILE_BLOCK_INDEX;
 
 /**
  * @author Maxim.Manuylov
@@ -52,7 +61,7 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     if (testRun.isMuted() || testRun.isFixed() || !testRun.isNewFailure() || isInvestigated(test, project)) return;
 
     final TestName testName = test.getName();
-    final String text = testName.getAsString() + testRun.getFullText();
+    final String text = testName.getAsString() + " " + testRun.getFullText();
 
     final Pair<SUser, String> info = NewTestsAndProblemsUtil.findResponsibleUser(build, text);
     if (info == null) return;
@@ -74,7 +83,7 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     final SProject project = buildType.getProject();
     if (problem.isMuted() || !isNew(problem) || isInvestigated(problem, project)) return;
 
-    final String text = problem.getBuildProblemDescription();
+    final String text = getBuildProblemText(problem, build);
 
     final Pair<SUser, String> info = NewTestsAndProblemsUtil.findResponsibleUser(build, text);
     if (info == null) return;
@@ -87,6 +96,34 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
         ResponsibilityEntry.RemoveMethod.WHEN_FIXED, project, problem.getId()
       )
     );
+  }
+
+  private static String getBuildProblemText(@NotNull final BuildProblem problem, @NotNull final SBuild build) {
+    String problemSpecificText = "";
+
+    // todo make an extension point here
+    if (problem.getBuildProblemData().getType().equals(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE)) {
+      final Integer compileBlockIndex = getCompileBlockIndex(problem);
+      if (compileBlockIndex != null) {
+        final List<String> errors = new BuildLogCompileErrorCollector().collectCompileErrors(compileBlockIndex, (BuildLogReaderEx) build.getBuildLog());
+        problemSpecificText = StringUtil.join(errors, " ");
+      }
+    }
+
+    return problemSpecificText + " " + problem.getBuildProblemDescription();
+  }
+
+  @Nullable
+  private static Integer getCompileBlockIndex(@NotNull final BuildProblem problem) {
+    final String compilationBlockIndex = problem.getBuildProblemData().getAdditionalData();
+    if (compilationBlockIndex == null) return null;
+
+    try {
+      return Integer.parseInt(StringUtil.stringToProperties(compilationBlockIndex, StringUtil.STD_ESCAPER2).get(COMPILE_BLOCK_INDEX));
+    }
+    catch (Exception e) {
+      return null;
+    }
   }
 
   private static boolean isNew(@NotNull final BuildProblemImpl problem) {
