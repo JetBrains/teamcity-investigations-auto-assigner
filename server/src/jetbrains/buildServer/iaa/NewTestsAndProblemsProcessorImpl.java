@@ -96,16 +96,21 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
 
   private static boolean isInvestigated(@NotNull final STest test, @NotNull final SProject project) {
     for (TestNameResponsibilityEntry entry : test.getAllResponsibilities()) {
-      if (isSameOrParent(entry.getProject(), project)) return true;
+      if (isActiveOrFixed(entry) && isSameOrParent(entry.getProject(), project)) return true;
     }
     return false;
   }
 
   private static boolean isInvestigated(@NotNull final BuildProblem problem, @NotNull final SProject project) {
     for (BuildProblemResponsibilityEntry entry : problem.getAllResponsibilities()) {
-      if (isSameOrParent(entry.getProject(), project)) return true;
+      if (isActiveOrFixed(entry) && isSameOrParent(entry.getProject(), project)) return true;
     }
     return false;
+  }
+
+  private static boolean isActiveOrFixed(@NotNull final ResponsibilityEntry entry) {
+    final ResponsibilityEntry.State state = entry.getState();
+    return state.isActive() || state.isFixed();
   }
 
   public static boolean isSameOrParent(@NotNull final BuildProject parent, @NotNull final BuildProject project) {

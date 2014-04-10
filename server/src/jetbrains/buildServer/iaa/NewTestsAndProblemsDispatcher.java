@@ -22,7 +22,6 @@ import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.serverSide.stat.BuildTestsListener;
 import jetbrains.buildServer.tests.TestName;
-import jetbrains.buildServer.util.EventDispatcher;
 import jetbrains.buildServer.util.executors.ExecutorsFactory;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,7 +37,7 @@ public class NewTestsAndProblemsDispatcher {
   @NotNull private final NewTestsAndProblemsProcessor myProcessor;
   @NotNull private final ExecutorService myQueue;
 
-  public NewTestsAndProblemsDispatcher(@NotNull final EventDispatcher<BuildTestsListener> buildTestsEventDispatcher,
+  public NewTestsAndProblemsDispatcher(@NotNull final BuildTestsEventDispatcher buildTestsEventDispatcher,
                                        @NotNull final BuildServerListenerEventDispatcher buildServerListenerEventDispatcher,
                                        @NotNull final NewTestsAndProblemsProcessor processor) {
     myProcessor = processor;
