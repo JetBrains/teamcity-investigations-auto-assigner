@@ -1,10 +1,9 @@
 # TeamCity Investigations Auto-Assigner
-=======================================
 
 ## General Info
-| Vendor | JetBrains |
-| License | [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0) |
-| Type | free, open-source |
+* Vendor: JetBrains
+* License: [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0)
+* Plugin type: free, open-source
 
 ## Plugin Description
 Assigns investigations automatically when it is clear who is responsible for the failure.
@@ -21,7 +20,7 @@ Working prototype is implemented.
 Has no settings yet, so cannot be disabled for some projects.
 
 ## Download
-[http://teamcity.jetbrains.com/viewLog.html?buildId=lastSuccessful&buildTypeId=TeamCityPluginsByJetBrains_InvestigationsAutoAssigner_BuildAgainstTeamCity81x&tab=artifacts]
+http://teamcity.jetbrains.com/viewLog.html?buildId=lastSuccessful&buildTypeId=TeamCityPluginsByJetBrains_InvestigationsAutoAssigner_BuildAgainstTeamCity81x&tab=artifacts
 
 ## TeamCity Versions Compatibility
 Compatible with TeamCity 8.1.2 and later.
