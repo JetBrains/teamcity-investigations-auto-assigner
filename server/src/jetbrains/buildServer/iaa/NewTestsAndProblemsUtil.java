@@ -39,45 +39,55 @@ import static com.intellij.openapi.util.text.StringUtil.join;
  *         Date: 10.04.2014
  */
 public class NewTestsAndProblemsUtil {
+  //region Private fields
   @NotNull private static final String REASON_PREFIX = "This investigation was assigned automatically by TeamCity since ";
 
+  //endregion
   public static Pair<SUser, String> findResponsibleUser(@NotNull final SBuild build, @Nullable final String problemText) {
     // todo if problem is a test, that already ran before in some build and was green there, should get committers since that build
     final SelectPrevBuildPolicy selectPrevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
 
     final Set<SUser> committers = build.getCommitters(selectPrevBuildPolicy).getUsers();
-    if (committers.isEmpty()) return null;
+    if (committers.isEmpty())
+      return null;
 
     if (committers.size() == 1) {
       return Pair.create(committers.iterator().next(), REASON_PREFIX + "you were the only committer to the following build: " + build.getFullName() + " #" + build.getBuildNumber());
     }
 
-    if (problemText == null) return null;
+    if (problemText == null)
+      return null;
 
     final BuildPromotion buildPromotion = build.getBuildPromotion();
-    if (!(buildPromotion instanceof BuildPromotionEx)) return null;
+    if (!(buildPromotion instanceof BuildPromotionEx))
+      return null;
 
     SUser badUser = null;
     String badFile = null;
 
     for (ChangeDescriptor change : ((BuildPromotionEx) buildPromotion).getDetectedChanges(selectPrevBuildPolicy, true)) {
       final SVcsModification vcsChange = change.getRelatedVcsChange();
-      if (vcsChange == null) continue;
+      if (vcsChange == null)
+        continue;
 
       final String changeBadFile = findBadFile(vcsChange, problemText);
-      if (changeBadFile == null) continue;
+      if (changeBadFile == null)
+        continue;
 
       final Collection<SUser> changeCommitters = vcsChange.getCommitters();
-      if (changeCommitters.size() != 1) return null;
+      if (changeCommitters.size() != 1)
+        return null;
 
       final SUser changeBadUser = changeCommitters.iterator().next();
-      if (badUser != null && !badUser.equals(changeBadUser)) return null;
+      if (badUser != null && !badUser.equals(changeBadUser))
+        return null;
 
       badUser = changeBadUser;
       badFile = changeBadFile;
     }
 
-    if (badUser == null) return null;
+    if (badUser == null)
+      return null;
 
     return Pair.create(badUser, REASON_PREFIX + "you changed the \"" + badFile + "\" file, which could probably cause this failure");
   }
@@ -95,8 +105,7 @@ public class NewTestsAndProblemsUtil {
     return null;
   }
 
-  @NotNull
-  private static List<String> getPatterns(@NotNull final String filePath) {
+  @NotNull private static List<String> getPatterns(@NotNull final String filePath) {
     final List<String> parts = new ArrayList<String>();
 
     parts.add(FileUtil.getNameWithoutExtension(new File(filePath)));
@@ -115,8 +124,7 @@ public class NewTestsAndProblemsUtil {
 
   // we do not use File#getParentFile() instead because we must not take current
   // working directory into account, i.e. getParentPath("abc") must return null
-  @Nullable
-  private static String getParentPath(@NotNull final String path) {
+  @Nullable private static String getParentPath(@NotNull final String path) {
     final int lastSlashPos = path.replace('\\', '/').lastIndexOf('/');
     return lastSlashPos == -1 ? null : path.substring(0, lastSlashPos);
   }

@@ -42,62 +42,12 @@ import static jetbrains.buildServer.serverSide.impl.problems.types.CompilationEr
  *         Date: 09.04.2014
  */
 public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProcessor {
+  //region Private fields
   @NotNull private final TestNameResponsibilityFacade myTestNameResponsibilityFacade;
   @NotNull private final BuildProblemResponsibilityFacade myBuildProblemResponsibilityFacade;
 
-  public NewTestsAndProblemsProcessorImpl(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade,
-                                          @NotNull final BuildProblemResponsibilityFacade buildProblemResponsibilityFacade) {
-    myTestNameResponsibilityFacade = testNameResponsibilityFacade;
-    myBuildProblemResponsibilityFacade = buildProblemResponsibilityFacade;
-  }
-
-  public void onTestFailed(@NotNull final SRunningBuild build, @NotNull final STestRun testRun) {
-    final SBuildType buildType = build.getBuildType();
-    if (buildType == null) return;
-
-    final STest test = testRun.getTest();
-    final SProject project = buildType.getProject();
-
-    if (testRun.isMuted() || testRun.isFixed() || !testRun.isNewFailure() || isInvestigated(test, project)) return;
-
-    final TestName testName = test.getName();
-    final String text = testName.getAsString() + " " + testRun.getFullText();
-
-    final Pair<SUser, String> info = NewTestsAndProblemsUtil.findResponsibleUser(build, text);
-    if (info == null) return;
-
-    myTestNameResponsibilityFacade.setTestNameResponsibility(
-      testName,
-      project.getProjectId(),
-      ResponsibilityEntryFactory.createEntry(
-        testName, test.getTestNameId(), ResponsibilityEntry.State.TAKEN, info.getFirst(), null,
-        Dates.now(), info.getSecond(), project, ResponsibilityEntry.RemoveMethod.WHEN_FIXED
-      )
-    );
-  }
-
-  public void onBuildProblemOccurred(@NotNull final SBuild build, @NotNull final BuildProblemImpl problem) {
-    final SBuildType buildType = build.getBuildType();
-    if (buildType == null) return;
-
-    final SProject project = buildType.getProject();
-    if (problem.isMuted() || !isNew(problem) || isInvestigated(problem, project)) return;
-
-    final String text = getBuildProblemText(problem, build);
-
-    final Pair<SUser, String> info = NewTestsAndProblemsUtil.findResponsibleUser(build, text);
-    if (info == null) return;
-
-    myBuildProblemResponsibilityFacade.setBuildProblemResponsibility(
-      problem,
-      project.getProjectId(),
-      new BuildProblemResponsibilityEntryImpl(
-        ResponsibilityEntry.State.TAKEN, info.getFirst(), null, Dates.now(), info.getSecond(),
-        ResponsibilityEntry.RemoveMethod.WHEN_FIXED, project, problem.getId()
-      )
-    );
-  }
-
+  //endregion
+  //region Private methods
   private static String getBuildProblemText(@NotNull final BuildProblem problem, @NotNull final SBuild build) {
     String problemSpecificText = "";
 
@@ -113,15 +63,14 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     return problemSpecificText + " " + problem.getBuildProblemDescription();
   }
 
-  @Nullable
-  private static Integer getCompileBlockIndex(@NotNull final BuildProblem problem) {
+  @Nullable private static Integer getCompileBlockIndex(@NotNull final BuildProblem problem) {
     final String compilationBlockIndex = problem.getBuildProblemData().getAdditionalData();
-    if (compilationBlockIndex == null) return null;
+    if (compilationBlockIndex == null)
+      return null;
 
     try {
       return Integer.parseInt(StringUtil.stringToProperties(compilationBlockIndex, StringUtil.STD_ESCAPER2).get(COMPILE_BLOCK_INDEX));
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       return null;
     }
   }
@@ -133,14 +82,16 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
 
   private static boolean isInvestigated(@NotNull final STest test, @NotNull final SProject project) {
     for (TestNameResponsibilityEntry entry : test.getAllResponsibilities()) {
-      if (isActiveOrFixed(entry) && isSameOrParent(entry.getProject(), project)) return true;
+      if (isActiveOrFixed(entry) && isSameOrParent(entry.getProject(), project))
+        return true;
     }
     return false;
   }
 
   private static boolean isInvestigated(@NotNull final BuildProblem problem, @NotNull final SProject project) {
     for (BuildProblemResponsibilityEntry entry : problem.getAllResponsibilities()) {
-      if (isActiveOrFixed(entry) && isSameOrParent(entry.getProject(), project)) return true;
+      if (isActiveOrFixed(entry) && isSameOrParent(entry.getProject(), project))
+        return true;
     }
     return false;
   }
@@ -150,9 +101,57 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     return state.isActive() || state.isFixed();
   }
 
-  public static boolean isSameOrParent(@NotNull final BuildProject parent, @NotNull final BuildProject project) {
-    if (parent.getProjectId().equals(project.getProjectId())) return true;
+  private static boolean isSameOrParent(@NotNull final BuildProject parent, @NotNull final BuildProject project) {
+    if (parent.getProjectId().equals(project.getProjectId()))
+      return true;
     final BuildProject parentProject = project.getParentProject();
     return parentProject != null && isSameOrParent(parent, parentProject);
   }
+
+  //endregion
+  public NewTestsAndProblemsProcessorImpl(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade, @NotNull final BuildProblemResponsibilityFacade buildProblemResponsibilityFacade) {
+    myTestNameResponsibilityFacade = testNameResponsibilityFacade;
+    myBuildProblemResponsibilityFacade = buildProblemResponsibilityFacade;
+  }
+
+  public void onTestFailed(@NotNull final SRunningBuild build, @NotNull final STestRun testRun) {
+    final SBuildType buildType = build.getBuildType();
+    if (buildType == null)
+      return;
+
+    final STest test = testRun.getTest();
+    final SProject project = buildType.getProject();
+
+    if (testRun.isMuted() || testRun.isFixed() || !testRun.isNewFailure() || isInvestigated(test, project))
+      return;
+
+    final TestName testName = test.getName();
+    final String text = testName.getAsString() + " " + testRun.getFullText();
+
+    final Pair<SUser, String> info = NewTestsAndProblemsUtil.findResponsibleUser(build, text);
+    if (info == null)
+      return;
+
+    myTestNameResponsibilityFacade.setTestNameResponsibility(testName, project.getProjectId(), ResponsibilityEntryFactory.createEntry(testName, test.getTestNameId(), ResponsibilityEntry.State.TAKEN, info.getFirst(), null, Dates.now(), info.getSecond(), project, ResponsibilityEntry.RemoveMethod.WHEN_FIXED));
+  }
+
+  public void onBuildProblemOccurred(@NotNull final SBuild build, @NotNull final BuildProblemImpl problem) {
+    final SBuildType buildType = build.getBuildType();
+    if (buildType == null)
+      return;
+
+    final SProject project = buildType.getProject();
+    if (problem.isMuted() || !isNew(problem) || isInvestigated(problem, project))
+      return;
+
+    final String text = getBuildProblemText(problem, build);
+
+    final Pair<SUser, String> info = NewTestsAndProblemsUtil.findResponsibleUser(build, text);
+    if (info == null)
+      return;
+
+    myBuildProblemResponsibilityFacade.setBuildProblemResponsibility(problem, project.getProjectId(), new BuildProblemResponsibilityEntryImpl(ResponsibilityEntry.State.TAKEN, info.getFirst(), null, Dates.now(), info.getSecond(), ResponsibilityEntry.RemoveMethod.WHEN_FIXED, project, problem.getId()));
+  }
+
+
 }
