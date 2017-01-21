@@ -13,11 +13,13 @@ So far uses two heuristics:
 * If user is the only committer to the build, he/she is responsible.
 * If user is the only one who changed the files, whose names appear in test or build problem error text, he/she is responsible.
 
+Can be configured using *'Auto assign new tests and build problems'* buildFeature.
 ## Status
 Working prototype is implemented.
 
 ## Known Issues
-Has no settings yet, so cannot be disabled for some projects.
+
+Has no settings per project yet, so must be enabled/disabled for each single build configuration.
 
 ## Download
 http://teamcity.jetbrains.com/viewLog.html?buildId=lastSuccessful&buildTypeId=TeamCityPluginsByJetBrains_InvestigationsAutoAssigner_BuildAgainstTeamCity81x&tab=artifacts

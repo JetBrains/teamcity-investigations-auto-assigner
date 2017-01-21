@@ -42,6 +42,9 @@ public class NewTestsAndProblemsDispatcher {
     }
 
     public void testFailed(@NotNull SRunningBuild build, @NotNull String testName) {
+
+      if (!AutoAssignNewTestsAndProblemsFeature.isAutoAssignTestEnabledFor(build))
+        return;
       final List<STestRun> testRuns = build.getFullStatistics().findTestsBy(new TestName(testName));
       if (!testRuns.isEmpty()) {
         onTestFailed(build, testRuns.get(testRuns.size() - 1));
@@ -54,6 +57,8 @@ public class NewTestsAndProblemsDispatcher {
   private class BuildServerAdapter extends jetbrains.buildServer.serverSide.BuildServerAdapter {
     @Override
     public void buildProblemsChanged(@NotNull SBuild build, @NotNull List<BuildProblemData> before, @NotNull List<BuildProblemData> after) {
+      if (!AutoAssignNewTestsAndProblemsFeature.isAutoAssignProblemsEnabledFor(build))
+        return;
       if (!(build instanceof BuildEx))
         return;
       final List<BuildProblemData> newProblems = new ArrayList<BuildProblemData>(after);
