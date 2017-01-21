@@ -17,6 +17,7 @@
 package jetbrains.buildServer.iaa;
 
 import jetbrains.buildServer.BuildProblemData;
+import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
@@ -64,7 +65,8 @@ public class NewTestsAndProblemsDispatcher {
       final List<BuildProblemData> newProblems = new ArrayList<BuildProblemData>(after);
       newProblems.removeAll(before);
       for (BuildProblemData newProblem : newProblems) {
-        onBuildProblemOccurred((BuildEx) build, newProblem);
+        if (!newProblem.getType().equals(BuildProblemTypes.TC_FAILED_TESTS_TYPE))
+          onBuildProblemOccurred((BuildEx) build, newProblem);
       }
     }
 
