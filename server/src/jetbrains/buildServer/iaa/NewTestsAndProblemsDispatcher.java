@@ -47,14 +47,20 @@ public class NewTestsAndProblemsDispatcher {
     myQueue = ExecutorsFactory.newExecutor("Investigator-Auto-Assigner-");
 
     buildTestsEventDispatcher.addListener(new BuildTestsListener() {
-      public void testPassed(@NotNull SRunningBuild sRunningBuild, @NotNull String s) {}
-      public void testIgnored(@NotNull SRunningBuild sRunningBuild, @NotNull String s) {}
+      public void testPassed(@NotNull SRunningBuild sRunningBuild, @NotNull List<Long> list) {
 
-      public void testFailed(@NotNull SRunningBuild build, @NotNull String testName) {
-        final List<STestRun> testRuns = build.getFullStatistics().findTestsBy(new TestName(testName));
-        if (!testRuns.isEmpty()) {
-          onTestFailed(build, testRuns.get(testRuns.size() - 1));
+      }
+
+      public void testFailed(@NotNull SRunningBuild sRunningBuild, @NotNull List<Long> list) {
+        BuildStatistics fullStatistics = sRunningBuild.getFullStatistics();
+        final List<STestRun> testRuns = fullStatistics.getFailedTests();
+       for (STestRun testRun : testRuns) {
+          onTestFailed(sRunningBuild, testRun);
         }
+      }
+
+      public void testIgnored(@NotNull SRunningBuild sRunningBuild, @NotNull List<Long> list) {
+
       }
     });
 
