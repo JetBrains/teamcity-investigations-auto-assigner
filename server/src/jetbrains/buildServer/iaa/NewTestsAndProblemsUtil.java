@@ -46,6 +46,7 @@ public class NewTestsAndProblemsUtil {
     final SelectPrevBuildPolicy selectPrevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
 
     final Set<SUser> committers = build.getCommitters(selectPrevBuildPolicy).getUsers();
+    RemoveTfsServiceFromCommitters(committers);
     if (committers.isEmpty()) return null;
 
     final SUser firstComitter = committers.iterator().next();
@@ -58,6 +59,10 @@ public class NewTestsAndProblemsUtil {
       return userThatMadeBadChanges;
     else
       return Pair.create(firstComitter, REASON_PREFIX + "you were the first committer to the following build: " + build.getFullName() + " #" + build.getBuildNumber());
+  }
+
+  private static void RemoveTfsServiceFromCommitters(Set<SUser> committers) {
+    committers.removeIf(r -> r.getUsername().contains("tfsservice")); //TFS Service completes pull requests for us :(
   }
 
   private static Pair<SUser, String> findUserThatMadeBadChanges(@NotNull SBuild build, @Nullable String problemText, SelectPrevBuildPolicy selectPrevBuildPolicy) {
