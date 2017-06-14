@@ -15,7 +15,7 @@
  */
 
 package jetbrains.buildServer.iaa;
-
+// Added comment
 import jetbrains.buildServer.serverSide.BuildFeature;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SBuildFeatureDescriptor;
