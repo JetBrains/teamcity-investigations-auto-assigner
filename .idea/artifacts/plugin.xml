@@ -11,6 +11,9 @@
       <element id="directory" name="server">
         <element id="archive" name="investigations-auto-assigner.jar">
           <element id="module-output" name="server" />
+          <element id="directory" name="buildServerResources">
+            <element id="dir-copy" path="$PROJECT_DIR$/server/resource/buildServerResources" />
+          </element>
         </element>
       </element>
       <element id="file-copy" path="$PROJECT_DIR$/server/teamcity-server-plugin.xml" output-file-name="teamcity-plugin.xml" />

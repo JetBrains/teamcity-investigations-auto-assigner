@@ -17,10 +17,10 @@
 package jetbrains.buildServer.iaa;
 
 import jetbrains.buildServer.BuildProblemData;
+import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
-import jetbrains.buildServer.serverSide.stat.BuildTestsListener;
 import jetbrains.buildServer.tests.TestName;
 import jetbrains.buildServer.util.executors.ExecutorsFactory;
 import org.jetbrains.annotations.NotNull;
@@ -34,48 +34,55 @@ import java.util.concurrent.ExecutorService;
  *         Date: 09.04.2014
  */
 public class NewTestsAndProblemsDispatcher {
+  // region Inner class BuildTestListener
+  private class BuildTestsListener implements jetbrains.buildServer.serverSide.stat.BuildTestsListener {
+    public void testPassed(@NotNull SRunningBuild sRunningBuild, @NotNull String s) {
+    }
+
+    public void testIgnored(@NotNull SRunningBuild sRunningBuild, @NotNull String s) {
+    }
+
+    public void testFailed(@NotNull SRunningBuild build, @NotNull String testName) {
+
+      if (!AutoAssignNewTestsAndProblemsFeature.isAutoAssignTestEnabledFor(build))
+        return;
+      final List<STestRun> testRuns = build.getFullStatistics().findTestsBy(new TestName(testName));
+      if (!testRuns.isEmpty()) {
+        onTestFailed(build, testRuns.get(testRuns.size() - 1));
+      }
+    }
+  }
+  //endregion
+  //region Inner class BuildServerAdapter
+
+  private class BuildServerAdapter extends jetbrains.buildServer.serverSide.BuildServerAdapter {
+    @Override
+    public void buildProblemsChanged(@NotNull SBuild build, @NotNull List<BuildProblemData> before, @NotNull List<BuildProblemData> after) {
+      if (!AutoAssignNewTestsAndProblemsFeature.isAutoAssignProblemsEnabledFor(build))
+        return;
+      if (!(build instanceof BuildEx))
+        return;
+      final List<BuildProblemData> newProblems = new ArrayList<BuildProblemData>(after);
+      newProblems.removeAll(before);
+      for (BuildProblemData newProblem : newProblems) {
+        if (!newProblem.getType().equals(BuildProblemTypes.TC_FAILED_TESTS_TYPE))
+          onBuildProblemOccurred((BuildEx) build, newProblem);
+      }
+    }
+
+    @Override public void serverShutdown() {
+      myQueue.shutdown();
+    }
+  }
+
+  //endregion
+  // region Private fields
   @NotNull private final NewTestsAndProblemsProcessor myProcessor;
   @NotNull private final BuildsManager myBuildsManager;
   @NotNull private final ExecutorService myQueue;
 
-  public NewTestsAndProblemsDispatcher(@NotNull final BuildTestsEventDispatcher buildTestsEventDispatcher,
-                                       @NotNull final BuildServerListenerEventDispatcher buildServerListenerEventDispatcher,
-                                       @NotNull final NewTestsAndProblemsProcessor processor,
-                                       @NotNull final BuildsManager buildsManager) {
-    myProcessor = processor;
-    myBuildsManager = buildsManager;
-    myQueue = ExecutorsFactory.newExecutor("Investigator-Auto-Assigner-");
-
-    buildTestsEventDispatcher.addListener(new BuildTestsListener() {
-      public void testPassed(@NotNull SRunningBuild sRunningBuild, @NotNull String s) {}
-      public void testIgnored(@NotNull SRunningBuild sRunningBuild, @NotNull String s) {}
-
-      public void testFailed(@NotNull SRunningBuild build, @NotNull String testName) {
-        final List<STestRun> testRuns = build.getFullStatistics().findTestsBy(new TestName(testName));
-        if (!testRuns.isEmpty()) {
-          onTestFailed(build, testRuns.get(testRuns.size() - 1));
-        }
-      }
-    });
-
-    buildServerListenerEventDispatcher.addListener(new BuildServerAdapter() {
-      @Override
-      public void buildProblemsChanged(@NotNull SBuild build, @NotNull List<BuildProblemData> before, @NotNull List<BuildProblemData> after) {
-        if (!(build instanceof BuildEx)) return;
-        final List<BuildProblemData> newProblems = new ArrayList<BuildProblemData>(after);
-        newProblems.removeAll(before);
-        for (BuildProblemData newProblem : newProblems) {
-          onBuildProblemOccurred((BuildEx) build, newProblem);
-        }
-      }
-
-      @Override
-      public void serverShutdown() {
-        myQueue.shutdown();
-      }
-    });
-  }
-
+  //endregion
+  //region Private methods
   private void onTestFailed(@NotNull final SRunningBuild build, @NotNull final STestRun testRun) {
     myQueue.submit(new Runnable() {
       public void run() {
@@ -100,4 +107,17 @@ public class NewTestsAndProblemsDispatcher {
       }
     });
   }
+
+  //endregion
+  public NewTestsAndProblemsDispatcher(@NotNull final BuildTestsEventDispatcher buildTestsEventDispatcher, @NotNull final BuildServerListenerEventDispatcher buildServerListenerEventDispatcher, @NotNull final NewTestsAndProblemsProcessor processor, @NotNull final BuildsManager buildsManager) {
+    myProcessor = processor;
+    myBuildsManager = buildsManager;
+    myQueue = ExecutorsFactory.newExecutor("Investigator-Auto-Assigner-");
+
+    buildTestsEventDispatcher.addListener(new BuildTestsListener());
+
+    buildServerListenerEventDispatcher.addListener(new BuildServerAdapter());
+  }
+
+
 }
