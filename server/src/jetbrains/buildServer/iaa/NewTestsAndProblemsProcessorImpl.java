@@ -22,7 +22,7 @@ import jetbrains.buildServer.BuildProject;
 import jetbrains.buildServer.responsibility.*;
 import jetbrains.buildServer.responsibility.impl.BuildProblemResponsibilityEntryImpl;
 import jetbrains.buildServer.serverSide.*;
-import jetbrains.buildServer.serverSide.buildLog.BuildLogReaderEx;
+import jetbrains.buildServer.serverSide.buildLog.LogMessage;
 import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import jetbrains.buildServer.serverSide.problems.BuildLogCompileErrorCollector;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
@@ -99,14 +99,16 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
   }
 
   private static String getBuildProblemText(@NotNull final BuildProblem problem, @NotNull final SBuild build) {
-    String problemSpecificText = "";
+    StringBuilder problemSpecificText = new StringBuilder();
 
     // todo make an extension point here
     if (problem.getBuildProblemData().getType().equals(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE)) {
       final Integer compileBlockIndex = getCompileBlockIndex(problem);
       if (compileBlockIndex != null) {
-        final List<String> errors = new BuildLogCompileErrorCollector().collectCompileErrors(compileBlockIndex, (BuildLogReaderEx) build.getBuildLog());
-        problemSpecificText = StringUtil.join(errors, " ");
+        final List<LogMessage> errors = new BuildLogCompileErrorCollector().collectCompileErrors(compileBlockIndex, (SBuild) build.getBuildLog());
+        for (LogMessage error: errors) {
+          problemSpecificText.append(error.getText()).append(" ");
+        }
       }
     }
 
@@ -150,7 +152,7 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     return state.isActive() || state.isFixed();
   }
 
-  public static boolean isSameOrParent(@NotNull final BuildProject parent, @NotNull final BuildProject project) {
+  private static boolean isSameOrParent(@NotNull final BuildProject parent, @NotNull final BuildProject project) {
     if (parent.getProjectId().equals(project.getProjectId())) return true;
     final BuildProject parentProject = project.getParentProject();
     return parentProject != null && isSameOrParent(parent, parentProject);

@@ -21,7 +21,6 @@ import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.serverSide.stat.BuildTestsListener;
-import jetbrains.buildServer.tests.TestName;
 import jetbrains.buildServer.util.executors.ExecutorsFactory;
 import org.jetbrains.annotations.NotNull;
 
@@ -35,26 +34,31 @@ import java.util.concurrent.ExecutorService;
  */
 public class NewTestsAndProblemsDispatcher {
   @NotNull private final NewTestsAndProblemsProcessor myProcessor;
-  @NotNull private final BuildsManager myBuildsManager;
   @NotNull private final ExecutorService myQueue;
 
   public NewTestsAndProblemsDispatcher(@NotNull final BuildTestsEventDispatcher buildTestsEventDispatcher,
                                        @NotNull final BuildServerListenerEventDispatcher buildServerListenerEventDispatcher,
-                                       @NotNull final NewTestsAndProblemsProcessor processor,
-                                       @NotNull final BuildsManager buildsManager) {
+                                       @NotNull final NewTestsAndProblemsProcessor processor) {
     myProcessor = processor;
-    myBuildsManager = buildsManager;
     myQueue = ExecutorsFactory.newExecutor("Investigator-Auto-Assigner-");
 
     buildTestsEventDispatcher.addListener(new BuildTestsListener() {
-      public void testPassed(@NotNull SRunningBuild sRunningBuild, @NotNull String s) {}
-      public void testIgnored(@NotNull SRunningBuild sRunningBuild, @NotNull String s) {}
+      public void testPassed(@NotNull SRunningBuild sRunningBuild, @NotNull List<Long> list) {
 
-      public void testFailed(@NotNull SRunningBuild build, @NotNull String testName) {
-        final List<STestRun> testRuns = build.getFullStatistics().findTestsBy(new TestName(testName));
+      }
+
+      public void testFailed(@NotNull SRunningBuild build, @NotNull List<Long> testNameIds) {
+        List<STestRun> testRuns = new ArrayList<>();
+        for (Long testNameId: testNameIds) {
+          testRuns.add(build.getFullStatistics().findTestByTestNameId(testNameId));
+        }
         if (!testRuns.isEmpty()) {
           onTestFailed(build, testRuns.get(testRuns.size() - 1));
         }
+      }
+
+      public void testIgnored(@NotNull SRunningBuild sRunningBuild, @NotNull List<Long> list) {
+
       }
     });
 
@@ -62,7 +66,7 @@ public class NewTestsAndProblemsDispatcher {
       @Override
       public void buildProblemsChanged(@NotNull SBuild build, @NotNull List<BuildProblemData> before, @NotNull List<BuildProblemData> after) {
         if (!(build instanceof BuildEx)) return;
-        final List<BuildProblemData> newProblems = new ArrayList<BuildProblemData>(after);
+        final List<BuildProblemData> newProblems = new ArrayList<>(after);
         newProblems.removeAll(before);
         for (BuildProblemData newProblem : newProblems) {
           onBuildProblemOccurred((BuildEx) build, newProblem);
@@ -77,25 +81,19 @@ public class NewTestsAndProblemsDispatcher {
   }
 
   private void onTestFailed(@NotNull final SRunningBuild build, @NotNull final STestRun testRun) {
-    myQueue.submit(new Runnable() {
-      public void run() {
-        myProcessor.onTestFailed(build, testRun);
-      }
-    });
+    myQueue.submit(() -> myProcessor.onTestFailed(build, testRun));
   }
 
   private void onBuildProblemOccurred(@NotNull final BuildEx build, @NotNull final BuildProblemData problem) {
-    myQueue.submit(new Runnable() {
-      public void run() {
-        final List<BuildProblem> buildProblems = build.getBuildProblems();
-        BuildProblemImpl.fillIsNew(buildProblems, myBuildsManager, build); // workaround
-        for (BuildProblem buildProblem : buildProblems) {
-          if (buildProblem.getBuildProblemData().equals(problem)) {
-            if (buildProblem instanceof BuildProblemImpl) {
-              myProcessor.onBuildProblemOccurred(build, (BuildProblemImpl) buildProblem);
-            }
-            break;
+    myQueue.submit(() -> {
+      final List<BuildProblem> buildProblems = build.getBuildProblems();
+      BuildProblemImpl.fillIsNew(build.getBuildPromotion(), buildProblems);
+      for (BuildProblem buildProblem : buildProblems) {
+        if (buildProblem.getBuildProblemData().equals(problem)) {
+          if (buildProblem instanceof BuildProblemImpl) {
+            myProcessor.onBuildProblemOccurred(build, (BuildProblemImpl) buildProblem);
           }
+          break;
         }
       }
     });
