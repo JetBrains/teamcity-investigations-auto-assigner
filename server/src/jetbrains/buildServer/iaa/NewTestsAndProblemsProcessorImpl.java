@@ -17,6 +17,7 @@
 package jetbrains.buildServer.iaa;
 
 import com.intellij.openapi.util.Pair;
+import java.util.List;
 import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.BuildProject;
 import jetbrains.buildServer.responsibility.*;
@@ -33,14 +34,8 @@ import jetbrains.buildServer.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
 import static jetbrains.buildServer.serverSide.impl.problems.types.CompilationErrorTypeDetailsProvider.COMPILE_BLOCK_INDEX;
 
-/**
- * @author Maxim.Manuylov
- *         Date: 09.04.2014
- */
 public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProcessor {
   @NotNull private final TestNameResponsibilityFacade myTestNameResponsibilityFacade;
   @NotNull private final BuildProblemResponsibilityFacade myBuildProblemResponsibilityFacade;
@@ -105,8 +100,8 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     if (problem.getBuildProblemData().getType().equals(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE)) {
       final Integer compileBlockIndex = getCompileBlockIndex(problem);
       if (compileBlockIndex != null) {
-        final List<LogMessage> errors = new BuildLogCompileErrorCollector().collectCompileErrors(compileBlockIndex, (SBuild) build.getBuildLog());
-        for (LogMessage error: errors) {
+        final List<LogMessage> errors = new BuildLogCompileErrorCollector().collectCompileErrors(compileBlockIndex, (SBuild)build.getBuildLog());
+        for (LogMessage error : errors) {
           problemSpecificText.append(error.getText()).append(" ");
         }
       }
@@ -122,8 +117,7 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
 
     try {
       return Integer.parseInt(StringUtil.stringToProperties(compilationBlockIndex, StringUtil.STD_ESCAPER2).get(COMPILE_BLOCK_INDEX));
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       return null;
     }
   }

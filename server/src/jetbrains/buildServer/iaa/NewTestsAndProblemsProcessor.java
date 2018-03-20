@@ -22,10 +22,6 @@ import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * @author Maxim.Manuylov
- *         Date: 10.04.2014
- */
 public interface NewTestsAndProblemsProcessor {
   void onTestFailed(@NotNull SRunningBuild build, @NotNull STestRun testRun);
 

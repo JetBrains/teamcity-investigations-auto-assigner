@@ -16,6 +16,9 @@
 
 package jetbrains.buildServer.iaa;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
 import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
@@ -24,14 +27,6 @@ import jetbrains.buildServer.serverSide.stat.BuildTestsListener;
 import jetbrains.buildServer.util.executors.ExecutorsFactory;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-
-/**
- * @author Maxim.Manuylov
- *         Date: 09.04.2014
- */
 public class NewTestsAndProblemsDispatcher {
   @NotNull private final NewTestsAndProblemsProcessor myProcessor;
   @NotNull private final ExecutorService myQueue;
@@ -49,7 +44,7 @@ public class NewTestsAndProblemsDispatcher {
 
       public void testFailed(@NotNull SRunningBuild build, @NotNull List<Long> testNameIds) {
         List<STestRun> testRuns = new ArrayList<>();
-        for (Long testNameId: testNameIds) {
+        for (Long testNameId : testNameIds) {
           testRuns.add(build.getFullStatistics().findTestByTestNameId(testNameId));
         }
         if (!testRuns.isEmpty()) {
@@ -69,7 +64,7 @@ public class NewTestsAndProblemsDispatcher {
         final List<BuildProblemData> newProblems = new ArrayList<>(after);
         newProblems.removeAll(before);
         for (BuildProblemData newProblem : newProblems) {
-          onBuildProblemOccurred((BuildEx) build, newProblem);
+          onBuildProblemOccurred((BuildEx)build, newProblem);
         }
       }
 
@@ -91,7 +86,7 @@ public class NewTestsAndProblemsDispatcher {
       for (BuildProblem buildProblem : buildProblems) {
         if (buildProblem.getBuildProblemData().equals(problem)) {
           if (buildProblem instanceof BuildProblemImpl) {
-            myProcessor.onBuildProblemOccurred(build, (BuildProblemImpl) buildProblem);
+            myProcessor.onBuildProblemOccurred(build, (BuildProblemImpl)buildProblem);
           }
           break;
         }
