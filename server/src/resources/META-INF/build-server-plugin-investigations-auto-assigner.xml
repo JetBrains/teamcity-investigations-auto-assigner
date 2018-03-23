@@ -9,12 +9,11 @@
   <!-- declare all beans you like Spring Dependency Injection to create -->
   <!-- see http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html -->
 
-  <!--<bean class="jetbrains.buildServer.iaa.NewTestsAndProblemsDispatcher">-->
-    <!--<constructor-arg index="0" ref="buildTestsEventDispatcher"/>-->
-  <!--</bean>-->
-
-  <!--<bean class="jetbrains.buildServer.iaa.NewTestsAndProblemsProcessorImpl"/>-->
+  <bean class="jetbrains.buildServer.iaa.NewTestsAndProblemsDispatcher">
+    <constructor-arg index="0" ref="buildTestsEventDispatcher"/>
+  </bean>
 
   <bean class="jetbrains.buildServer.iaa.AutoAssignerBuildFeature"/>
+  <bean class="jetbrains.buildServer.iaa.NewTestsAndProblemsProcessorImpl"/>
   <bean class="jetbrains.buildServer.iaa.AutoAssignerBean"/>
 </beans>

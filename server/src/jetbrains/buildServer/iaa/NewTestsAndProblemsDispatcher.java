@@ -17,9 +17,11 @@
 package jetbrains.buildServer.iaa;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import jetbrains.buildServer.BuildProblemData;
+import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
@@ -43,6 +45,8 @@ public class NewTestsAndProblemsDispatcher {
       }
 
       public void testFailed(@NotNull SRunningBuild build, @NotNull List<Long> testNameIds) {
+        if (checkDisabled(build)) return;
+
         List<STestRun> testRuns = new ArrayList<>();
         for (Long testNameId : testNameIds) {
           testRuns.add(build.getFullStatistics().findTestByTestNameId(testNameId));
@@ -52,6 +56,8 @@ public class NewTestsAndProblemsDispatcher {
         }
       }
 
+
+
       public void testIgnored(@NotNull SRunningBuild sRunningBuild, @NotNull List<Long> list) {
 
       }
@@ -59,12 +65,13 @@ public class NewTestsAndProblemsDispatcher {
 
     buildServerListenerEventDispatcher.addListener(new BuildServerAdapter() {
       @Override
-      public void buildProblemsChanged(@NotNull SBuild build, @NotNull List<BuildProblemData> before, @NotNull List<BuildProblemData> after) {
-        if (!(build instanceof BuildEx)) return;
+      public void buildProblemsChanged(@NotNull SBuild sBuild, @NotNull List<BuildProblemData> before, @NotNull List<BuildProblemData> after) {
+        if (checkDisabled(sBuild) || !(sBuild instanceof BuildEx)) return;
+
         final List<BuildProblemData> newProblems = new ArrayList<>(after);
         newProblems.removeAll(before);
         for (BuildProblemData newProblem : newProblems) {
-          onBuildProblemOccurred((BuildEx)build, newProblem);
+          onBuildProblemOccurred((BuildEx)sBuild, newProblem);
         }
       }
 
@@ -92,5 +99,15 @@ public class NewTestsAndProblemsDispatcher {
         }
       }
     });
+  }
+
+  private static boolean checkDisabled(@NotNull SBuild build) {
+    boolean isDisabled = true;
+    Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
+    if (!descriptors.isEmpty()) {
+      final SBuildFeatureDescriptor sBuildFeature = (SBuildFeatureDescriptor)descriptors.toArray()[0];
+      isDisabled = !Boolean.valueOf(sBuildFeature.getParameters().getOrDefault(Constants.IS_ENABLED, "false"));
+    }
+    return isDisabled;
   }
 }
