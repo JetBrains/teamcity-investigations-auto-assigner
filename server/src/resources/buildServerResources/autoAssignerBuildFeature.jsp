@@ -30,6 +30,5 @@
   </td>
   <td>
     <props:checkboxProperty name="${bean.isEnabledKey}" checked="false"/>
-    <span class="smallNote">Enables the investigations auto assigner.</span>
   </td>
 </tr>
