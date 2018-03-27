@@ -71,17 +71,6 @@ test {
   useTestNG()
 }
 
-sourceSets {
-  main {
-    java {
-      srcDirs = ['server/src']
-    }
-    resources {
-//      srcDirs = ['server/src/resources']
-    }
-  }
-}
-
 teamcity {
   version = TeamCityVersion
 
