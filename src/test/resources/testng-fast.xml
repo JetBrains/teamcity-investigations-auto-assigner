@@ -1,0 +1,9 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="investigations-auto-assigner tests">
+  <test name="investigations-auto-assigner tests">
+    <classes>
+      <class name="SimpleTest"/>
+    </classes>
+  </test>
+</suite>
+

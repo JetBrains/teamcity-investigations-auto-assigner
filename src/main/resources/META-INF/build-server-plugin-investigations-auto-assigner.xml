@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--suppress AutowiredDependenciesInspection -->
+<beans
+        xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
+        default-autowire="constructor"
+        >
+  <!-- declare all beans you like Spring Dependency Injection to create -->
+  <!-- see http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html -->
+
+  <bean class="jetbrains.buildServer.iaa.NewTestsAndProblemsDispatcher">
+    <constructor-arg index="0" ref="buildTestsEventDispatcher"/>
+  </bean>
+
+  <bean class="jetbrains.buildServer.iaa.AutoAssignerBuildFeature"/>
+  <bean class="jetbrains.buildServer.iaa.NewTestsAndProblemsProcessorImpl"/>
+  <bean class="jetbrains.buildServer.iaa.AutoAssignerBean"/>
+</beans>
