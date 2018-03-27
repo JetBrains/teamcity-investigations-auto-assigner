@@ -1,0 +1,146 @@
+buildscript {
+  repositories {
+    mavenCentral()
+    maven {
+      url "https://plugins.gradle.org/m2/"
+    }
+  }
+  dependencies {
+    classpath group: 'com.github.rodm', name: 'gradle-teamcity-plugin', version: '1.1'
+  }
+}
+
+apply plugin: 'java'
+apply plugin: 'com.github.rodm.teamcity-server'
+apply plugin: 'idea'
+
+group = 'jetbrains.buildServer.iaa'
+
+version = "$System.env.BUILD_NUMBER"
+
+if (version == null || version.length() == 0 || version == 'null') {
+  version = "SNAPSHOT"
+}
+
+ext {
+  teamcityDir = "$rootDir/servers/TeamCity-${TeamCityVersion}"
+  teamcityDataDir = "$rootDir/data/" + (
+          (TeamCityVersion ==~ /(\d+\.\d+).*/) ?
+          ((TeamCityVersion =~ /(\d+\.\d+).*/)[0][1])
+                                               : TeamCityVersion
+  )
+  teamcityJavaHome = System.properties['java.home']
+}
+
+if (TeamCityDir != null && TeamCityDir != "") {
+  ext.teamcityDir = TeamCityDir
+  ext.teamcityDataDir = "$teamcityDir/data"
+}
+
+// Remove repositories added by plugins
+project.plugins.withType(JavaPlugin) {
+  project.repositories.clear()
+}
+repositories {
+  maven { url "http://download.jetbrains.com/teamcity-repository" }
+  mavenCentral()
+  mavenLocal()
+}
+
+configurations {
+}
+
+dependencies {
+  provided(group: 'org.jetbrains.teamcity.internal', name: 'server', version: "${TeamCityVersion}")
+//  provided(group: 'org.jetbrains.teamcity', name: 'oauth', version: "${TeamCityVersion}")
+//  provided(group: 'org.jetbrains.teamcity', name: 'server-web-api', version: "${TeamCityVersion}")
+
+  testCompile 'org.assertj:assertj-core:2.2.0'
+
+  // For Server-side Integration tests
+  if (file("$teamcityDir").exists()) {
+    testCompile files("$teamcityDir/devPackage/tests/tests-integration.jar")
+    testCompile fileTree(dir: "$teamcityDir/webapps/ROOT/WEB-INF/lib/", include: '*.jar')
+  }
+}
+
+sourceCompatibility = "1.8"
+targetCompatibility = "1.8"
+
+test {
+  useTestNG()
+}
+
+sourceSets {
+  main {
+    java {
+      srcDirs = ['server/src']
+    }
+    resources {
+//      srcDirs = ['server/src/resources']
+    }
+  }
+  test {
+    java {
+      srcDirs = ['tests/src']
+    }
+    resources {
+//      srcDirs = ['tests/src/resources']
+    }
+  }
+}
+
+teamcity {
+  version = TeamCityVersion
+
+  server {
+    descriptor {
+      name = project.name
+      displayName = 'Investigations Auto-Assigner'
+      version = project.version
+      vendorName = 'JetBrains, s.r.o.'
+      vendorUrl = 'http://www.jetbrains.com/'
+//      description = ''
+
+      useSeparateClassloader = true
+    }
+
+    environments {
+      teamcityDev {
+        version = TeamCityVersion
+        homeDir = file(teamcityDir)
+        dataDir = file(teamcityDataDir)
+        javaHome = file(teamcityJavaHome)
+        serverOptions '-Xdebug'
+        serverOptions '-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5500'
+
+        serverOptions '-Dteamcity.development.mode=true'
+        serverOptions '-Dteamcity.development.shadowCopyClasses=true'
+      }
+
+    }
+  }
+
+}
+
+// Do not include version into plugin archive name
+project.tasks.getByName('serverPlugin').version = ''
+
+if (!file("$teamcityDir").exists()) {
+  logger.warn("No TeamCity installation found at '$teamcityDir', integration tests would be skipped");
+} else {
+  sourceSets {
+    test.java.srcDirs += 'src/test-integration/java'
+  }
+}
+
+idea {
+  module {
+    downloadJavadoc = false
+    downloadSources = true
+  }
+}
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '4.6'
+}
