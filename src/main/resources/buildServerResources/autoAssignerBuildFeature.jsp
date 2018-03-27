@@ -23,12 +23,3 @@
     </em>
   </td>
 </tr>
-
-<tr>
-  <td>
-    <label for="${bean.isEnabledKey}">Is Enabled:</label>
-  </td>
-  <td>
-    <props:checkboxProperty name="${bean.isEnabledKey}" checked="false"/>
-  </td>
-</tr>

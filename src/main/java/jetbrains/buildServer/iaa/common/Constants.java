@@ -20,7 +20,4 @@ public class Constants {
   // Plugin's ids
   public static final String BUILD_FEATURE_TYPE = "investigations-auto-assigner";
   public static final String BUILD_FEATURE_DISPLAY_NAME = "Investigations Auto Assigner";
-
-  // Parameter names
-  public static final String IS_ENABLED = "teamcity.iaa.isEnabled";
 }

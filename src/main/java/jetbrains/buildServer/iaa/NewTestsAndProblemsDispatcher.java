@@ -45,7 +45,7 @@ public class NewTestsAndProblemsDispatcher {
       }
 
       public void testFailed(@NotNull SRunningBuild build, @NotNull List<Long> testNameIds) {
-        if (checkDisabled(build)) return;
+        if (checkFeatureDisabled(build)) return;
 
         List<STestRun> testRuns = new ArrayList<>();
         for (Long testNameId : testNameIds) {
@@ -66,7 +66,7 @@ public class NewTestsAndProblemsDispatcher {
     buildServerListenerEventDispatcher.addListener(new BuildServerAdapter() {
       @Override
       public void buildProblemsChanged(@NotNull SBuild sBuild, @NotNull List<BuildProblemData> before, @NotNull List<BuildProblemData> after) {
-        if (checkDisabled(sBuild) || !(sBuild instanceof BuildEx)) return;
+        if (checkFeatureDisabled(sBuild) || !(sBuild instanceof BuildEx)) return;
 
         final List<BuildProblemData> newProblems = new ArrayList<>(after);
         newProblems.removeAll(before);
@@ -101,13 +101,9 @@ public class NewTestsAndProblemsDispatcher {
     });
   }
 
-  private static boolean checkDisabled(@NotNull SBuild build) {
-    boolean isDisabled = true;
+  private static boolean checkFeatureDisabled(@NotNull SBuild build) {
     Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
-    if (!descriptors.isEmpty()) {
-      final SBuildFeatureDescriptor sBuildFeature = (SBuildFeatureDescriptor)descriptors.toArray()[0];
-      isDisabled = !Boolean.valueOf(sBuildFeature.getParameters().getOrDefault(Constants.IS_ENABLED, "false"));
-    }
-    return isDisabled;
+
+    return descriptors.isEmpty();
   }
 }

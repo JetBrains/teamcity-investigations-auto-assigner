@@ -16,15 +16,7 @@
 
 package jetbrains.buildServer.iaa;
 
-import jetbrains.buildServer.iaa.common.Constants;
-import org.jetbrains.annotations.NotNull;
-
 public class AutoAssignerBean {
   public static final AutoAssignerBean Shared = new AutoAssignerBean();
-
-  @NotNull
-  public String getIsEnabledKey() {
-    return Constants.IS_ENABLED;
-  }
 
 }
