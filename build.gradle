@@ -52,8 +52,6 @@ configurations {
 
 dependencies {
   provided(group: 'org.jetbrains.teamcity.internal', name: 'server', version: "${TeamCityVersion}")
-//  provided(group: 'org.jetbrains.teamcity', name: 'oauth', version: "${TeamCityVersion}")
-//  provided(group: 'org.jetbrains.teamcity', name: 'server-web-api', version: "${TeamCityVersion}")
 
   testCompile 'org.assertj:assertj-core:2.2.0'
 
@@ -81,7 +79,7 @@ teamcity {
       version = project.version
       vendorName = 'JetBrains, s.r.o.'
       vendorUrl = 'http://www.jetbrains.com/'
-//      description = ''
+      description = 'Executes auto assigning investigations according to a set of rules.'
 
       useSeparateClassloader = true
     }
@@ -107,6 +105,7 @@ teamcity {
 // Do not include version into plugin archive name
 project.tasks.getByName('serverPlugin').version = ''
 
+// Magic for integration tests provided by VladRassokhin
 if (!file("$teamcityDir").exists()) {
   logger.warn("No TeamCity installation found at '$teamcityDir', integration tests would be skipped");
 } else {
