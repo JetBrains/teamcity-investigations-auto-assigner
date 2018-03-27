@@ -80,14 +80,6 @@ sourceSets {
 //      srcDirs = ['server/src/resources']
     }
   }
-  test {
-    java {
-      srcDirs = ['tests/src']
-    }
-    resources {
-//      srcDirs = ['tests/src/resources']
-    }
-  }
 }
 
 teamcity {
