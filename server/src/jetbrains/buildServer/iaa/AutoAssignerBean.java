@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2014 JetBrains s.r.o.
+ * Copyright 2000-2018 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,15 @@
 
 package jetbrains.buildServer.iaa;
 
-import jetbrains.buildServer.serverSide.SBuild;
-import jetbrains.buildServer.serverSide.SRunningBuild;
-import jetbrains.buildServer.serverSide.STestRun;
-import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
+import jetbrains.buildServer.iaa.common.Constants;
 import org.jetbrains.annotations.NotNull;
 
-public interface NewTestsAndProblemsProcessor {
-  void onTestFailed(@NotNull SRunningBuild build, @NotNull STestRun testRun);
+public class AutoAssignerBean {
+  public static final AutoAssignerBean Shared = new AutoAssignerBean();
 
-  void onBuildProblemOccurred(@NotNull SBuild build, @NotNull BuildProblemImpl problem);
+  @NotNull
+  public String getIsEnabledKey() {
+    return Constants.IS_ENABLED;
+  }
+
 }

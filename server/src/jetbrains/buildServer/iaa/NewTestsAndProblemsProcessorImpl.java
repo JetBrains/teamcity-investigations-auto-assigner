@@ -17,12 +17,13 @@
 package jetbrains.buildServer.iaa;
 
 import com.intellij.openapi.util.Pair;
+import java.util.List;
 import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.BuildProject;
 import jetbrains.buildServer.responsibility.*;
 import jetbrains.buildServer.responsibility.impl.BuildProblemResponsibilityEntryImpl;
 import jetbrains.buildServer.serverSide.*;
-import jetbrains.buildServer.serverSide.buildLog.BuildLogReaderEx;
+import jetbrains.buildServer.serverSide.buildLog.LogMessage;
 import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import jetbrains.buildServer.serverSide.problems.BuildLogCompileErrorCollector;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
@@ -33,14 +34,8 @@ import jetbrains.buildServer.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
 import static jetbrains.buildServer.serverSide.impl.problems.types.CompilationErrorTypeDetailsProvider.COMPILE_BLOCK_INDEX;
 
-/**
- * @author Maxim.Manuylov
- *         Date: 09.04.2014
- */
 public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProcessor {
   @NotNull private final TestNameResponsibilityFacade myTestNameResponsibilityFacade;
   @NotNull private final BuildProblemResponsibilityFacade myBuildProblemResponsibilityFacade;
@@ -99,14 +94,16 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
   }
 
   private static String getBuildProblemText(@NotNull final BuildProblem problem, @NotNull final SBuild build) {
-    String problemSpecificText = "";
+    StringBuilder problemSpecificText = new StringBuilder();
 
     // todo make an extension point here
     if (problem.getBuildProblemData().getType().equals(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE)) {
       final Integer compileBlockIndex = getCompileBlockIndex(problem);
       if (compileBlockIndex != null) {
-        final List<String> errors = new BuildLogCompileErrorCollector().collectCompileErrors(compileBlockIndex, (BuildLogReaderEx) build.getBuildLog());
-        problemSpecificText = StringUtil.join(errors, " ");
+        final List<LogMessage> errors = new BuildLogCompileErrorCollector().collectCompileErrors(compileBlockIndex, (SBuild)build.getBuildLog());
+        for (LogMessage error : errors) {
+          problemSpecificText.append(error.getText()).append(" ");
+        }
       }
     }
 
@@ -120,8 +117,7 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
 
     try {
       return Integer.parseInt(StringUtil.stringToProperties(compilationBlockIndex, StringUtil.STD_ESCAPER2).get(COMPILE_BLOCK_INDEX));
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       return null;
     }
   }
@@ -150,7 +146,7 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     return state.isActive() || state.isFixed();
   }
 
-  public static boolean isSameOrParent(@NotNull final BuildProject parent, @NotNull final BuildProject project) {
+  private static boolean isSameOrParent(@NotNull final BuildProject parent, @NotNull final BuildProject project) {
     if (parent.getProjectId().equals(project.getProjectId())) return true;
     final BuildProject parentProject = project.getParentProject();
     return parentProject != null && isSameOrParent(parent, parentProject);

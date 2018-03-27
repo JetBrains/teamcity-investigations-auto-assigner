@@ -17,6 +17,8 @@
 package jetbrains.buildServer.iaa;
 
 import com.intellij.openapi.util.Pair;
+import java.io.File;
+import java.util.*;
 import jetbrains.buildServer.serverSide.BuildPromotion;
 import jetbrains.buildServer.serverSide.BuildPromotionEx;
 import jetbrains.buildServer.serverSide.ChangeDescriptor;
@@ -29,15 +31,8 @@ import jetbrains.buildServer.vcs.VcsFileModification;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.util.*;
-
 import static com.intellij.openapi.util.text.StringUtil.join;
 
-/**
- * @author Maxim.Manuylov
- *         Date: 10.04.2014
- */
 public class NewTestsAndProblemsUtil {
   @NotNull private static final String REASON_PREFIX = "This investigation was assigned automatically by TeamCity since ";
 
@@ -49,7 +44,8 @@ public class NewTestsAndProblemsUtil {
     if (committers.isEmpty()) return null;
 
     if (committers.size() == 1) {
-      return Pair.create(committers.iterator().next(), REASON_PREFIX + "you were the only committer to the following build: " + build.getFullName() + " #" + build.getBuildNumber());
+      return Pair
+        .create(committers.iterator().next(), REASON_PREFIX + "you were the only committer to the following build: " + build.getFullName() + " #" + build.getBuildNumber());
     }
 
     if (problemText == null) return null;
@@ -60,7 +56,7 @@ public class NewTestsAndProblemsUtil {
     SUser badUser = null;
     String badFile = null;
 
-    for (ChangeDescriptor change : ((BuildPromotionEx) buildPromotion).getDetectedChanges(selectPrevBuildPolicy, true)) {
+    for (ChangeDescriptor change : ((BuildPromotionEx)buildPromotion).getDetectedChanges(selectPrevBuildPolicy, true)) {
       final SVcsModification vcsChange = change.getRelatedVcsChange();
       if (vcsChange == null) continue;
 
@@ -97,7 +93,7 @@ public class NewTestsAndProblemsUtil {
 
   @NotNull
   private static List<String> getPatterns(@NotNull final String filePath) {
-    final List<String> parts = new ArrayList<String>();
+    final List<String> parts = new ArrayList<>();
 
     parts.add(FileUtil.getNameWithoutExtension(new File(filePath)));
 

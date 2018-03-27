@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2014 JetBrains s.r.o.
+ * Copyright 2000-2018 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package jetbrains.buildServer.iaa;
+package jetbrains.buildServer.iaa.common;
 
-import jetbrains.buildServer.serverSide.SBuild;
-import jetbrains.buildServer.serverSide.SRunningBuild;
-import jetbrains.buildServer.serverSide.STestRun;
-import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
-import org.jetbrains.annotations.NotNull;
+public class Constants {
+  // Plugin's ids
+  public static final String BUILD_FEATURE_TYPE = "investigations-auto-assigner";
+  public static final String BUILD_FEATURE_DISPLAY_NAME = "Investigations Auto Assigner";
 
-public interface NewTestsAndProblemsProcessor {
-  void onTestFailed(@NotNull SRunningBuild build, @NotNull STestRun testRun);
-
-  void onBuildProblemOccurred(@NotNull SBuild build, @NotNull BuildProblemImpl problem);
+  // Parameter names
+  public static final String IS_ENABLED = "teamcity.iaa.isEnabled";
 }
