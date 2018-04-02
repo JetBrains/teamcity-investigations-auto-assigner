@@ -4,7 +4,7 @@
 <jsp:useBean id="bean" class="jetbrains.buildServer.iaa.AutoAssignerBean"/>
 
 <script type="text/javascript">
-  BS.RunAsFeature = {
+  BS.AutoAssignerFeature = {
     showHomePage: function () {
       var winSize = BS.Util.windowSize();
       BS.Util.popupWindow('https://github.com/JetBrains/teamcity-investigations-auto-assigner/wiki', 'Investigations Auto Assigner',
@@ -17,7 +17,7 @@
 <tr>
   <td colspan="2">
     <em>This build feature executes auto assigning investigations according to a set of rules.
-      <a class='helpIcon' onclick='BS.RunAsFeature.showHomePage()' title='View help'>
+      <a class='helpIcon' onclick='BS.AutoAssignerFeature.showHomePage()' title='View help'>
         <i class='icon icon16 tc-icon_help_small'></i>
       </a>
     </em>
