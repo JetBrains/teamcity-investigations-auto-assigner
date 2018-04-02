@@ -54,5 +54,8 @@ public class AutoAssignerBuildFeature extends BuildFeature {
     return myEditUrl;
   }
 
-
+  @Override
+  public boolean isMultipleFeaturesPerBuildTypeAllowed() {
+    return false;
+  }
 }
