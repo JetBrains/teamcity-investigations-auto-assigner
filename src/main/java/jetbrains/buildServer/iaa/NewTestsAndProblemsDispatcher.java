@@ -41,12 +41,11 @@ public class NewTestsAndProblemsDispatcher {
 
     buildTestsEventDispatcher.addListener(new BuildTestsListener() {
       public void testPassed(@NotNull SRunningBuild sRunningBuild, @NotNull List<Long> list) {
-
+        //
       }
 
       public void testFailed(@NotNull SRunningBuild build, @NotNull List<Long> testNameIds) {
         if (checkFeatureDisabled(build)) return;
-
         List<STestRun> testRuns = new ArrayList<>();
         for (Long testNameId : testNameIds) {
           testRuns.add(build.getFullStatistics().findTestByTestNameId(testNameId));
@@ -57,15 +56,16 @@ public class NewTestsAndProblemsDispatcher {
       }
 
 
-
       public void testIgnored(@NotNull SRunningBuild sRunningBuild, @NotNull List<Long> list) {
-
+        //
       }
     });
 
     buildServerListenerEventDispatcher.addListener(new BuildServerAdapter() {
       @Override
-      public void buildProblemsChanged(@NotNull SBuild sBuild, @NotNull List<BuildProblemData> before, @NotNull List<BuildProblemData> after) {
+      public void buildProblemsChanged(@NotNull SBuild sBuild,
+                                       @NotNull List<BuildProblemData> before,
+                                       @NotNull List<BuildProblemData> after) {
         if (checkFeatureDisabled(sBuild) || !(sBuild instanceof BuildEx)) return;
 
         final List<BuildProblemData> newProblems = new ArrayList<>(after);

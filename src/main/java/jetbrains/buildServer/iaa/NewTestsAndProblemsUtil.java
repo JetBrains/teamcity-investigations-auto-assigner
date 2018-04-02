@@ -39,7 +39,6 @@ public class NewTestsAndProblemsUtil {
   public static Pair<SUser, String> findResponsibleUser(@NotNull final SBuild build, @Nullable final String problemText) {
     // todo if problem is a test, that already ran before in some build and was green there, should get committers since that build
     final SelectPrevBuildPolicy selectPrevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
-
     final Set<SUser> committers = build.getCommitters(selectPrevBuildPolicy).getUsers();
     if (committers.isEmpty()) return null;
 

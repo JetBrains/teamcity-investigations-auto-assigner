@@ -20,6 +20,7 @@ import com.intellij.openapi.util.Pair;
 import java.util.List;
 import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.BuildProject;
+import jetbrains.buildServer.iaa.utils.FlakyTestDetectorFunctions;
 import jetbrains.buildServer.responsibility.*;
 import jetbrains.buildServer.responsibility.impl.BuildProblemResponsibilityEntryImpl;
 import jetbrains.buildServer.serverSide.*;
@@ -52,8 +53,11 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
 
     final STest test = testRun.getTest();
     final SProject project = buildType.getProject();
-
-    if (testRun.isMuted() || testRun.isFixed() || !testRun.isNewFailure() || isInvestigated(test, project)) return;
+    if (testRun.isMuted() ||
+        testRun.isFixed() ||
+        !testRun.isNewFailure() ||
+        isInvestigated(test, project) ||
+        FlakyTestDetectorFunctions.isFlaky(test.getTestNameId())) return;
 
     final TestName testName = test.getName();
     final String text = testName.getAsString() + " " + testRun.getFullText();
