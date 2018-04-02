@@ -45,7 +45,7 @@ public class NewTestsAndProblemsDispatcher {
       }
 
       public void testFailed(@NotNull SRunningBuild build, @NotNull List<Long> testNameIds) {
-        if (checkFeatureDisabled(build)) return;
+        if (checkFeatureDisabled(build) || build.isPersonal()) return;
         List<STestRun> testRuns = new ArrayList<>();
         for (Long testNameId : testNameIds) {
           testRuns.add(build.getFullStatistics().findTestByTestNameId(testNameId));
@@ -66,7 +66,7 @@ public class NewTestsAndProblemsDispatcher {
       public void buildProblemsChanged(@NotNull SBuild sBuild,
                                        @NotNull List<BuildProblemData> before,
                                        @NotNull List<BuildProblemData> after) {
-        if (checkFeatureDisabled(sBuild) || !(sBuild instanceof BuildEx)) return;
+        if (checkFeatureDisabled(sBuild) || !(sBuild instanceof BuildEx) || sBuild.isPersonal()) return;
 
         final List<BuildProblemData> newProblems = new ArrayList<>(after);
         newProblems.removeAll(before);
