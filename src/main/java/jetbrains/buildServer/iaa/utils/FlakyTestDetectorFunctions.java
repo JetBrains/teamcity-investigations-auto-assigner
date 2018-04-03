@@ -16,7 +16,6 @@
 
 package jetbrains.buildServer.iaa.utils;
 
-import java.util.concurrent.atomic.AtomicBoolean;
 import javax.management.*;
 import jetbrains.buildServer.iaa.NewTestsAndProblemsProcessor;
 
@@ -29,9 +28,9 @@ public class FlakyTestDetectorFunctions {
    */
   private static final String OBJECT_NAME = "com.jetbrains.teamcity:type=FlakyTestDetector";
   /**
-   * Whether InstanceNotFoundException has been already logged.
+   * Whether InstanceNotFoundException has been caught.
    */
-  private static final AtomicBoolean INSTANCE_NOT_FOUND_LOGGED = new AtomicBoolean(false);
+  private static boolean instanceNotFound = false;
   private static final com.intellij.openapi.diagnostic.Logger LOGGER = com.intellij.openapi.diagnostic.Logger.getInstance(NewTestsAndProblemsProcessor.class.getName());
 
   /**
@@ -41,6 +40,8 @@ public class FlakyTestDetectorFunctions {
    * @return whether the test specified by testNameId is flaky.
    */
   public static boolean isFlaky(final long testNameId) {
+    if (instanceNotFound) return false;
+
     final MBeanServer mBeanServer = getPlatformMBeanServer();
     try {
       return (Boolean)mBeanServer.invoke(new ObjectName(OBJECT_NAME),
@@ -48,9 +49,8 @@ public class FlakyTestDetectorFunctions {
                                          new Long[]{testNameId},
                                          new String[]{"long"});
     } catch (final InstanceNotFoundException ignored) {
-      if (INSTANCE_NOT_FOUND_LOGGED.compareAndSet(false, true)) {
-        LOGGER.warn(format("Flaky Test Detector is not available at %s", OBJECT_NAME));
-      }
+      instanceNotFound = true;
+      LOGGER.warn(format("Flaky Test Detector is not available at %s", OBJECT_NAME));
     } catch (final MBeanException | ReflectionException | MalformedObjectNameException e) {
       LOGGER.warn(e);
     }
