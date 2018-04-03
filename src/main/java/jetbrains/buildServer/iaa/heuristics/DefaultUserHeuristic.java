@@ -28,10 +28,10 @@ import jetbrains.buildServer.users.impl.UserEx;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DefaultUserHeuristic implements Heuristic {
+public class DefaultUserHeuristic extends Heuristic {
 
   @Override
-  public long getOrder() {
+  public long getUniqueOrder() {
     return 999;
   }
 

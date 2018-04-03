@@ -17,4 +17,7 @@
   <bean class="jetbrains.buildServer.iaa.utils.UserModelProxy"/>
   <bean class="jetbrains.buildServer.iaa.NewTestsAndProblemsProcessorImpl"/>
   <bean class="jetbrains.buildServer.iaa.AutoAssignerBean"/>
+  <bean class="jetbrains.buildServer.iaa.heuristics.OneCommitterHeuristic"/>
+  <bean class="jetbrains.buildServer.iaa.heuristics.BrokenFileHeuristic"/>
+  <bean class="jetbrains.buildServer.iaa.heuristics.DefaultUserHeuristic"/>
 </beans>

@@ -35,9 +35,10 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.openapi.util.text.StringUtil.join;
 
-public class BrokenFileHeuristic implements Heuristic {
+public class BrokenFileHeuristic extends Heuristic {
+
   @Override
-  public long getOrder() {
+  public long getUniqueOrder() {
     return 1;
   }
 

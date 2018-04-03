@@ -22,15 +22,26 @@ import jetbrains.buildServer.users.SUser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public interface Heuristic {
-  long getOrder();
+public abstract class Heuristic implements Comparable<Heuristic> {
+  public abstract long getUniqueOrder();
 
   @NotNull
-  String getName();
+  public abstract String getName();
 
   @NotNull
-  String getDescription();
+  public abstract String getDescription();
 
   @Nullable
-  Pair<SUser, String> findResponsibleUser(@NotNull ProblemInfo problemInfo);
+  public abstract Pair<SUser, String> findResponsibleUser(@NotNull ProblemInfo problemInfo);
+
+  @Override
+  public int compareTo(@NotNull final Heuristic another) {
+    Long order = getUniqueOrder();
+    return order.compareTo(another.getUniqueOrder());
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+    return obj instanceof Heuristic && ((Heuristic)obj).getUniqueOrder() == this.getUniqueOrder();
+  }
 }

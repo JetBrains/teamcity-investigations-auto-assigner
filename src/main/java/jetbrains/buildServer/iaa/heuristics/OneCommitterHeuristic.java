@@ -26,10 +26,10 @@ import jetbrains.buildServer.vcs.SelectPrevBuildPolicy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class OneCommitterHeuristic implements Heuristic {
+public class OneCommitterHeuristic extends Heuristic {
 
   @Override
-  public long getOrder() {
+  public long getUniqueOrder() {
     return 0;
   }
 
@@ -53,9 +53,8 @@ public class OneCommitterHeuristic implements Heuristic {
     final Set<SUser> committers = build.getCommitters(selectPrevBuildPolicy).getUsers();
     if (committers.isEmpty() || committers.size() != 1) return null;
 
-    return Pair
-      .create(committers.iterator().next(),
-              Constants.REASON_PREFIX + " you were the only committer to the following build: " + build.getFullName() +
-              " #" + build.getBuildNumber());
+    return Pair.create(committers.iterator().next(), String.format("%s you were the only committer to the following " +
+                                                                   "build: %s # %s", Constants.REASON_PREFIX,
+                                                                   build.getFullName(), build.getBuildNumber()));
   }
 }
