@@ -14,16 +14,23 @@
  * limitations under the License.
  */
 
-package jetbrains.buildServer.iaa.common;
+package jetbrains.buildServer.iaa.heuristics;
 
-public class Constants {
-  // Plugin's ids
-  public static final String BUILD_FEATURE_TYPE = "investigations-auto-assigner";
-  public static final String BUILD_FEATURE_DISPLAY_NAME = "Investigations Auto Assigner";
+import com.intellij.openapi.util.Pair;
+import jetbrains.buildServer.iaa.ProblemInfo;
+import jetbrains.buildServer.users.SUser;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-  // Parameter names
-  public static final String DEFAULT_RESPONSIBLE = "teamcity.iaa.defaultResponsible";
+public interface Heuristic {
+  long getOrder();
 
-  //Message constants
-  public static final String REASON_PREFIX = "This investigation was assigned automatically by TeamCity since";
+  @NotNull
+  String getName();
+
+  @NotNull
+  String getDescription();
+
+  @Nullable
+  Pair<SUser, String> findResponsibleUser(@NotNull ProblemInfo problemInfo);
 }

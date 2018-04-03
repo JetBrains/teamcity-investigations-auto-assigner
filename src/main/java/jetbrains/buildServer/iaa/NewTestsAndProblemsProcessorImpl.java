@@ -62,7 +62,7 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     final TestName testName = test.getName();
     final String text = testName.getAsString() + " " + testRun.getFullText();
 
-    final Pair<SUser, String> info = NewTestsAndProblemsUtil.findResponsibleUser(build, text);
+    final Pair<SUser, String> info = NewTestsAndProblemsUtil.findResponsibleUser(new ProblemInfo(build, text));
     if (info == null) return;
 
     myTestNameResponsibilityFacade.setTestNameResponsibility(
@@ -84,7 +84,7 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
 
     final String text = getBuildProblemText(problem, build);
 
-    final Pair<SUser, String> info = NewTestsAndProblemsUtil.findResponsibleUser(build, text);
+    final Pair<SUser, String> info = NewTestsAndProblemsUtil.findResponsibleUser(new ProblemInfo(build, text));
     if (info == null) return;
 
     myBuildProblemResponsibilityFacade.setBuildProblemResponsibility(

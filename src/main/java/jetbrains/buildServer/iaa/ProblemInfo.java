@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package jetbrains.buildServer.iaa.common;
+package jetbrains.buildServer.iaa;
 
-public class Constants {
-  // Plugin's ids
-  public static final String BUILD_FEATURE_TYPE = "investigations-auto-assigner";
-  public static final String BUILD_FEATURE_DISPLAY_NAME = "Investigations Auto Assigner";
+import jetbrains.buildServer.serverSide.SBuild;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-  // Parameter names
-  public static final String DEFAULT_RESPONSIBLE = "teamcity.iaa.defaultResponsible";
+public class ProblemInfo {
+  @NotNull public final SBuild mySBuild;
+  @Nullable public final String myProblemText;
 
-  //Message constants
-  public static final String REASON_PREFIX = "This investigation was assigned automatically by TeamCity since";
+  ProblemInfo(@NotNull final SBuild sBuild, @Nullable final String problemText) {
+    mySBuild = sBuild;
+    myProblemText = problemText;
+  }
 }
