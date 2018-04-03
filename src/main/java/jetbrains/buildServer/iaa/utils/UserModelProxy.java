@@ -22,15 +22,14 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class UserModelProxy {
-  @Nullable private static UserModelEx myUserModel;
+  @NotNull private UserModelEx myUserModel;
 
   public UserModelProxy(@NotNull final UserModelEx userModel) {
     myUserModel = userModel;
   }
 
   @Nullable
-  public static UserEx findUserAccount(String username) {
-    if (myUserModel == null) throw new IllegalStateException("UserModel was not initialized");
+  public UserEx findUserAccount(String username) {
     return myUserModel.findUserAccount(null, username);
   }
 

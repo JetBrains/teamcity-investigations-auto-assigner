@@ -30,6 +30,12 @@ import org.jetbrains.annotations.Nullable;
 
 public class DefaultUserHeuristic extends Heuristic {
 
+  @NotNull private UserModelProxy myUserModel;
+
+  public DefaultUserHeuristic(@NotNull UserModelProxy userModel) {
+    myUserModel = userModel;
+  }
+
   @Override
   public long getUniqueOrder() {
     return 999;
@@ -58,7 +64,7 @@ public class DefaultUserHeuristic extends Heuristic {
     String defaultResponsible = String.valueOf(sBuildFeature.getParameters().get(Constants.DEFAULT_RESPONSIBLE));
 
     if (defaultResponsible == null) return null;
-    UserEx responsibleUser = UserModelProxy.findUserAccount(defaultResponsible);
+    UserEx responsibleUser = myUserModel.findUserAccount(defaultResponsible);
 
     if (responsibleUser == null) return null;
     return Pair.create(responsibleUser,
