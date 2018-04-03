@@ -23,3 +23,11 @@
     </em>
   </td>
 </tr>
+<tr>
+  <td>
+    <label for="${bean.defaultResponsible}">Default Responsible:</label>
+  </td>
+  <td>
+    <props:textProperty name="${bean.defaultResponsible}" maxlength="100"/>
+  </td>
+</tr>

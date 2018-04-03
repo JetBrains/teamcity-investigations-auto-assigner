@@ -14,16 +14,24 @@
  * limitations under the License.
  */
 
-package jetbrains.buildServer.iaa;
+package jetbrains.buildServer.iaa.utils;
 
-import jetbrains.buildServer.iaa.common.Constants;
+import jetbrains.buildServer.users.UserModelEx;
+import jetbrains.buildServer.users.impl.UserEx;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class AutoAssignerBean {
-  public static final AutoAssignerBean Shared = new AutoAssignerBean();
+public class UserModelProxy {
+  @Nullable private static UserModelEx myUserModel;
 
-  @NotNull
-  public String getDefaultResponsible() {
-    return Constants.DEFAULT_RESPONSIBLE;
+  public UserModelProxy(@NotNull final UserModelEx userModel) {
+    myUserModel = userModel;
   }
+
+  @Nullable
+  public static UserEx findUserAccount(String username) {
+    if (myUserModel == null) throw new IllegalStateException("UserModel was not initialized");
+    return myUserModel.findUserAccount(null, username);
+  }
+
 }

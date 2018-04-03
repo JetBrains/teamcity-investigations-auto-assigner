@@ -19,11 +19,11 @@ package jetbrains.buildServer.iaa;
 import com.intellij.openapi.util.Pair;
 import java.io.File;
 import java.util.*;
-import jetbrains.buildServer.serverSide.BuildPromotion;
-import jetbrains.buildServer.serverSide.BuildPromotionEx;
-import jetbrains.buildServer.serverSide.ChangeDescriptor;
-import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.iaa.common.Constants;
+import jetbrains.buildServer.iaa.utils.UserModelProxy;
+import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.users.impl.UserEx;
 import jetbrains.buildServer.util.FileUtil;
 import jetbrains.buildServer.vcs.SVcsModification;
 import jetbrains.buildServer.vcs.SelectPrevBuildPolicy;
@@ -34,23 +34,27 @@ import org.jetbrains.annotations.Nullable;
 import static com.intellij.openapi.util.text.StringUtil.join;
 
 public class NewTestsAndProblemsUtil {
-  @NotNull private static final String REASON_PREFIX = "This investigation was assigned automatically by TeamCity since ";
+  @NotNull private static final String REASON_PREFIX =
+    "This investigation was assigned automatically by TeamCity since ";
 
-  public static Pair<SUser, String> findResponsibleUser(@NotNull final SBuild build, @Nullable final String problemText) {
+  public static Pair<SUser, String> findResponsibleUser(@NotNull final SBuild build,
+                                                        @Nullable final String problemText) {
     // todo if problem is a test, that already ran before in some build and was green there, should get committers since that build
     final SelectPrevBuildPolicy selectPrevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
     final Set<SUser> committers = build.getCommitters(selectPrevBuildPolicy).getUsers();
-    if (committers.isEmpty()) return null;
+    if (committers.isEmpty()) return getDefaultUserOrNull(build);
 
     if (committers.size() == 1) {
       return Pair
-        .create(committers.iterator().next(), REASON_PREFIX + "you were the only committer to the following build: " + build.getFullName() + " #" + build.getBuildNumber());
+        .create(committers.iterator().next(),
+                REASON_PREFIX + "you were the only committer to the following build: " + build.getFullName() + " #" +
+                build.getBuildNumber());
     }
 
-    if (problemText == null) return null;
+    if (problemText == null) return getDefaultUserOrNull(build);
 
     final BuildPromotion buildPromotion = build.getBuildPromotion();
-    if (!(buildPromotion instanceof BuildPromotionEx)) return null;
+    if (!(buildPromotion instanceof BuildPromotionEx)) return getDefaultUserOrNull(build);
 
     SUser badUser = null;
     String badFile = null;
@@ -63,19 +67,38 @@ public class NewTestsAndProblemsUtil {
       if (changeBadFile == null) continue;
 
       final Collection<SUser> changeCommitters = vcsChange.getCommitters();
-      if (changeCommitters.size() != 1) return null;
+      if (changeCommitters.size() != 1) return getDefaultUserOrNull(build);
 
       final SUser changeBadUser = changeCommitters.iterator().next();
-      if (badUser != null && !badUser.equals(changeBadUser)) return null;
+      if (badUser != null && !badUser.equals(changeBadUser)) return getDefaultUserOrNull(build);
 
       badUser = changeBadUser;
       badFile = changeBadFile;
     }
 
-    if (badUser == null) return null;
+    if (badUser == null) return getDefaultUserOrNull(build);
 
-    return Pair.create(badUser, REASON_PREFIX + "you changed the \"" + badFile + "\" file, which could probably cause this failure");
+    return Pair.create(badUser, REASON_PREFIX + "you changed the \"" + badFile +
+                                "\" file, which could probably cause this failure");
   }
+
+  private static Pair<SUser, String> getDefaultUserOrNull(@NotNull SBuild build) {
+    Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
+    if (descriptors.isEmpty()) return null;
+
+    final SBuildFeatureDescriptor sBuildFeature = (SBuildFeatureDescriptor)descriptors.toArray()[0];
+    String defaultResponsible = String.valueOf(sBuildFeature.getParameters().get(Constants.DEFAULT_RESPONSIBLE));
+
+    if (defaultResponsible == null) return null;
+    UserEx responsibleUser = UserModelProxy.findUserAccount(defaultResponsible);
+
+    if (responsibleUser == null) return null;
+    return Pair
+      .create(responsibleUser,
+              REASON_PREFIX + "you were selected as default responsible for following build: " + build.getFullName() + " #" +
+              build.getBuildNumber());
+  }
+
 
   @Nullable
   private static String findBadFile(@NotNull final SVcsModification vcsChange, @NotNull final String problemText) {
