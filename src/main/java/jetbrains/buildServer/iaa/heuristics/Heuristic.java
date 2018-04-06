@@ -22,14 +22,29 @@ import jetbrains.buildServer.users.SUser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * Presents heuristic that try to detect which person is probably responsible.
+ * Order of provided heuristics should be specified in the spring xml-config file.
+ */
 public interface Heuristic {
 
+  /**
+   * @return short user-readable name of the heuristic.
+   */
   @NotNull
   String getName();
 
+  /**
+   * @return sufficient description of the heuristic.
+   */
   @NotNull
   String getDescription();
 
+  /**
+   * Try to detect which person is probably responsible.
+   * @param problemInfo {@link ProblemInfo} object which presents known information about the problem.
+   * @return probable responsible user data with a short description why the algorithm selected particular user.
+   */
   @Nullable
   Pair<SUser, String> findResponsibleUser(@NotNull ProblemInfo problemInfo);
 }
