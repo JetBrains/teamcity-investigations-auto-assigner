@@ -35,12 +35,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.openapi.util.text.StringUtil.join;
 
-public class BrokenFileHeuristic extends Heuristic {
-
-  @Override
-  public long getUniqueOrder() {
-    return 1;
-  }
+public class BrokenFileHeuristic implements Heuristic {
 
   @Override
   @NotNull

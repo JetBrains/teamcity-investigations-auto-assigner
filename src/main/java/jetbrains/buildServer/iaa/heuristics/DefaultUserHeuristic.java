@@ -28,17 +28,12 @@ import jetbrains.buildServer.users.impl.UserEx;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class DefaultUserHeuristic extends Heuristic {
+public class DefaultUserHeuristic implements Heuristic {
 
   @NotNull private UserModelProxy myUserModel;
 
   public DefaultUserHeuristic(@NotNull UserModelProxy userModel) {
     myUserModel = userModel;
-  }
-
-  @Override
-  public long getUniqueOrder() {
-    return 999;
   }
 
   @Override

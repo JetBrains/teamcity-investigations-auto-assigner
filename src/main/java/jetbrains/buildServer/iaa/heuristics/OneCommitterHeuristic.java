@@ -26,12 +26,7 @@ import jetbrains.buildServer.vcs.SelectPrevBuildPolicy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class OneCommitterHeuristic extends Heuristic {
-
-  @Override
-  public long getUniqueOrder() {
-    return 0;
-  }
+public class OneCommitterHeuristic implements Heuristic {
 
   @Override
   @NotNull
