@@ -20,19 +20,19 @@ import com.intellij.openapi.util.Pair;
 import java.util.Collection;
 import jetbrains.buildServer.iaa.ProblemInfo;
 import jetbrains.buildServer.iaa.common.Constants;
-import jetbrains.buildServer.iaa.utils.UserModelProxy;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SBuildFeatureDescriptor;
 import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.users.UserModelEx;
 import jetbrains.buildServer.users.impl.UserEx;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DefaultUserHeuristic implements Heuristic {
 
-  @NotNull private UserModelProxy myUserModel;
+  @NotNull private UserModelEx myUserModel;
 
-  public DefaultUserHeuristic(@NotNull UserModelProxy userModel) {
+  public DefaultUserHeuristic(@NotNull final UserModelEx userModel) {
     myUserModel = userModel;
   }
 
@@ -59,7 +59,7 @@ public class DefaultUserHeuristic implements Heuristic {
     String defaultResponsible = String.valueOf(sBuildFeature.getParameters().get(Constants.DEFAULT_RESPONSIBLE));
 
     if (defaultResponsible == null) return null;
-    UserEx responsibleUser = myUserModel.findUserAccount(defaultResponsible);
+    UserEx responsibleUser = myUserModel.findUserAccount(null, defaultResponsible);
 
     if (responsibleUser == null) return null;
     return Pair.create(responsibleUser,
