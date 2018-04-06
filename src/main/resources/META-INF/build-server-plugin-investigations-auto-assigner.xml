@@ -14,7 +14,6 @@
   </bean>
 
   <bean class="jetbrains.buildServer.iaa.AutoAssignerBuildFeature"/>
-  <bean class="jetbrains.buildServer.iaa.utils.UserModelProxy"/>
   <bean class="jetbrains.buildServer.iaa.NewTestsAndProblemsProcessorImpl">
     <constructor-arg index="2">
       <list>
@@ -24,7 +23,6 @@
       </list>
     </constructor-arg>
   </bean>
-  <bean class="jetbrains.buildServer.iaa.AutoAssignerBean"/>
   <bean id="oneCommitterHeuristic" class="jetbrains.buildServer.iaa.heuristics.OneCommitterHeuristic"/>
   <bean id="brokenFileHeuristic" class="jetbrains.buildServer.iaa.heuristics.BrokenFileHeuristic"/>
   <bean id="defaultUserHeuristic" class="jetbrains.buildServer.iaa.heuristics.DefaultUserHeuristic"/>

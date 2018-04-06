@@ -26,13 +26,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class AutoAssignerBuildFeature extends BuildFeature {
 
   private final String myEditUrl;
-  private final AutoAssignerBean myBean;
 
   @Autowired
   public AutoAssignerBuildFeature(
-    @NotNull final AutoAssignerBean bean,
     @NotNull final PluginDescriptor descriptor) {
-    myBean = bean;
     myEditUrl = descriptor.getPluginResourcesPath("autoAssignerBuildFeature.jsp");
   }
 

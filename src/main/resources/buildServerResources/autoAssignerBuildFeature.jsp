@@ -1,7 +1,7 @@
 <%@ include file="/include-internal.jsp" %>
 <%@ taglib prefix="props" tagdir="/WEB-INF/tags/props" %>
+<%@ page import="jetbrains.buildServer.iaa.common.Constants" %>
 <jsp:useBean id="buildForm" type="jetbrains.buildServer.controllers.admin.projects.BuildTypeForm" scope="request"/>
-<jsp:useBean id="bean" class="jetbrains.buildServer.iaa.AutoAssignerBean"/>
 
 <script type="text/javascript">
   BS.AutoAssignerFeature = {
@@ -25,9 +25,9 @@
 </tr>
 <tr>
   <td>
-    <label for="${bean.defaultResponsible}">Default Responsible:</label>
+    <label for="<%= Constants.DEFAULT_RESPONSIBLE%>">Default Responsible:</label>
   </td>
   <td>
-    <props:textProperty name="${bean.defaultResponsible}" maxlength="100"/>
+    <props:textProperty name="<%= Constants.DEFAULT_RESPONSIBLE%>" maxlength="100"/>
   </td>
 </tr>
