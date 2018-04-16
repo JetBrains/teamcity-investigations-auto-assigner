@@ -16,6 +16,7 @@
 
 package jetbrains.buildServer.iaa.heuristics;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
 import java.io.File;
 import java.util.*;
@@ -25,6 +26,7 @@ import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.serverSide.BuildPromotion;
 import jetbrains.buildServer.serverSide.BuildPromotionEx;
 import jetbrains.buildServer.serverSide.ChangeDescriptor;
+import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.users.SUser;
 import jetbrains.buildServer.util.FileUtil;
 import jetbrains.buildServer.vcs.SVcsModification;
@@ -36,6 +38,8 @@ import org.jetbrains.annotations.Nullable;
 import static com.intellij.openapi.util.text.StringUtil.join;
 
 public class BrokenFileHeuristic implements Heuristic {
+
+  private static final Logger LOGGER = Logger.getInstance(BrokenFileHeuristic.class.getName());
 
   @Override
   @NotNull
@@ -54,8 +58,8 @@ public class BrokenFileHeuristic implements Heuristic {
   @Nullable
   public Pair<SUser, String> findResponsibleUser(@NotNull ProblemInfo problemInfo) {
     if (problemInfo.myProblemText == null) return null;
-
-    final BuildPromotion buildPromotion = problemInfo.mySBuild.getBuildPromotion();
+    SBuild sBuild = problemInfo.mySBuild;
+    final BuildPromotion buildPromotion = sBuild.getBuildPromotion();
     if (!(buildPromotion instanceof BuildPromotionEx)) return null;
 
     SelectPrevBuildPolicy prevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
@@ -74,7 +78,10 @@ public class BrokenFileHeuristic implements Heuristic {
       if (changeCommitters.size() != 1) return null;
 
       final SUser foundResponsibleUser = changeCommitters.iterator().next();
-      if (responsibleUser != null && !responsibleUser.equals(foundResponsibleUser)) return null;
+      if (responsibleUser != null && !responsibleUser.equals(foundResponsibleUser)) {
+        LOGGER.debug("There are more then one committers since last build for failed build #" + sBuild.getBuildId());
+        return null;
+      }
 
       responsibleUser = foundResponsibleUser;
       brokenFile = foundBrokenFile;

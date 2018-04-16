@@ -16,6 +16,7 @@
 
 package jetbrains.buildServer.iaa;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
 import java.util.List;
 import jetbrains.buildServer.BuildProblemTypes;
@@ -42,6 +43,7 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
   @NotNull private final TestNameResponsibilityFacade myTestNameResponsibilityFacade;
   @NotNull private final BuildProblemResponsibilityFacade myBuildProblemResponsibilityFacade;
   @NotNull private final List<Heuristic> myOrderedHeuristics;
+  private static final Logger LOGGER = Logger.getInstance(NewTestsAndProblemsProcessorImpl.class.getName());
 
   public NewTestsAndProblemsProcessorImpl(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade,
                                           @NotNull final BuildProblemResponsibilityFacade buildProblemResponsibilityFacade,
@@ -54,14 +56,16 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
   public void onTestFailed(@NotNull final SRunningBuild build, @NotNull final STestRun testRun) {
     final SBuildType buildType = build.getBuildType();
     if (buildType == null) return;
-
     final STest test = testRun.getTest();
     final SProject project = buildType.getProject();
     if (testRun.isMuted() ||
         testRun.isFixed() ||
         !testRun.isNewFailure() ||
         isInvestigated(test, project) ||
-        FlakyTestDetectorFunctions.isFlaky(test.getTestNameId())) return;
+        FlakyTestDetectorFunctions.isFlaky(test.getTestNameId())) {
+      LOGGER.debug(String.format("Stop processing a failed test %s as it's incompatible", test.getTestNameId()));
+      return;
+    }
 
     final TestName testName = test.getName();
     final String text = testName.getAsString() + " " + testRun.getFullText();
@@ -102,11 +106,23 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
 
   @Nullable
   private Pair<SUser, String> findResponsibleUser(@NotNull final SBuild sBuild, @Nullable final String problemText) {
+    long buildId = sBuild.getBuildId();
+    LOGGER.debug(String.format("Attempt to find responsible user for failed build #%s. ProblemText is %s",
+                               buildId, problemText));
     ProblemInfo problemInfo = new ProblemInfo(sBuild, problemText);
     Pair<SUser, String> responsibleUser = null;
     for (Heuristic heuristic: myOrderedHeuristics) {
+      LOGGER.debug(String.format("Attempt to find responsible user for failed build #%s with heuristic %s",
+                                 buildId,heuristic.getName()));
       responsibleUser = heuristic.findResponsibleUser(problemInfo);
-      if (responsibleUser != null) break;
+      if (responsibleUser != null) {
+        LOGGER.info(String.format("Responsible user %s for failed build #%s has been found according to %s",
+                                  responsibleUser.first, sBuild.getBuildId(), responsibleUser.second));
+        break;
+      }
+    }
+    if (responsibleUser == null) {
+      LOGGER.info(String.format("Responsible user for failed build #%s not found", sBuild.getBuildId()));
     }
     return responsibleUser;
   }

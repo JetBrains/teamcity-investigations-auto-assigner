@@ -16,6 +16,7 @@
 
 package jetbrains.buildServer.iaa.heuristics;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
 import java.util.Set;
 import jetbrains.buildServer.iaa.ProblemInfo;
@@ -27,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class OneCommitterHeuristic implements Heuristic {
-
+  private static final Logger LOGGER = Logger.getInstance(OneCommitterHeuristic.class.getName());
   @Override
   @NotNull
   public String getName() {
@@ -46,7 +47,15 @@ public class OneCommitterHeuristic implements Heuristic {
     SBuild build = problemInfo.mySBuild;
     final SelectPrevBuildPolicy selectPrevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
     final Set<SUser> committers = build.getCommitters(selectPrevBuildPolicy).getUsers();
-    if (committers.isEmpty() || committers.size() != 1) return null;
+    if (committers.isEmpty()) {
+      LOGGER.debug("There are no committers since last build for failed build #" + build.getBuildId());
+      return null;
+    }
+    if (committers.size() != 1) {
+      LOGGER.debug(String.format("There are more then one committers (total: %d) since last build for failed build #%s",
+                                 committers.size() ,build.getBuildId()));
+      return null;
+    }
 
     return Pair.create(committers.iterator().next(), String.format("%s you were the only committer to the following " +
                                                                    "build: %s # %s", Constants.REASON_PREFIX,
