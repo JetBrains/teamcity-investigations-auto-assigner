@@ -14,6 +14,16 @@
   </bean>
 
   <bean class="jetbrains.buildServer.iaa.AutoAssignerBuildFeature"/>
-  <bean class="jetbrains.buildServer.iaa.NewTestsAndProblemsProcessorImpl"/>
-  <bean class="jetbrains.buildServer.iaa.AutoAssignerBean"/>
+  <bean class="jetbrains.buildServer.iaa.NewTestsAndProblemsProcessorImpl">
+    <constructor-arg index="2">
+      <list>
+        <ref bean="oneCommitterHeuristic"/>
+        <ref bean="brokenFileHeuristic"/>
+        <ref bean="defaultUserHeuristic"/>
+      </list>
+    </constructor-arg>
+  </bean>
+  <bean id="oneCommitterHeuristic" class="jetbrains.buildServer.iaa.heuristics.OneCommitterHeuristic"/>
+  <bean id="brokenFileHeuristic" class="jetbrains.buildServer.iaa.heuristics.BrokenFileHeuristic"/>
+  <bean id="defaultUserHeuristic" class="jetbrains.buildServer.iaa.heuristics.DefaultUserHeuristic"/>
 </beans>

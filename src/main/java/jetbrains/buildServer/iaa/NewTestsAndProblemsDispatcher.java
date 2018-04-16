@@ -45,7 +45,7 @@ public class NewTestsAndProblemsDispatcher {
       }
 
       public void testFailed(@NotNull SRunningBuild build, @NotNull List<Long> testNameIds) {
-        if (checkFeatureDisabled(build) || build.isPersonal()) return;
+        if (shouldIgnore(build)) return;
         List<STestRun> testRuns = new ArrayList<>();
         for (Long testNameId : testNameIds) {
           testRuns.add(build.getFullStatistics().findTestByTestNameId(testNameId));
@@ -66,7 +66,7 @@ public class NewTestsAndProblemsDispatcher {
       public void buildProblemsChanged(@NotNull SBuild sBuild,
                                        @NotNull List<BuildProblemData> before,
                                        @NotNull List<BuildProblemData> after) {
-        if (checkFeatureDisabled(sBuild) || !(sBuild instanceof BuildEx) || sBuild.isPersonal()) return;
+        if (shouldIgnore(sBuild) || !(sBuild instanceof BuildEx)) return;
 
         final List<BuildProblemData> newProblems = new ArrayList<>(after);
         newProblems.removeAll(before);
@@ -99,6 +99,10 @@ public class NewTestsAndProblemsDispatcher {
         }
       }
     });
+  }
+
+  private static boolean shouldIgnore(@NotNull SBuild build) {
+    return checkFeatureDisabled(build) || build.isPersonal();
   }
 
   private static boolean checkFeatureDisabled(@NotNull SBuild build) {

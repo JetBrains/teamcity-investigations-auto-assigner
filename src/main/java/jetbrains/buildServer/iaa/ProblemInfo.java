@@ -16,7 +16,16 @@
 
 package jetbrains.buildServer.iaa;
 
-public class AutoAssignerBean {
-  public static final AutoAssignerBean Shared = new AutoAssignerBean();
+import jetbrains.buildServer.serverSide.SBuild;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+public class ProblemInfo {
+  @NotNull public final SBuild mySBuild;
+  @Nullable public final String myProblemText;
+
+  ProblemInfo(@NotNull final SBuild sBuild, @Nullable final String problemText) {
+    mySBuild = sBuild;
+    myProblemText = problemText;
+  }
 }

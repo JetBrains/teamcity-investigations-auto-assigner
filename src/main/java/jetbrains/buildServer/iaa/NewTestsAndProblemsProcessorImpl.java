@@ -20,6 +20,7 @@ import com.intellij.openapi.util.Pair;
 import java.util.List;
 import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.BuildProject;
+import jetbrains.buildServer.iaa.heuristics.Heuristic;
 import jetbrains.buildServer.iaa.utils.FlakyTestDetectorFunctions;
 import jetbrains.buildServer.responsibility.*;
 import jetbrains.buildServer.responsibility.impl.BuildProblemResponsibilityEntryImpl;
@@ -40,11 +41,14 @@ import static jetbrains.buildServer.serverSide.impl.problems.types.CompilationEr
 public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProcessor {
   @NotNull private final TestNameResponsibilityFacade myTestNameResponsibilityFacade;
   @NotNull private final BuildProblemResponsibilityFacade myBuildProblemResponsibilityFacade;
+  @NotNull private final List<Heuristic> myOrderedHeuristics;
 
   public NewTestsAndProblemsProcessorImpl(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade,
-                                          @NotNull final BuildProblemResponsibilityFacade buildProblemResponsibilityFacade) {
+                                          @NotNull final BuildProblemResponsibilityFacade buildProblemResponsibilityFacade,
+                                          @NotNull final List<Heuristic> orderedHeuristics) {
     myTestNameResponsibilityFacade = testNameResponsibilityFacade;
     myBuildProblemResponsibilityFacade = buildProblemResponsibilityFacade;
+    myOrderedHeuristics = orderedHeuristics;
   }
 
   public void onTestFailed(@NotNull final SRunningBuild build, @NotNull final STestRun testRun) {
@@ -62,15 +66,15 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     final TestName testName = test.getName();
     final String text = testName.getAsString() + " " + testRun.getFullText();
 
-    final Pair<SUser, String> info = NewTestsAndProblemsUtil.findResponsibleUser(build, text);
-    if (info == null) return;
+    Pair<SUser, String> responsibleUser = findResponsibleUser(build, text);
+    if (responsibleUser == null) return;
 
     myTestNameResponsibilityFacade.setTestNameResponsibility(
       testName,
       project.getProjectId(),
       ResponsibilityEntryFactory.createEntry(
-        testName, test.getTestNameId(), ResponsibilityEntry.State.TAKEN, info.getFirst(), null,
-        Dates.now(), info.getSecond(), project, ResponsibilityEntry.RemoveMethod.WHEN_FIXED
+        testName, test.getTestNameId(), ResponsibilityEntry.State.TAKEN, responsibleUser.getFirst(), null,
+        Dates.now(), responsibleUser.getSecond(), project, ResponsibilityEntry.RemoveMethod.WHEN_FIXED
       )
     );
   }
@@ -83,18 +87,28 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     if (problem.isMuted() || !isNew(problem) || isInvestigated(problem, project)) return;
 
     final String text = getBuildProblemText(problem, build);
-
-    final Pair<SUser, String> info = NewTestsAndProblemsUtil.findResponsibleUser(build, text);
-    if (info == null) return;
+    Pair<SUser, String> responsibleUser = findResponsibleUser(build, text);
+    if (responsibleUser == null) return;
 
     myBuildProblemResponsibilityFacade.setBuildProblemResponsibility(
       problem,
       project.getProjectId(),
       new BuildProblemResponsibilityEntryImpl(
-        ResponsibilityEntry.State.TAKEN, info.getFirst(), null, Dates.now(), info.getSecond(),
+        ResponsibilityEntry.State.TAKEN, responsibleUser.getFirst(), null, Dates.now(), responsibleUser.getSecond(),
         ResponsibilityEntry.RemoveMethod.WHEN_FIXED, project, problem.getId()
       )
     );
+  }
+
+  @Nullable
+  private Pair<SUser, String> findResponsibleUser(@NotNull final SBuild sBuild, @Nullable final String problemText) {
+    ProblemInfo problemInfo = new ProblemInfo(sBuild, problemText);
+    Pair<SUser, String> responsibleUser = null;
+    for (Heuristic heuristic: myOrderedHeuristics) {
+      responsibleUser = heuristic.findResponsibleUser(problemInfo);
+      if (responsibleUser != null) break;
+    }
+    return responsibleUser;
   }
 
   private static String getBuildProblemText(@NotNull final BuildProblem problem, @NotNull final SBuild build) {

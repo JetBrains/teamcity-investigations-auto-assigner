@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2014 JetBrains s.r.o.
+ * Copyright 2000-2018 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package jetbrains.buildServer.iaa;
+package jetbrains.buildServer.iaa.heuristics;
 
 import com.intellij.openapi.util.Pair;
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
+import jetbrains.buildServer.iaa.ProblemInfo;
+import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.serverSide.BuildPromotion;
 import jetbrains.buildServer.serverSide.BuildPromotionEx;
 import jetbrains.buildServer.serverSide.ChangeDescriptor;
-import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.users.SUser;
 import jetbrains.buildServer.util.FileUtil;
 import jetbrains.buildServer.vcs.SVcsModification;
@@ -33,52 +35,58 @@ import org.jetbrains.annotations.Nullable;
 
 import static com.intellij.openapi.util.text.StringUtil.join;
 
-public class NewTestsAndProblemsUtil {
-  @NotNull private static final String REASON_PREFIX = "This investigation was assigned automatically by TeamCity since ";
+public class BrokenFileHeuristic implements Heuristic {
 
-  public static Pair<SUser, String> findResponsibleUser(@NotNull final SBuild build, @Nullable final String problemText) {
-    // todo if problem is a test, that already ran before in some build and was green there, should get committers since that build
-    final SelectPrevBuildPolicy selectPrevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
-    final Set<SUser> committers = build.getCommitters(selectPrevBuildPolicy).getUsers();
-    if (committers.isEmpty()) return null;
+  @Override
+  @NotNull
+  public String getName() {
+    return "Detect Broken File Heuristic";
+  }
 
-    if (committers.size() == 1) {
-      return Pair
-        .create(committers.iterator().next(), REASON_PREFIX + "you were the only committer to the following build: " + build.getFullName() + " #" + build.getBuildNumber());
-    }
+  @Override
+  @NotNull
+  public String getDescription() {
+    return "Assign an investigation to a user, if there are no other committers but him that changed a \"broken\"" +
+           " file. The \"broken\" file is which could probably cause this failure.";
+  }
 
-    if (problemText == null) return null;
+  @Override
+  @Nullable
+  public Pair<SUser, String> findResponsibleUser(@NotNull ProblemInfo problemInfo) {
+    if (problemInfo.myProblemText == null) return null;
 
-    final BuildPromotion buildPromotion = build.getBuildPromotion();
+    final BuildPromotion buildPromotion = problemInfo.mySBuild.getBuildPromotion();
     if (!(buildPromotion instanceof BuildPromotionEx)) return null;
 
-    SUser badUser = null;
-    String badFile = null;
-
-    for (ChangeDescriptor change : ((BuildPromotionEx)buildPromotion).getDetectedChanges(selectPrevBuildPolicy, true)) {
-      final SVcsModification vcsChange = change.getRelatedVcsChange();
-      if (vcsChange == null) continue;
-
-      final String changeBadFile = findBadFile(vcsChange, problemText);
-      if (changeBadFile == null) continue;
+    SelectPrevBuildPolicy prevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
+    List<SVcsModification> vcsChanges = ((BuildPromotionEx)buildPromotion).getDetectedChanges(prevBuildPolicy, true)
+                                                                          .stream()
+                                                                          .map(ChangeDescriptor::getRelatedVcsChange)
+                                                                          .filter(Objects::nonNull)
+                                                                          .collect(Collectors.toList());
+    SUser responsibleUser = null;
+    String brokenFile = null;
+    for (SVcsModification vcsChange : vcsChanges) {
+      final String foundBrokenFile = findBrokenFile(vcsChange, problemInfo.myProblemText);
+      if (foundBrokenFile == null) continue;
 
       final Collection<SUser> changeCommitters = vcsChange.getCommitters();
       if (changeCommitters.size() != 1) return null;
 
-      final SUser changeBadUser = changeCommitters.iterator().next();
-      if (badUser != null && !badUser.equals(changeBadUser)) return null;
+      final SUser foundResponsibleUser = changeCommitters.iterator().next();
+      if (responsibleUser != null && !responsibleUser.equals(foundResponsibleUser)) return null;
 
-      badUser = changeBadUser;
-      badFile = changeBadFile;
+      responsibleUser = foundResponsibleUser;
+      brokenFile = foundBrokenFile;
     }
 
-    if (badUser == null) return null;
-
-    return Pair.create(badUser, REASON_PREFIX + "you changed the \"" + badFile + "\" file, which could probably cause this failure");
+    if (responsibleUser == null) return null;
+    return Pair.create(responsibleUser, String.format("%s you changed the \"%s\" file, which could probably cause" +
+                                                      " this failure.", Constants.REASON_PREFIX, brokenFile));
   }
 
   @Nullable
-  private static String findBadFile(@NotNull final SVcsModification vcsChange, @NotNull final String problemText) {
+  private static String findBrokenFile(@NotNull final SVcsModification vcsChange, @NotNull final String problemText) {
     for (VcsFileModification modification : vcsChange.getChanges()) {
       final String filePath = modification.getRelativeFileName();
       for (String pattern : getPatterns(filePath)) {
@@ -93,7 +101,6 @@ public class NewTestsAndProblemsUtil {
   @NotNull
   private static List<String> getPatterns(@NotNull final String filePath) {
     final List<String> parts = new ArrayList<>();
-
     parts.add(FileUtil.getNameWithoutExtension(new File(filePath)));
 
     String path = getParentPath(filePath);

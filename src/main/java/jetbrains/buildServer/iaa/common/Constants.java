@@ -20,4 +20,10 @@ public class Constants {
   // Plugin's ids
   public static final String BUILD_FEATURE_TYPE = "investigations-auto-assigner";
   public static final String BUILD_FEATURE_DISPLAY_NAME = "Investigations Auto Assigner";
+
+  // Parameter names
+  public static final String DEFAULT_RESPONSIBLE = "teamcity.iaa.defaultResponsible";
+
+  //Message constants
+  public static final String REASON_PREFIX = "This investigation was assigned automatically by TeamCity since";
 }
