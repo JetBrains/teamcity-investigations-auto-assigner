@@ -58,7 +58,7 @@ public class DefaultUserHeuristic implements Heuristic {
     final SBuildFeatureDescriptor sBuildFeature = (SBuildFeatureDescriptor)descriptors.toArray()[0];
     String defaultResponsible = String.valueOf(sBuildFeature.getParameters().get(Constants.DEFAULT_RESPONSIBLE));
 
-    if (defaultResponsible == null) return null;
+    if (defaultResponsible == null || defaultResponsible.isEmpty()) return null;
     UserEx responsibleUser = myUserModel.findUserAccount(null, defaultResponsible);
 
     if (responsibleUser == null) return null;

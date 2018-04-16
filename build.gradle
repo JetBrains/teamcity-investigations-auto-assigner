@@ -4,6 +4,7 @@ buildscript {
     maven {
       url "https://plugins.gradle.org/m2/"
     }
+    jcenter()
   }
   dependencies {
     classpath group: 'com.github.rodm', name: 'gradle-teamcity-plugin', version: '1.1'
@@ -52,7 +53,7 @@ configurations {
 
 dependencies {
   provided(group: 'org.jetbrains.teamcity.internal', name: 'server', version: "${TeamCityVersion}")
-
+  testCompile 'org.mockito:mockito-core:2.18.0'
   testCompile 'org.assertj:assertj-core:2.2.0'
 
   // For Server-side Integration tests
@@ -107,7 +108,7 @@ project.tasks.getByName('serverPlugin').version = ''
 
 // Magic for integration tests provided by VladRassokhin
 if (!file("$teamcityDir").exists()) {
-  logger.warn("No TeamCity installation found at '$teamcityDir', integration tests would be skipped");
+  logger.warn("No TeamCity installation found at '$teamcityDir', integration tests would be skipped")
 } else {
   sourceSets {
     test.java.srcDirs += 'src/test-integration/java'

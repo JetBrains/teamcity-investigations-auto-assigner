@@ -24,7 +24,7 @@ public class ProblemInfo {
   @NotNull public final SBuild mySBuild;
   @Nullable public final String myProblemText;
 
-  ProblemInfo(@NotNull final SBuild sBuild, @Nullable final String problemText) {
+  public ProblemInfo(@NotNull final SBuild sBuild, @Nullable final String problemText) {
     mySBuild = sBuild;
     myProblemText = problemText;
   }
