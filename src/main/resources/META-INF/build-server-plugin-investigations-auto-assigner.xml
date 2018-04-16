@@ -14,8 +14,11 @@
   </bean>
 
   <bean class="jetbrains.buildServer.iaa.AutoAssignerBuildFeature"/>
-  <bean class="jetbrains.buildServer.iaa.NewTestsAndProblemsProcessorImpl">
-    <constructor-arg index="2">
+  <bean class="jetbrains.buildServer.iaa.NewTestsAndProblemsProcessorImpl"/>
+  <bean class="jetbrains.buildServer.iaa.BuildApplicabilityChecker"/>
+  <bean class="jetbrains.buildServer.iaa.TestApplicabilityChecker"/>
+  <bean class="jetbrains.buildServer.iaa.ResponsibleUserFinder">
+    <constructor-arg index="0">
       <list>
         <ref bean="oneCommitterHeuristic"/>
         <ref bean="brokenFileHeuristic"/>
