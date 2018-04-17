@@ -8,7 +8,7 @@
 * Plugin type: free, open-source
 
 ## Plugin Description
-Assigns investigations for a failure automatically based on the following heuristics.
+The plugin adds a [build feature](https://confluence.jetbrains.com/display/TCDL/Adding+Build+Features) which enables automatic assignment of investigations for a build failure. Investigations are assigned on the basis of the following heuristics:
 
 * If a user is the only committer to the build, the user is responsible.
 * If a user is the only one who changed the files, whose names appear in the test or build problem error text, the user is responsible.
@@ -17,17 +17,18 @@ Assigns investigations for a failure automatically based on the following heuris
 ## Status
 Working prototype is implemented.
 
-## Known Issues
-Has no settings yet, so cannot be disabled for some projects.
-
-## Download
-http://teamcity.jetbrains.com/viewLog.html?buildId=lastSuccessful&buildTypeId=TeamCityPluginsByJetBrains_InvestigationsAutoAssigner_BuildAgainstTeamCity81x&tab=artifacts
-
 ## TeamCity Versions Compatibility
-Compatible with TeamCity 8.1.2 and later.
+Compatible with TeamCity 2017.2 and later.
 
-## Installation
-Copy the plugin zip into the <[TeamCity Data Directory](http://confluence.jetbrains.com/display/TCD8/TeamCity+Data+Directory)>/plugins directory ([more on this](http://confluence.jetbrains.com/display/TCD8/Installing+Additional+Plugins#InstallingAdditionalPlugins-InstallingTeamCityplugins)).
+## Installation and Usage
+1. Download the plugin from the [public TeamCity server](http://teamcity.jetbrains.com/viewLog.html?buildId=lastSuccessful&buildTypeId=TeamCityPluginsByJetBrains_InvestigationsAutoAssigner_BuildAgainstTeamCity81x&tab=artifacts)
+
+2. Install the plugin as described in the [TeamCity documentation](http://confluence.jetbrains.com/display/TCDL/Installing+Additional+Plugins#InstallingAdditionalPlugins-InstallingTeamCityplugins).
+
+When the plugin is installed, the Investigations Auto Assigner [build feature](https://confluence.jetbrains.com/display/TCDL/Adding+Build+Features) appears in the build configuration settings. Add the build feature to your configuration to enable investigations auto-assignment.
+
+See [Wiki](https://github.com/JetBrains/teamcity-investigations-auto-assigner/wiki) for more information.
+
 
 ## Feedback
 Everybody is encouraged to try the plugin and provide feedback in the [forum](http://devnet.jetbrains.net/community/teamcity/teamcity) or post bugs into the [issue tracker](http://youtrack.jetbrains.net/issues/TW).
