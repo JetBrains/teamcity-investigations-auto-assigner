@@ -10,10 +10,9 @@
 ## Plugin Description
 Assigns investigations for a failure automatically based on the following heuristics.
 
-So far uses two heuristics:
-
-* If user is the only committer to the build, the user is responsible.
-* If user is the only one who changed the files, whose names appear in test or build problem error text, the user is responsible.
+* If a user is the only committer to the build, the user is responsible.
+* If a user is the only one who changed the files, whose names appear in the test or build problem error text, the user is responsible.
+* If a user is set as the default responsible user, the user is responsible.
 
 ## Status
 Working prototype is implemented.
