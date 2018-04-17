@@ -17,7 +17,7 @@
 package jetbrains.buildServer.iaa;
 
 import jetbrains.buildServer.BuildProject;
-import jetbrains.buildServer.iaa.utils.FlakyTestDetectorFunctions;
+import jetbrains.buildServer.iaa.utils.FlakyTestDetector;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityEntry;
 import jetbrains.buildServer.serverSide.SProject;
@@ -26,14 +26,22 @@ import jetbrains.buildServer.serverSide.STestRun;
 import org.jetbrains.annotations.NotNull;
 
 class TestApplicabilityChecker {
-  boolean check(@NotNull final SProject project, @NotNull final STestRun testRun) {
+
+  @NotNull private FlakyTestDetector myFlakyTestDetector;
+
+  TestApplicabilityChecker(@NotNull FlakyTestDetector flakyTestDetector) {
+    myFlakyTestDetector = flakyTestDetector;
+  }
+
+  boolean check(@NotNull final SProject project,
+                @NotNull final STestRun testRun) {
     final STest test = testRun.getTest();
 
     return !testRun.isMuted() &&
            !testRun.isFixed() &&
            testRun.isNewFailure() &&
            !isInvestigated(test, project) &&
-           !FlakyTestDetectorFunctions.isFlaky(test.getTestNameId());
+           !myFlakyTestDetector.isFlaky(test.getTestNameId());
   }
 
   private static boolean isInvestigated(@NotNull final STest test, @NotNull final SProject project) {
