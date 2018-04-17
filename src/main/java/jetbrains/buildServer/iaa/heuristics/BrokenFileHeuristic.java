@@ -46,8 +46,8 @@ public class BrokenFileHeuristic implements Heuristic {
   @Override
   @NotNull
   public String getDescription() {
-    return "Assign an investigation to a user, if there are no other committers but him that changed a \"broken\"" +
-           " file. The \"broken\" file is which could probably cause this failure.";
+    return "Assign an investigation to a user if the user is the only committer " +
+           "who changed the suspicious file. The suspicious file is the one that probably caused this failure.";
   }
 
   @Override
@@ -81,7 +81,7 @@ public class BrokenFileHeuristic implements Heuristic {
     }
 
     if (responsibleUser == null) return null;
-    return Pair.create(responsibleUser, String.format("%s you changed the \"%s\" file, which could probably cause" +
+    return Pair.create(responsibleUser, String.format("%s you changed the \"%s\" file, which probably caused" +
                                                       " this failure.", Constants.REASON_PREFIX, brokenFile));
   }
 

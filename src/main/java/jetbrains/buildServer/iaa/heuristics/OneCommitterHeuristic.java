@@ -37,7 +37,7 @@ public class OneCommitterHeuristic implements Heuristic {
   @Override
   @NotNull
   public String getDescription() {
-    return "Assign an investigation to a user, if there are no other committers but him.";
+    return "Assign an investigation to a user if the user is the only committer.";
   }
 
   @Override
@@ -48,7 +48,7 @@ public class OneCommitterHeuristic implements Heuristic {
     final Set<SUser> committers = build.getCommitters(selectPrevBuildPolicy).getUsers();
     if (committers.isEmpty() || committers.size() != 1) return null;
 
-    return Pair.create(committers.iterator().next(), String.format("%s you were the only committer to the following " +
+    return Pair.create(committers.iterator().next(), String.format("%s you're the only committer to the " +
                                                                    "build: %s # %s", Constants.REASON_PREFIX,
                                                                    build.getFullName(), build.getBuildNumber()));
   }

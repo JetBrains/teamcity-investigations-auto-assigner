@@ -45,7 +45,7 @@ public class DefaultUserHeuristic implements Heuristic {
   @Override
   @NotNull
   public String getDescription() {
-    return "Assign an investigation to a default responsible user.";
+    return "Assign an investigation to the default responsible user.";
   }
 
   @Override
@@ -63,7 +63,7 @@ public class DefaultUserHeuristic implements Heuristic {
 
     if (responsibleUser == null) return null;
     return Pair.create(responsibleUser,
-              Constants.REASON_PREFIX + " you were selected as default responsible for following build: " +
+              Constants.REASON_PREFIX + " you're the default responsible user for the build: " +
               build.getFullName() + " #" + build.getBuildNumber());
   }
 }

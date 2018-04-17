@@ -25,5 +25,5 @@ public class Constants {
   public static final String DEFAULT_RESPONSIBLE = "teamcity.iaa.defaultResponsible";
 
   //Message constants
-  public static final String REASON_PREFIX = "This investigation was assigned automatically by TeamCity since";
+  public static final String REASON_PREFIX = "Auto-assigned investigation:";
 }
