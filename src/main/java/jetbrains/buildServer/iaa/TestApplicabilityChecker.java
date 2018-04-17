@@ -38,7 +38,7 @@ class TestApplicabilityChecker {
 
   private static boolean isInvestigated(@NotNull final STest test, @NotNull final SProject project) {
     for (TestNameResponsibilityEntry entry : test.getAllResponsibilities()) {
-      if (isActiveOrFixed(entry) && isSameOrParent(entry.getProject(), project)) return true;
+      if (isActiveOrFixed(entry) && isSameProjectOrParent(entry.getProject(), project)) return true;
     }
     return false;
   }
@@ -48,9 +48,10 @@ class TestApplicabilityChecker {
     return state.isActive() || state.isFixed();
   }
 
-  private static boolean isSameOrParent(@NotNull final BuildProject parent, @NotNull final BuildProject project) {
+  private static boolean isSameProjectOrParent(@NotNull final BuildProject parent,
+                                               @NotNull final BuildProject project) {
     if (parent.getProjectId().equals(project.getProjectId())) return true;
     final BuildProject parentProject = project.getParentProject();
-    return parentProject != null && isSameOrParent(parent, parentProject);
+    return parentProject != null && isSameProjectOrParent(parent, parentProject);
   }
 }
