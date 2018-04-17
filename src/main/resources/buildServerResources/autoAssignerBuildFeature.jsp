@@ -16,7 +16,7 @@
 
 <tr>
   <td colspan="2">
-    <em>This build feature automatically assigns investigations for build failures.
+    <em>This build feature automatically assigns investigations of build failures to users.
       <a class='helpIcon' onclick='BS.AutoAssignerFeature.showHomePage()' title='View help'>
         <i class='icon icon16 tc-icon_help_small'></i>
       </a>
@@ -25,7 +25,7 @@
 </tr>
 <tr>
   <td>
-    <label for="<%= Constants.DEFAULT_RESPONSIBLE%>">Default Responsible:</label>
+    <label for="<%= Constants.DEFAULT_RESPONSIBLE%>">Default Responsible User:</label>
   </td>
   <td>
     <props:textProperty name="<%= Constants.DEFAULT_RESPONSIBLE%>" maxlength="100"/>
