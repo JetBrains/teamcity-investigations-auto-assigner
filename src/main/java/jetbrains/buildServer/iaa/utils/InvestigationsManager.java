@@ -26,26 +26,26 @@ import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.jetbrains.annotations.NotNull;
 
 public class InvestigationsManager {
-  public static boolean checkUnderInvestigation(@NotNull final BuildProblem problem, @NotNull final SProject project) {
+  public boolean checkUnderInvestigation(@NotNull final SProject project, @NotNull final BuildProblem problem) {
     for (BuildProblemResponsibilityEntry entry : problem.getAllResponsibilities()) {
       if (isActiveOrFixed(entry) && belongSameProjectOrParent(entry.getProject(), project)) return true;
     }
     return false;
   }
 
-  public static boolean checkUnderInvestigation(@NotNull final STest test, @NotNull final SProject project) {
+  public boolean checkUnderInvestigation(@NotNull final SProject project, @NotNull final STest test) {
     for (TestNameResponsibilityEntry entry : test.getAllResponsibilities()) {
       if (isActiveOrFixed(entry) && belongSameProjectOrParent(entry.getProject(), project)) return true;
     }
     return false;
   }
 
-  private static boolean isActiveOrFixed(@NotNull final ResponsibilityEntry entry) {
+  private boolean isActiveOrFixed(@NotNull final ResponsibilityEntry entry) {
     final ResponsibilityEntry.State state = entry.getState();
     return state.isActive() || state.isFixed();
   }
 
-  private static boolean belongSameProjectOrParent(@NotNull final BuildProject parent, @NotNull final BuildProject project) {
+  private boolean belongSameProjectOrParent(@NotNull final BuildProject parent, @NotNull final BuildProject project) {
     if (parent.getProjectId().equals(project.getProjectId())) return true;
     final BuildProject parentProject = project.getParentProject();
     return parentProject != null && belongSameProjectOrParent(parent, parentProject);

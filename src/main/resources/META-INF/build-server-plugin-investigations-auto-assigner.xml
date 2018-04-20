@@ -15,6 +15,7 @@
 
   <bean class="jetbrains.buildServer.iaa.AutoAssignerBuildFeature"/>
   <bean class="jetbrains.buildServer.iaa.NewTestsAndProblemsProcessorImpl"/>
+  <bean class="jetbrains.buildServer.iaa.utils.InvestigationsManager"/>
   <bean class="jetbrains.buildServer.iaa.BuildApplicabilityChecker"/>
   <bean class="jetbrains.buildServer.iaa.TestApplicabilityChecker"/>
   <bean class="jetbrains.buildServer.iaa.utils.FlakyTestDetector"/>

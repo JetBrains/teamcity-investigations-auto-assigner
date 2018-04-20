@@ -22,10 +22,17 @@ import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import org.jetbrains.annotations.NotNull;
 
 public class BuildApplicabilityChecker {
+
+  private InvestigationsManager myInvestigationsManager;
+
+  BuildApplicabilityChecker(@NotNull final InvestigationsManager investigationsManager) {
+    myInvestigationsManager = investigationsManager;
+  }
+
   boolean check(@NotNull final SProject project, @NotNull final BuildProblemImpl problem) {
     return (!problem.isMuted() &&
             isNew(problem) &&
-            !InvestigationsManager.checkUnderInvestigation(problem, project));
+            !myInvestigationsManager.checkUnderInvestigation(project, problem));
   }
 
   private static boolean isNew(@NotNull final BuildProblemImpl problem) {

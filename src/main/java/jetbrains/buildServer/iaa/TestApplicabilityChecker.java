@@ -26,9 +26,12 @@ import org.jetbrains.annotations.NotNull;
 class TestApplicabilityChecker {
 
   @NotNull private FlakyTestDetector myFlakyTestDetector;
+  @NotNull private InvestigationsManager myInvestigationsManager;
 
-  TestApplicabilityChecker(@NotNull FlakyTestDetector flakyTestDetector) {
+  TestApplicabilityChecker(@NotNull FlakyTestDetector flakyTestDetector,
+                           @NotNull final InvestigationsManager investigationsManager) {
     myFlakyTestDetector = flakyTestDetector;
+    myInvestigationsManager = investigationsManager;
   }
 
   boolean check(@NotNull final SProject project,
@@ -38,7 +41,7 @@ class TestApplicabilityChecker {
     return !testRun.isMuted() &&
            !testRun.isFixed() &&
            testRun.isNewFailure() &&
-           !InvestigationsManager.checkUnderInvestigation(test, project) &&
+           !myInvestigationsManager.checkUnderInvestigation(project, test) &&
            !myFlakyTestDetector.isFlaky(test.getTestNameId());
   }
 }
