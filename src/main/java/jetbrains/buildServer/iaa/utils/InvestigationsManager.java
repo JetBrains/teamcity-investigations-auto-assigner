@@ -20,29 +20,39 @@ import jetbrains.buildServer.BuildProject;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityEntry;
+import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STest;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.jetbrains.annotations.NotNull;
 
 public class InvestigationsManager {
-  public boolean checkUnderInvestigation(@NotNull final SProject project, @NotNull final BuildProblem problem) {
+
+  public boolean checkUnderInvestigation(@NotNull final SProject project,
+                                         @NotNull final SBuild sBuild,
+                                         @NotNull final BuildProblem problem) {
     for (BuildProblemResponsibilityEntry entry : problem.getAllResponsibilities()) {
-      if (isActiveOrFixed(entry) && belongSameProjectOrParent(entry.getProject(), project)) return true;
+      if (isActiveOrAlreadyFixed(sBuild, entry) && belongSameProjectOrParent(entry.getProject(), project)) return true;
     }
     return false;
   }
 
-  public boolean checkUnderInvestigation(@NotNull final SProject project, @NotNull final STest test) {
+  public boolean checkUnderInvestigation(@NotNull final SProject project,
+                                         @NotNull final SBuild sBuild,
+                                         @NotNull final STest test) {
     for (TestNameResponsibilityEntry entry : test.getAllResponsibilities()) {
-      if (isActiveOrFixed(entry) && belongSameProjectOrParent(entry.getProject(), project)) return true;
+      if (isActiveOrAlreadyFixed(sBuild, entry) && belongSameProjectOrParent(entry.getProject(), project)) return true;
     }
     return false;
   }
 
-  private boolean isActiveOrFixed(@NotNull final ResponsibilityEntry entry) {
+  private boolean isActiveOrAlreadyFixed(@NotNull final SBuild sBuild, @NotNull final ResponsibilityEntry entry) {
     final ResponsibilityEntry.State state = entry.getState();
-    return state.isActive() || state.isFixed();
+    return state.isActive() || (state.isFixed() && createdBeforeBuildQueued(entry, sBuild));
+  }
+
+  private static boolean createdBeforeBuildQueued(final ResponsibilityEntry entry, final SBuild sBuild) {
+    return sBuild.getQueuedDate().getTime() - entry.getTimestamp().getTime() <= 0;
   }
 
   private boolean belongSameProjectOrParent(@NotNull final BuildProject parent, @NotNull final BuildProject project) {

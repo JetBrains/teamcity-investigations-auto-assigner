@@ -80,8 +80,8 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
     when(sTestRun.getTest()).thenReturn(sTest);
     when(sTestRun.getFullText()).thenReturn("Full Text Test Run");
     when(sTest.getName()).thenReturn(testName);
-    when(testApplicabilityChecker.check(any(), any())).thenReturn(true);
-    when(buildApplicabilityChecker.check(any(), any())).thenReturn(true);
+    when(testApplicabilityChecker.check(any(), any(), any())).thenReturn(true);
+    when(buildApplicabilityChecker.check(any(), any(), any())).thenReturn(true);
     when(testName.getAsString()).thenReturn("Test Name as String");
     Pair<SUser, String> anyPair = new Pair<>(sUser, "Failed description");
     when(responsibleUserFinder.findResponsibleUser(any(), any())).thenReturn(anyPair);
@@ -106,7 +106,7 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
   }
 
   public void Tes_OnTestFailed_ApplicabilityFailed() {
-    when(testApplicabilityChecker.check(any(), any())).thenReturn(false);
+    when(testApplicabilityChecker.check(any(), any(), any())).thenReturn(false);
 
     processor.onTestFailed(sRunningBuild, sTestRun);
 
@@ -114,7 +114,7 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
   }
 
   public void Test_OnTestFailed_ApplicabilitySucceed() {
-    when(testApplicabilityChecker.check(any(), any())).thenReturn(true);
+    when(testApplicabilityChecker.check(any(), any(), any())).thenReturn(true);
 
     processor.onTestFailed(sRunningBuild, sTestRun);
 
@@ -146,7 +146,7 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
 
     processor.onBuildProblemOccurred(sBuild, buildProblem);
 
-    Mockito.verify(buildApplicabilityChecker, Mockito.never()).check(any(), any());
+    Mockito.verify(buildApplicabilityChecker, Mockito.never()).check(any(), any(), any());
   }
 
   public void Test_BuildProblemOccurred_BuildTypeNotNull() {
@@ -154,11 +154,11 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
 
     processor.onBuildProblemOccurred(sBuild, buildProblem);
 
-    Mockito.verify(buildApplicabilityChecker, Mockito.atLeastOnce()).check(any(), any());
+    Mockito.verify(buildApplicabilityChecker, Mockito.atLeastOnce()).check(any(), any(), any());
   }
 
   public void Test_BuildProblemOccurred_ApplicabilityFailed() {
-    when(buildApplicabilityChecker.check(any(), any())).thenReturn(false);
+    when(buildApplicabilityChecker.check(any(), any(), any())).thenReturn(false);
 
     processor.onBuildProblemOccurred(sBuild, buildProblem);
 
@@ -166,7 +166,7 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
   }
 
   public void Test_BuildProblemOccurred_ApplicabilitySucceed() {
-    when(buildApplicabilityChecker.check(any(), any())).thenReturn(true);
+    when(buildApplicabilityChecker.check(any(), any(), any())).thenReturn(true);
 
     processor.onBuildProblemOccurred(sBuild, buildProblem);
 

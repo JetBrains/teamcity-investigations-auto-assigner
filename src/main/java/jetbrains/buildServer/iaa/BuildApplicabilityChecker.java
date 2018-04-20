@@ -17,6 +17,7 @@
 package jetbrains.buildServer.iaa;
 
 import jetbrains.buildServer.iaa.utils.InvestigationsManager;
+import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import org.jetbrains.annotations.NotNull;
@@ -29,10 +30,12 @@ public class BuildApplicabilityChecker {
     myInvestigationsManager = investigationsManager;
   }
 
-  boolean check(@NotNull final SProject project, @NotNull final BuildProblemImpl problem) {
+  boolean check(@NotNull final SProject project,
+                @NotNull final SBuild sBuild,
+                @NotNull final BuildProblemImpl problem) {
     return (!problem.isMuted() &&
             isNew(problem) &&
-            !myInvestigationsManager.checkUnderInvestigation(project, problem));
+            !myInvestigationsManager.checkUnderInvestigation(project, sBuild, problem));
   }
 
   private static boolean isNew(@NotNull final BuildProblemImpl problem) {

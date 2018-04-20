@@ -18,6 +18,7 @@ package jetbrains.buildServer.iaa;
 
 import jetbrains.buildServer.iaa.utils.FlakyTestDetector;
 import jetbrains.buildServer.iaa.utils.InvestigationsManager;
+import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STest;
 import jetbrains.buildServer.serverSide.STestRun;
@@ -35,13 +36,14 @@ class TestApplicabilityChecker {
   }
 
   boolean check(@NotNull final SProject project,
+                @NotNull final SBuild sBuild,
                 @NotNull final STestRun testRun) {
     final STest test = testRun.getTest();
 
     return !testRun.isMuted() &&
            !testRun.isFixed() &&
            testRun.isNewFailure() &&
-           !myInvestigationsManager.checkUnderInvestigation(project, test) &&
+           !myInvestigationsManager.checkUnderInvestigation(project, sBuild, test) &&
            !myFlakyTestDetector.isFlaky(test.getTestNameId());
   }
 }

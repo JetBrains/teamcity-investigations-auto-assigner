@@ -22,6 +22,7 @@ import jetbrains.buildServer.iaa.utils.FlakyTestDetector;
 import jetbrains.buildServer.iaa.utils.InvestigationsManager;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityEntry;
+import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STest;
 import jetbrains.buildServer.serverSide.STestRun;
@@ -38,6 +39,7 @@ public class TestApplicabilityCheckerTest extends BaseTestCase {
 
   private TestApplicabilityChecker applicabilityChecker;
   private SProject project;
+  private SBuild sBuild;
   private STestRun sTestRun ;
   private TestNameResponsibilityEntry responsibilityEntry1;
   private FlakyTestDetector flakyTestDetector;
@@ -52,6 +54,7 @@ public class TestApplicabilityCheckerTest extends BaseTestCase {
     project = Mockito.mock(SProject.class);
     SProject parentProject = Mockito.mock(SProject.class);
     final SProject project2 = Mockito.mock(SProject.class);
+    sBuild = Mockito.mock(SBuild.class);
     sTestRun = Mockito.mock(STestRun.class);
     responsibilityEntry1 = Mockito.mock(TestNameResponsibilityEntry.class);
     investigationsManager = Mockito.mock(InvestigationsManager.class);
@@ -69,14 +72,14 @@ public class TestApplicabilityCheckerTest extends BaseTestCase {
     when(flakyTestDetector.isFlaky(anyLong())).thenReturn(false);
     when(responsibilityEntry1.getState()).thenReturn(ResponsibilityEntry.State.NONE);
     when(responsibilityEntry2.getState()).thenReturn(ResponsibilityEntry.State.NONE);
-    when(investigationsManager.checkUnderInvestigation(project, sTest)).thenReturn(false);
+    when(investigationsManager.checkUnderInvestigation(project, sBuild, sTest)).thenReturn(false);
     applicabilityChecker = new TestApplicabilityChecker(flakyTestDetector, investigationsManager);
   }
 
   public void Test_TestRunIsMuted() {
     when(sTestRun.isMuted()).thenReturn(true);
 
-    boolean isApplicable = applicabilityChecker.check(project, sTestRun);
+    boolean isApplicable = applicabilityChecker.check(project, sBuild, sTestRun);
 
     Assert.assertFalse(isApplicable);
   }
@@ -84,7 +87,7 @@ public class TestApplicabilityCheckerTest extends BaseTestCase {
   public void Test_TestRunIsNotMuted() {
     when(sTestRun.isMuted()).thenReturn(false);
 
-    boolean isApplicable = applicabilityChecker.check(project, sTestRun);
+    boolean isApplicable = applicabilityChecker.check(project, sBuild, sTestRun);
 
     Assert.assertTrue(isApplicable);
   }
@@ -92,7 +95,7 @@ public class TestApplicabilityCheckerTest extends BaseTestCase {
   public void Test_TestRunIsFixed() {
     when(sTestRun.isFixed()).thenReturn(true);
 
-    boolean isApplicable = applicabilityChecker.check(project, sTestRun);
+    boolean isApplicable = applicabilityChecker.check(project, sBuild, sTestRun);
 
     Assert.assertFalse(isApplicable);
   }
@@ -100,7 +103,7 @@ public class TestApplicabilityCheckerTest extends BaseTestCase {
   public void Test_TestRunIsNotFixed() {
     when(sTestRun.isFixed()).thenReturn(false);
 
-    boolean isApplicable = applicabilityChecker.check(project, sTestRun);
+    boolean isApplicable = applicabilityChecker.check(project, sBuild, sTestRun);
 
     Assert.assertTrue(isApplicable);
   }
@@ -108,7 +111,7 @@ public class TestApplicabilityCheckerTest extends BaseTestCase {
   public void Test_TestRunNotNewFailure() {
     when(sTestRun.isNewFailure()).thenReturn(false);
 
-    boolean isApplicable = applicabilityChecker.check(project, sTestRun);
+    boolean isApplicable = applicabilityChecker.check(project, sBuild, sTestRun);
 
     Assert.assertFalse(isApplicable);
   }
@@ -116,25 +119,25 @@ public class TestApplicabilityCheckerTest extends BaseTestCase {
   public void Test_TestRunIsNewFailure() {
     when(sTestRun.isNewFailure()).thenReturn(true);
 
-    boolean isApplicable = applicabilityChecker.check(project, sTestRun);
+    boolean isApplicable = applicabilityChecker.check(project, sBuild, sTestRun);
 
     Assert.assertTrue(isApplicable);
   }
 
   public void Test_BuildProblemIsUnderInvestigation() {
-    when(investigationsManager.checkUnderInvestigation(project, sTest)).thenReturn(true);
+    when(investigationsManager.checkUnderInvestigation(project, sBuild, sTest)).thenReturn(true);
     when(responsibilityEntry1.getProject()).thenReturn(project);
 
-    boolean isApplicable = applicabilityChecker.check(project, sTestRun);
+    boolean isApplicable = applicabilityChecker.check(project, sBuild, sTestRun);
 
     Assert.assertFalse(isApplicable);
   }
 
   public void Test_BuildProblemNotUnderInvestigation() {
-    when(investigationsManager.checkUnderInvestigation(project, sTest)).thenReturn(false);
+    when(investigationsManager.checkUnderInvestigation(project, sBuild, sTest)).thenReturn(false);
     when(responsibilityEntry1.getProject()).thenReturn(project);
 
-    boolean isApplicable = applicabilityChecker.check(project, sTestRun);
+    boolean isApplicable = applicabilityChecker.check(project, sBuild, sTestRun);
 
     Assert.assertTrue(isApplicable);
   }
@@ -142,7 +145,7 @@ public class TestApplicabilityCheckerTest extends BaseTestCase {
   public void Test_TestIsFlaky() {
     when(flakyTestDetector.isFlaky(anyLong())).thenReturn(true);
 
-    boolean isApplicable = applicabilityChecker.check(project, sTestRun);
+    boolean isApplicable = applicabilityChecker.check(project, sBuild, sTestRun);
 
     Assert.assertFalse(isApplicable);
   }
@@ -150,7 +153,7 @@ public class TestApplicabilityCheckerTest extends BaseTestCase {
   public void Test_TestNotFlaky() {
     when(flakyTestDetector.isFlaky(anyLong())).thenReturn(false);
 
-    boolean isApplicable = applicabilityChecker.check(project, sTestRun);
+    boolean isApplicable = applicabilityChecker.check(project, sBuild, sTestRun);
 
     Assert.assertTrue(isApplicable);
   }

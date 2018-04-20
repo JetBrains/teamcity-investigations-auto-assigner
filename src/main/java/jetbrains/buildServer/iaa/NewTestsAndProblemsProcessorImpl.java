@@ -48,7 +48,7 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
 
   private static final Logger LOGGER = Logger.getInstance(NewTestsAndProblemsProcessorImpl.class.getName());
 
-  public NewTestsAndProblemsProcessorImpl(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade,
+  NewTestsAndProblemsProcessorImpl(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade,
                                           @NotNull final BuildProblemResponsibilityFacade buildProblemResponsibilityFacade,
                                           @NotNull final ResponsibleUserFinder responsibleUserFinder,
                                           @NotNull final TestApplicabilityChecker testApplicabilityChecker,
@@ -66,7 +66,7 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     final STest test = testRun.getTest();
     final SProject project = buildType.getProject();
 
-    if (!myTestApplicabilityChecker.check(project, testRun)) {
+    if (!myTestApplicabilityChecker.check(project, build, testRun)) {
       LOGGER.debug(String.format("Stop processing a failed test %s as it's incompatible", test.getTestNameId()));
       return;
     }
@@ -92,7 +92,7 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     if (buildType == null) return;
     final SProject project = buildType.getProject();
 
-    if (!myBuildApplicabilityChecker.check(project, problem)) {
+    if (!myBuildApplicabilityChecker.check(project, build, problem)) {
       LOGGER.debug(String.format("Stop processing a failed build #%s as it's applicable", build.getBuildId()));
       return;
     }
