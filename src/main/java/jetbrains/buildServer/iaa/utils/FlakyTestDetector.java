@@ -22,7 +22,7 @@ import jetbrains.buildServer.iaa.NewTestsAndProblemsProcessor;
 import static java.lang.String.format;
 import static java.lang.management.ManagementFactory.getPlatformMBeanServer;
 
-public class FlakyTestDetectorFunctions {
+public class FlakyTestDetector {
   /**
    * The JMX ObjectName's used by the Flaky Test Detector MXBean.
    */
@@ -30,8 +30,8 @@ public class FlakyTestDetectorFunctions {
   /**
    * Whether InstanceNotFoundException has been caught.
    */
-  private static boolean instanceNotFound = false;
-  private static final com.intellij.openapi.diagnostic.Logger LOGGER = com.intellij.openapi.diagnostic.Logger.getInstance(NewTestsAndProblemsProcessor.class.getName());
+  private boolean instanceNotFound = false;
+  private final com.intellij.openapi.diagnostic.Logger LOGGER = com.intellij.openapi.diagnostic.Logger.getInstance(NewTestsAndProblemsProcessor.class.getName());
 
   /**
    * If Flaky Test Detector plug-in is not installed, returns false
@@ -39,7 +39,7 @@ public class FlakyTestDetectorFunctions {
    * @param testNameId the unique name_id of the test.
    * @return whether the test specified by testNameId is flaky.
    */
-  public static boolean isFlaky(final long testNameId) {
+  public boolean isFlaky(final long testNameId) {
     if (instanceNotFound) return false;
 
     final MBeanServer mBeanServer = getPlatformMBeanServer();

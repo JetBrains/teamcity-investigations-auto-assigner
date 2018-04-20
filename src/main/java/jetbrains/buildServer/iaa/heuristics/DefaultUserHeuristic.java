@@ -16,6 +16,7 @@
 
 package jetbrains.buildServer.iaa.heuristics;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
 import java.util.Collection;
 import jetbrains.buildServer.iaa.ProblemInfo;
@@ -29,6 +30,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DefaultUserHeuristic implements Heuristic {
+
+  private static final Logger LOGGER = Logger.getInstance(DefaultUserHeuristic.class.getName());
 
   @NotNull private UserModelEx myUserModel;
 
@@ -58,10 +61,14 @@ public class DefaultUserHeuristic implements Heuristic {
     final SBuildFeatureDescriptor sBuildFeature = (SBuildFeatureDescriptor)descriptors.toArray()[0];
     String defaultResponsible = String.valueOf(sBuildFeature.getParameters().get(Constants.DEFAULT_RESPONSIBLE));
 
-    if (defaultResponsible == null) return null;
+    if (defaultResponsible == null || defaultResponsible.isEmpty()) return null;
     UserEx responsibleUser = myUserModel.findUserAccount(null, defaultResponsible);
 
-    if (responsibleUser == null) return null;
+    if (responsibleUser == null) {
+      LOGGER.warn(String.format("There is specified default user %s, but there is no hin in user model. Failed build #%s",
+                                defaultResponsible, build.getBuildId()));
+      return null;
+    }
     return Pair.create(responsibleUser,
               Constants.REASON_PREFIX + " you're the default responsible user for the build: " +
               build.getFullName() + " #" + build.getBuildNumber());

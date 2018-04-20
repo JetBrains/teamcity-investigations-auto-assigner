@@ -16,13 +16,14 @@
 
 package jetbrains.buildServer.iaa;
 
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
 import java.util.List;
 import jetbrains.buildServer.BuildProblemTypes;
-import jetbrains.buildServer.BuildProject;
-import jetbrains.buildServer.iaa.heuristics.Heuristic;
-import jetbrains.buildServer.iaa.utils.FlakyTestDetectorFunctions;
-import jetbrains.buildServer.responsibility.*;
+import jetbrains.buildServer.responsibility.BuildProblemResponsibilityFacade;
+import jetbrains.buildServer.responsibility.ResponsibilityEntry;
+import jetbrains.buildServer.responsibility.ResponsibilityEntryFactory;
+import jetbrains.buildServer.responsibility.TestNameResponsibilityFacade;
 import jetbrains.buildServer.responsibility.impl.BuildProblemResponsibilityEntryImpl;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.buildLog.LogMessage;
@@ -41,32 +42,39 @@ import static jetbrains.buildServer.serverSide.impl.problems.types.CompilationEr
 public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProcessor {
   @NotNull private final TestNameResponsibilityFacade myTestNameResponsibilityFacade;
   @NotNull private final BuildProblemResponsibilityFacade myBuildProblemResponsibilityFacade;
-  @NotNull private final List<Heuristic> myOrderedHeuristics;
+  @NotNull private ResponsibleUserFinder myResponsibleUserFinder;
+  @NotNull private TestApplicabilityChecker myTestApplicabilityChecker;
+  @NotNull private BuildApplicabilityChecker myBuildApplicabilityChecker;
+
+  private static final Logger LOGGER = Logger.getInstance(NewTestsAndProblemsProcessorImpl.class.getName());
 
   public NewTestsAndProblemsProcessorImpl(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade,
                                           @NotNull final BuildProblemResponsibilityFacade buildProblemResponsibilityFacade,
-                                          @NotNull final List<Heuristic> orderedHeuristics) {
+                                          @NotNull final ResponsibleUserFinder responsibleUserFinder,
+                                          @NotNull final TestApplicabilityChecker testApplicabilityChecker,
+                                          @NotNull final BuildApplicabilityChecker buildApplicabilityChecker) {
     myTestNameResponsibilityFacade = testNameResponsibilityFacade;
     myBuildProblemResponsibilityFacade = buildProblemResponsibilityFacade;
-    myOrderedHeuristics = orderedHeuristics;
+    myResponsibleUserFinder = responsibleUserFinder;
+    myTestApplicabilityChecker = testApplicabilityChecker;
+    myBuildApplicabilityChecker = buildApplicabilityChecker;
   }
 
   public void onTestFailed(@NotNull final SRunningBuild build, @NotNull final STestRun testRun) {
     final SBuildType buildType = build.getBuildType();
     if (buildType == null) return;
-
     final STest test = testRun.getTest();
     final SProject project = buildType.getProject();
-    if (testRun.isMuted() ||
-        testRun.isFixed() ||
-        !testRun.isNewFailure() ||
-        isInvestigated(test, project) ||
-        FlakyTestDetectorFunctions.isFlaky(test.getTestNameId())) return;
+
+    if (!myTestApplicabilityChecker.check(project, testRun)) {
+      LOGGER.debug(String.format("Stop processing a failed test %s as it's incompatible", test.getTestNameId()));
+      return;
+    }
 
     final TestName testName = test.getName();
     final String text = testName.getAsString() + " " + testRun.getFullText();
 
-    Pair<SUser, String> responsibleUser = findResponsibleUser(build, text);
+    Pair<SUser, String> responsibleUser = myResponsibleUserFinder.findResponsibleUser(build, text);
     if (responsibleUser == null) return;
 
     myTestNameResponsibilityFacade.setTestNameResponsibility(
@@ -82,12 +90,15 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
   public void onBuildProblemOccurred(@NotNull final SBuild build, @NotNull final BuildProblemImpl problem) {
     final SBuildType buildType = build.getBuildType();
     if (buildType == null) return;
-
     final SProject project = buildType.getProject();
-    if (problem.isMuted() || !isNew(problem) || isInvestigated(problem, project)) return;
+
+    if (!myBuildApplicabilityChecker.check(project, problem)) {
+      LOGGER.debug(String.format("Stop processing a failed build #%s as it's applicable", build.getBuildId()));
+      return;
+    }
 
     final String text = getBuildProblemText(problem, build);
-    Pair<SUser, String> responsibleUser = findResponsibleUser(build, text);
+    Pair<SUser, String> responsibleUser = myResponsibleUserFinder.findResponsibleUser(build, text);
     if (responsibleUser == null) return;
 
     myBuildProblemResponsibilityFacade.setBuildProblemResponsibility(
@@ -98,17 +109,6 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
         ResponsibilityEntry.RemoveMethod.WHEN_FIXED, project, problem.getId()
       )
     );
-  }
-
-  @Nullable
-  private Pair<SUser, String> findResponsibleUser(@NotNull final SBuild sBuild, @Nullable final String problemText) {
-    ProblemInfo problemInfo = new ProblemInfo(sBuild, problemText);
-    Pair<SUser, String> responsibleUser = null;
-    for (Heuristic heuristic: myOrderedHeuristics) {
-      responsibleUser = heuristic.findResponsibleUser(problemInfo);
-      if (responsibleUser != null) break;
-    }
-    return responsibleUser;
   }
 
   private static String getBuildProblemText(@NotNull final BuildProblem problem, @NotNull final SBuild build) {
@@ -138,35 +138,5 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     } catch (Exception e) {
       return null;
     }
-  }
-
-  private static boolean isNew(@NotNull final BuildProblemImpl problem) {
-    final Boolean isNew = problem.isNew();
-    return isNew != null && isNew;
-  }
-
-  private static boolean isInvestigated(@NotNull final STest test, @NotNull final SProject project) {
-    for (TestNameResponsibilityEntry entry : test.getAllResponsibilities()) {
-      if (isActiveOrFixed(entry) && isSameOrParent(entry.getProject(), project)) return true;
-    }
-    return false;
-  }
-
-  private static boolean isInvestigated(@NotNull final BuildProblem problem, @NotNull final SProject project) {
-    for (BuildProblemResponsibilityEntry entry : problem.getAllResponsibilities()) {
-      if (isActiveOrFixed(entry) && isSameOrParent(entry.getProject(), project)) return true;
-    }
-    return false;
-  }
-
-  private static boolean isActiveOrFixed(@NotNull final ResponsibilityEntry entry) {
-    final ResponsibilityEntry.State state = entry.getState();
-    return state.isActive() || state.isFixed();
-  }
-
-  private static boolean isSameOrParent(@NotNull final BuildProject parent, @NotNull final BuildProject project) {
-    if (parent.getProjectId().equals(project.getProjectId())) return true;
-    final BuildProject parentProject = project.getParentProject();
-    return parentProject != null && isSameOrParent(parent, parentProject);
   }
 }

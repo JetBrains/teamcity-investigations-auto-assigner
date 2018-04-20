@@ -2,7 +2,7 @@
 <suite name="investigations-auto-assigner tests">
   <test name="investigations-auto-assigner tests">
     <classes>
-      <class name="SimpleTest"/>
+      <!--<class name="SimpleTest"/>-->
     </classes>
   </test>
 </suite>
