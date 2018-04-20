@@ -16,10 +16,8 @@
 
 package jetbrains.buildServer.iaa;
 
-import jetbrains.buildServer.BuildProject;
 import jetbrains.buildServer.iaa.utils.FlakyTestDetector;
-import jetbrains.buildServer.responsibility.ResponsibilityEntry;
-import jetbrains.buildServer.responsibility.TestNameResponsibilityEntry;
+import jetbrains.buildServer.iaa.utils.InvestigationsManager;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STest;
 import jetbrains.buildServer.serverSide.STestRun;
@@ -40,26 +38,7 @@ class TestApplicabilityChecker {
     return !testRun.isMuted() &&
            !testRun.isFixed() &&
            testRun.isNewFailure() &&
-           !isInvestigated(test, project) &&
+           !InvestigationsManager.checkUnderInvestigation(test, project) &&
            !myFlakyTestDetector.isFlaky(test.getTestNameId());
-  }
-
-  private static boolean isInvestigated(@NotNull final STest test, @NotNull final SProject project) {
-    for (TestNameResponsibilityEntry entry : test.getAllResponsibilities()) {
-      if (isActiveOrFixed(entry) && isSameProjectOrParent(entry.getProject(), project)) return true;
-    }
-    return false;
-  }
-
-  private static boolean isActiveOrFixed(@NotNull final ResponsibilityEntry entry) {
-    final ResponsibilityEntry.State state = entry.getState();
-    return state.isActive() || state.isFixed();
-  }
-
-  private static boolean isSameProjectOrParent(@NotNull final BuildProject parent,
-                                               @NotNull final BuildProject project) {
-    if (parent.getProjectId().equals(project.getProjectId())) return true;
-    final BuildProject parentProject = project.getParentProject();
-    return parentProject != null && isSameProjectOrParent(parent, parentProject);
   }
 }
