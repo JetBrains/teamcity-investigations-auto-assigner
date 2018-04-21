@@ -20,8 +20,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
 import java.util.List;
 import jetbrains.buildServer.iaa.heuristics.Heuristic;
-import jetbrains.buildServer.serverSide.SBuild;
-import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.users.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,29 +28,28 @@ public class ResponsibleUserFinder {
   private static final Logger LOGGER = Logger.getInstance(ResponsibleUserFinder.class.getName());
   private List<Heuristic> myOrderedHeuristics;
 
-  public ResponsibleUserFinder(@NotNull final List<Heuristic> orderedHeuristics) {
+  ResponsibleUserFinder(@NotNull final List<Heuristic> orderedHeuristics) {
     myOrderedHeuristics = orderedHeuristics;
   }
 
   @Nullable
-  Pair<SUser, String> findResponsibleUser(@NotNull final SBuild sBuild, @Nullable final String problemText) {
-    long buildId = sBuild.getBuildId();
+  Pair<User, String> findResponsibleUser(@NotNull ProblemInfo problemInfo) {
+    long buildId = problemInfo.mySBuild.getBuildId();
     LOGGER.debug(String.format("Attempt to find responsible user for failed build #%s. ProblemText is %s",
-                               buildId, problemText));
-    ProblemInfo problemInfo = new ProblemInfo(sBuild, problemText);
-    Pair<SUser, String> responsibleUser = null;
+                               buildId, problemInfo.myProblemText));
+    Pair<User, String> responsibleUser = null;
     for (Heuristic heuristic: myOrderedHeuristics) {
       LOGGER.debug(String.format("Attempt to find responsible user for failed build #%s with heuristic %s",
                                  buildId,heuristic.getName()));
       responsibleUser = heuristic.findResponsibleUser(problemInfo);
       if (responsibleUser != null) {
         LOGGER.info(String.format("Responsible user %s for failed build #%s has been found according to %s",
-                                  responsibleUser.first, sBuild.getBuildId(), responsibleUser.second));
+                                  responsibleUser.first, problemInfo.mySBuild.getBuildId(), responsibleUser.second));
         break;
       }
     }
     if (responsibleUser == null) {
-      LOGGER.info(String.format("Responsible user for failed build #%s not found", sBuild.getBuildId()));
+      LOGGER.info(String.format("Responsible user for failed build #%s not found", problemInfo.mySBuild.getBuildId()));
     }
     return responsibleUser;
   }

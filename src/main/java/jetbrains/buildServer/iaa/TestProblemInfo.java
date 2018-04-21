@@ -18,19 +18,18 @@ package jetbrains.buildServer.iaa;
 
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
+import jetbrains.buildServer.serverSide.STest;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ProblemInfo {
-  @NotNull public final SBuild mySBuild;
-  @NotNull public final SProject mySProject;
-  @Nullable public final String myProblemText;
+public class TestProblemInfo extends ProblemInfo{
+  @NotNull public final STest mySTest;
 
-  public ProblemInfo(@NotNull final SBuild sBuild,
-                     @NotNull final SProject project,
-                     @Nullable final String problemText) {
-    mySBuild = sBuild;
-    mySProject = project;
-    myProblemText = problemText;
+  TestProblemInfo(@NotNull final STest test,
+                         @NotNull final SBuild sBuild,
+                         @NotNull final SProject project,
+                         @Nullable final String problemText) {
+    super(sBuild, project, problemText);
+    mySTest = test;
   }
 }

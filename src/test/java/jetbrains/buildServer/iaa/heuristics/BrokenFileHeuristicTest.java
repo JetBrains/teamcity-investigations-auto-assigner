@@ -25,7 +25,9 @@ import jetbrains.buildServer.iaa.ProblemInfo;
 import jetbrains.buildServer.serverSide.BuildPromotionEx;
 import jetbrains.buildServer.serverSide.ChangeDescriptor;
 import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.vcs.SVcsModification;
 import jetbrains.buildServer.vcs.SelectPrevBuildPolicy;
 import jetbrains.buildServer.vcs.VcsFileModification;
@@ -49,6 +51,7 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
   private ChangeDescriptor changeDescriptor2;
   private SVcsModification sVcsModification;
   private SVcsModification sVcsModification2;
+  private SProject sProjectMock;
 
   @BeforeMethod
   @Override
@@ -56,9 +59,10 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
     super.setUp();
     heuristic = new BrokenFileHeuristic();
     sBuildMock = Mockito.mock(SBuild.class);
+    sProjectMock = Mockito.mock(SProject.class);
     oneUser = Mockito.mock(SUser.class);
     secondUser = Mockito.mock(SUser.class);
-    problemInfoWithMock = new ProblemInfo(sBuildMock, "problem text");
+    problemInfoWithMock = new ProblemInfo(sBuildMock, sProjectMock, "problem text");
 
     buildPromotion = Mockito.mock(BuildPromotionEx.class);
     when(sBuildMock.getBuildPromotion()).thenReturn(buildPromotion);
@@ -104,21 +108,23 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
 
   public void TestWithDetectedBrokenFileWithoutCommitters() {
     when(sVcsModification.getCommitters()).thenReturn(Collections.emptyList());
-    Pair<SUser, String> responsible = heuristic.findResponsibleUser(problemInfoWithMock);
+    Pair<User, String> responsible = heuristic.findResponsibleUser(problemInfoWithMock);
     Assert.assertNull(responsible);
   }
 
   public void TestCorrectCase() {
-    ProblemInfo problemInfoWithMock = new ProblemInfo(sBuildMock, "I contain ./path1/path1/path1/filename");
+    ProblemInfo problemInfoWithMock = new ProblemInfo(sBuildMock, sProjectMock,
+                                                      "I contain ./path1/path1/path1/filename");
 
     when(sVcsModification.getCommitters()).thenReturn(Collections.singletonList(oneUser));
     when(sVcsModification2.getCommitters()).thenReturn(Collections.emptyList());
-    Pair<SUser, String> responsible = heuristic.findResponsibleUser(problemInfoWithMock);
+    Pair<User, String> responsible = heuristic.findResponsibleUser(problemInfoWithMock);
     Assert.assertNotNull(responsible);
     Assert.assertEquals(responsible.first, oneUser);
 
-    problemInfoWithMock = new ProblemInfo(sBuildMock, "I contain ./path1/path1/path1/filename" +
-                                                                  "and ./path4/path4/path4/filename4");
+    problemInfoWithMock = new ProblemInfo(sBuildMock, sProjectMock,
+                                          "I contain ./path1/path1/path1/filename and " +
+                                          "./path4/path4/path4/filename4");
     when(sVcsModification.getCommitters()).thenReturn(Collections.singletonList(oneUser));
     when(sVcsModification2.getCommitters()).thenReturn(Collections.singletonList(oneUser));
     responsible = heuristic.findResponsibleUser(problemInfoWithMock);
@@ -127,11 +133,12 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
   }
 
   public void TestManyCommitters() {
-    ProblemInfo problemInfoWithMock = new ProblemInfo(sBuildMock, "I contain ./path1/path1/path1/filename" +
+    ProblemInfo problemInfoWithMock = new ProblemInfo(sBuildMock, sProjectMock,
+                                                      "I contain ./path1/path1/path1/filename" +
                                                                   "and ./path4/path4/path4/filename4");
     when(sVcsModification.getCommitters()).thenReturn(Collections.singletonList(oneUser));
     when(sVcsModification2.getCommitters()).thenReturn(Collections.singletonList(secondUser));
-    Pair<SUser, String> responsible = heuristic.findResponsibleUser(problemInfoWithMock);
+    Pair<User, String> responsible = heuristic.findResponsibleUser(problemInfoWithMock);
     Assert.assertNull(responsible);
 
     when(sVcsModification.getCommitters()).thenReturn(Arrays.asList(oneUser, secondUser));

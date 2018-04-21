@@ -31,7 +31,7 @@ import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import jetbrains.buildServer.serverSide.problems.BuildLogCompileErrorCollector;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.tests.TestName;
-import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.util.Dates;
 import jetbrains.buildServer.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -73,8 +73,8 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
 
     final TestName testName = test.getName();
     final String text = testName.getAsString() + " " + testRun.getFullText();
-
-    Pair<SUser, String> responsibleUser = myResponsibleUserFinder.findResponsibleUser(build, text);
+    TestProblemInfo problemInfo = new TestProblemInfo(test, build, project, text);
+    Pair<User, String> responsibleUser = myResponsibleUserFinder.findResponsibleUser(problemInfo);
     if (responsibleUser == null) return;
 
     myTestNameResponsibilityFacade.setTestNameResponsibility(
@@ -98,7 +98,8 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     }
 
     final String text = getBuildProblemText(problem, build);
-    Pair<SUser, String> responsibleUser = myResponsibleUserFinder.findResponsibleUser(build, text);
+    BuildProblemInfo problemInfo = new BuildProblemInfo(problem, build, project, text);
+    Pair<User, String> responsibleUser = myResponsibleUserFinder.findResponsibleUser(problemInfo);
     if (responsibleUser == null) return;
 
     myBuildProblemResponsibilityFacade.setBuildProblemResponsibility(

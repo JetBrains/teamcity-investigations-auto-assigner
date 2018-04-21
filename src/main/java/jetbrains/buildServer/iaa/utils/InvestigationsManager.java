@@ -24,7 +24,9 @@ import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STest;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
+import jetbrains.buildServer.users.User;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class InvestigationsManager {
 
@@ -59,5 +61,31 @@ public class InvestigationsManager {
     if (parent.getProjectId().equals(project.getProjectId())) return true;
     final BuildProject parentProject = project.getParentProject();
     return parentProject != null && belongSameProjectOrParent(parent, parentProject);
+  }
+
+  @Nullable
+  public User findPreviousResponsible(@NotNull final SProject project,
+                                      @NotNull final SBuild sBuild,
+                                      @NotNull final BuildProblem problem) {
+    for (BuildProblemResponsibilityEntry entry : problem.getAllResponsibilities()) {
+      final ResponsibilityEntry.State state = entry.getState();
+      if (state.isFixed() &&
+          !createdBeforeBuildQueued(entry, sBuild) &&
+          belongSameProjectOrParent(entry.getProject(), project)) return entry.getResponsibleUser();
+    }
+    return null;
+  }
+
+  @Nullable
+  public User findPreviousResponsible(@NotNull final SProject project,
+                                      @NotNull final SBuild sBuild,
+                                      @NotNull final STest test) {
+    for (TestNameResponsibilityEntry entry : test.getAllResponsibilities()) {
+      final ResponsibilityEntry.State state = entry.getState();
+      if (state.isFixed() &&
+          !createdBeforeBuildQueued(entry, sBuild) &&
+          belongSameProjectOrParent(entry.getProject(), project)) return entry.getResponsibleUser();
+    }
+    return null;
   }
 }

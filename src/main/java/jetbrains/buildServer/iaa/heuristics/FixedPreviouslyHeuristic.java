@@ -17,12 +17,18 @@
 package jetbrains.buildServer.iaa.heuristics;
 
 import com.intellij.openapi.util.Pair;
+import jetbrains.buildServer.iaa.BuildProblemInfo;
 import jetbrains.buildServer.iaa.ProblemInfo;
+import jetbrains.buildServer.iaa.TestProblemInfo;
+import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.iaa.utils.InvestigationsManager;
-import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.SProject;
+import jetbrains.buildServer.serverSide.STest;
+import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
+import jetbrains.buildServer.users.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class FixedPreviouslyHeuristic implements Heuristic {
 
@@ -46,7 +52,28 @@ public class FixedPreviouslyHeuristic implements Heuristic {
 
   @Nullable
   @Override
-  public Pair<SUser, String> findResponsibleUser(@NotNull final ProblemInfo problemInfo) {
-    throw new NotImplementedException();
+  public Pair<User, String> findResponsibleUser(@NotNull ProblemInfo problemInfo) {
+    User responsibleUser = null;
+    String description = null;
+    SProject sProject = problemInfo.mySProject;
+    SBuild sBuild = problemInfo.mySBuild;
+    if (problemInfo instanceof TestProblemInfo) {
+      STest sTest = ((TestProblemInfo)problemInfo).mySTest;
+      responsibleUser = myInvestigationsManager.findPreviousResponsible(sProject, sBuild, sTest);
+      description = String.format("%s you were responsible for the test: %s in build %s previous time",
+                                  Constants.REASON_PREFIX, sTest.getTestNameId(), sBuild.getFullName());
+    } else if (problemInfo instanceof BuildProblemInfo) {
+      BuildProblemImpl buildProblem = ((BuildProblemInfo)problemInfo).myBuildProblem;
+      responsibleUser = myInvestigationsManager.findPreviousResponsible(sProject, sBuild, buildProblem);
+      String buildProblemType = buildProblem.getBuildProblemData().getType();
+      description = String.format("%s you were responsible for the build problem: %s in build %s previous time",
+                                  Constants.REASON_PREFIX, buildProblemType, sBuild.getFullName());
+    }
+
+    if (responsibleUser == null) {
+      return null;
+    }
+
+    return Pair.create(responsibleUser, description);
   }
 }

@@ -24,7 +24,8 @@ import jetbrains.buildServer.iaa.ProblemInfo;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SBuildFeatureDescriptor;
-import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.serverSide.SProject;
+import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.users.UserModelEx;
 import jetbrains.buildServer.users.impl.UserEx;
 import org.mockito.Mockito;
@@ -52,8 +53,9 @@ public class DefaultUserHeuristicTest extends BaseTestCase {
     heuristic = new DefaultUserHeuristic(userModelEx);
     final SBuildFeatureDescriptor descriptor = Mockito.mock(SBuildFeatureDescriptor.class);
     sBuildMock = Mockito.mock(SBuild.class);
+    final SProject sProjectMock = Mockito.mock(SProject.class);
     firstUser = Mockito.mock(UserEx.class);
-    problemInfo = new ProblemInfo(sBuildMock, "problem text");
+    problemInfo = new ProblemInfo(sBuildMock, sProjectMock, "problem text");
 
     buildFeatureParams = new HashMap<>();
     when(sBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE)).thenReturn(Collections.singletonList(descriptor));
@@ -62,13 +64,13 @@ public class DefaultUserHeuristicTest extends BaseTestCase {
 
   public void TestFeatureIsDisabled() {
     when(sBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE)).thenReturn(Collections.emptyList());
-    Pair<SUser, String> responsible = heuristic.findResponsibleUser(problemInfo);
+    Pair<User, String> responsible = heuristic.findResponsibleUser(problemInfo);
     Assert.assertNull(responsible);
   }
 
   public void TestNoResponsibleSpecified() {
     //buildFeatureParams is empty
-    Pair<SUser, String> responsible = heuristic.findResponsibleUser(problemInfo);
+    Pair<User, String> responsible = heuristic.findResponsibleUser(problemInfo);
     Assert.assertNull(responsible);
 
     buildFeatureParams.put(Constants.DEFAULT_RESPONSIBLE, "");
@@ -79,7 +81,7 @@ public class DefaultUserHeuristicTest extends BaseTestCase {
   public void TestResponsibleNotFound() {
     buildFeatureParams.put(Constants.DEFAULT_RESPONSIBLE, USER_NAME);
     when(userModelEx.findUserAccount(null, USER_NAME)).thenReturn(null);
-    Pair<SUser, String> responsible = heuristic.findResponsibleUser(problemInfo);
+    Pair<User, String> responsible = heuristic.findResponsibleUser(problemInfo);
 
     Assert.assertNull(responsible);
   }
@@ -87,7 +89,7 @@ public class DefaultUserHeuristicTest extends BaseTestCase {
   public void TestResponsibleFound() {
     buildFeatureParams.put(Constants.DEFAULT_RESPONSIBLE, USER_NAME);
     when(userModelEx.findUserAccount(null, USER_NAME)).thenReturn(firstUser);
-    Pair<SUser, String> responsible = heuristic.findResponsibleUser(problemInfo);
+    Pair<User, String> responsible = heuristic.findResponsibleUser(problemInfo);
 
     Assert.assertNotNull(responsible);
     Assert.assertEquals(responsible.first, firstUser);

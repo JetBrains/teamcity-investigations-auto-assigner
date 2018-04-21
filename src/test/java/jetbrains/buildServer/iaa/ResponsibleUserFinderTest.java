@@ -21,7 +21,9 @@ import java.util.Arrays;
 import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.iaa.heuristics.Heuristic;
 import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.users.User;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -37,6 +39,8 @@ public class ResponsibleUserFinderTest extends BaseTestCase {
   private Heuristic heuristic1;
   private Heuristic heuristic2;
   private SBuild sBuild;
+  private SProject sProject;
+  private ProblemInfo problemInfo;
 
   @BeforeMethod
   @Override
@@ -45,14 +49,15 @@ public class ResponsibleUserFinderTest extends BaseTestCase {
     heuristic1 = Mockito.mock(Heuristic.class);
     heuristic2 = Mockito.mock(Heuristic.class);
     sBuild = Mockito.mock(SBuild.class);
+    sProject = Mockito.mock(SProject.class);
+    problemInfo = new ProblemInfo(sBuild, sProject, "Problem text");
     userFinder = new ResponsibleUserFinder(Arrays.asList(heuristic1, heuristic2));
   }
 
   public void Test_FindResponsibleUser_ResponsibleNotFound() {
     when(heuristic1.findResponsibleUser(any())).thenReturn(null);
     when(heuristic2.findResponsibleUser(any())).thenReturn(null);
-
-    Pair<SUser, String> responsible = userFinder.findResponsibleUser(sBuild, "Problem text");
+    Pair<User, String> responsible = userFinder.findResponsibleUser(problemInfo);
 
     Assert.assertNull(responsible);
   }
@@ -60,29 +65,29 @@ public class ResponsibleUserFinderTest extends BaseTestCase {
   public void Test_FindResponsibleUser_CheckSecondIfNotFoundInFirst() {
     when(heuristic1.findResponsibleUser(any())).thenReturn(null);
 
-    userFinder.findResponsibleUser(sBuild, "Problem text");
+    userFinder.findResponsibleUser(problemInfo);
 
     Mockito.verify(heuristic2, Mockito.atLeastOnce()).findResponsibleUser(any());
   }
 
   public void Test_FindResponsibleUser_NotCallSecondIfFoundInFirst() {
     SUser sUser = Mockito.mock(SUser.class);
-    Pair<SUser, String> anyPair = new Pair<>(sUser, "Failed description");
+    Pair<User, String> anyPair = new Pair<>(sUser, "Failed description");
     when(heuristic1.findResponsibleUser(any())).thenReturn(anyPair);
 
-    userFinder.findResponsibleUser(sBuild, "Problem text");
+    userFinder.findResponsibleUser(problemInfo);
 
     Mockito.verify(heuristic2, Mockito.never()).findResponsibleUser(any());
   }
 
   public void Test_FindResponsibleUser_TakeFirstFound() {
     SUser sUser = Mockito.mock(SUser.class);
-    Pair<SUser, String> anyPair = new Pair<>(sUser, "Description 1");
-    Pair<SUser, String> anyPair2 = new Pair<>(sUser, "Description 2");
+    Pair<User, String> anyPair = new Pair<>(sUser, "Description 1");
+    Pair<User, String> anyPair2 = new Pair<>(sUser, "Description 2");
     when(heuristic1.findResponsibleUser(any())).thenReturn(anyPair);
     when(heuristic2.findResponsibleUser(any())).thenReturn(anyPair2);
 
-    Pair<SUser, String> responsible = userFinder.findResponsibleUser(sBuild, "Problem text");
+    Pair<User, String> responsible = userFinder.findResponsibleUser(problemInfo);
 
     Assert.assertNotNull(responsible);
     Assert.assertEquals(responsible.second,"Description 1");

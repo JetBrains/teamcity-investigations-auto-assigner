@@ -28,6 +28,7 @@ import jetbrains.buildServer.serverSide.BuildPromotionEx;
 import jetbrains.buildServer.serverSide.ChangeDescriptor;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.util.FileUtil;
 import jetbrains.buildServer.vcs.SVcsModification;
 import jetbrains.buildServer.vcs.SelectPrevBuildPolicy;
@@ -56,7 +57,7 @@ public class BrokenFileHeuristic implements Heuristic {
 
   @Override
   @Nullable
-  public Pair<SUser, String> findResponsibleUser(@NotNull ProblemInfo problemInfo) {
+  public Pair<User, String> findResponsibleUser(@NotNull ProblemInfo problemInfo) {
     if (problemInfo.myProblemText == null) return null;
     SBuild sBuild = problemInfo.mySBuild;
     final BuildPromotion buildPromotion = sBuild.getBuildPromotion();

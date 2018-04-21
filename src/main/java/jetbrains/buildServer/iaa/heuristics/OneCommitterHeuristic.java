@@ -23,6 +23,7 @@ import jetbrains.buildServer.iaa.ProblemInfo;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.vcs.SelectPrevBuildPolicy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -43,7 +44,7 @@ public class OneCommitterHeuristic implements Heuristic {
 
   @Override
   @Nullable
-  public Pair<SUser, String> findResponsibleUser(@NotNull ProblemInfo problemInfo) {
+  public Pair<User, String> findResponsibleUser(@NotNull ProblemInfo problemInfo) {
     SBuild build = problemInfo.mySBuild;
     final SelectPrevBuildPolicy selectPrevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
     final Set<SUser> committers = build.getCommitters(selectPrevBuildPolicy).getUsers();
@@ -57,7 +58,7 @@ public class OneCommitterHeuristic implements Heuristic {
       return null;
     }
 
-    return Pair.create(committers.iterator().next(), String.format("%s you're the only committer to the " +
+    return Pair.create(committers.iterator().next(), String.format("%s you were responsible the only committer to the " +
                                                                    "build: %s # %s", Constants.REASON_PREFIX,
                                                                    build.getFullName(), build.getBuildNumber()));
   }
