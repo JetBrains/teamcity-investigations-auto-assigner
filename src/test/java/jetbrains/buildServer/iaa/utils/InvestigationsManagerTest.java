@@ -11,6 +11,7 @@ import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STest;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
+import jetbrains.buildServer.users.User;
 import org.assertj.core.api.Assertions;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
@@ -33,6 +34,7 @@ public class InvestigationsManagerTest extends BaseTestCase {
   private STest sTest;
   private TestNameResponsibilityEntry testResponsibilityEntry1;
   private SBuild sBuild;
+  private User user;
 
   @BeforeMethod
   @Override
@@ -41,6 +43,7 @@ public class InvestigationsManagerTest extends BaseTestCase {
     project = Mockito.mock(SProject.class);
     project2 = Mockito.mock(SProject.class);
     sBuild = Mockito.mock(SBuild.class);
+    user = Mockito.mock(User.class);
     SProject parentProject = Mockito.mock(SProject.class);
     when(project.getParentProject()).thenReturn(parentProject);
     when(project.getProjectId()).thenReturn("Project ID");
@@ -125,6 +128,7 @@ public class InvestigationsManagerTest extends BaseTestCase {
 
     Assertions.assertThat(investigationsManager.checkUnderInvestigation(project, sBuild, sTest)).isFalse();
   }
+
   public void Test_TestAlreadyFixed() {
     when(testResponsibilityEntry1.getState()).thenReturn(ResponsibilityEntry.State.FIXED);
     when(testResponsibilityEntry1.getProject()).thenReturn(project);
@@ -149,5 +153,43 @@ public class InvestigationsManagerTest extends BaseTestCase {
     when(sTest.getAllResponsibilities()).thenReturn(Collections.emptyList());
 
     Assertions.assertThat(investigationsManager.checkUnderInvestigation(project, sBuild, sTest)).isFalse();
+  }
+
+  public void Test_BuildProblemFindPreviousResponsible_FixedBeforeQueued() {
+    when(buildResponsibilityEntry1.getState()).thenReturn(ResponsibilityEntry.State.FIXED);
+    when(buildResponsibilityEntry1.getResponsibleUser()).thenReturn(user);
+    when(buildResponsibilityEntry1.getProject()).thenReturn(project);
+    when(buildResponsibilityEntry1.getTimestamp()).thenReturn(new Date(2000000));
+    when(sBuild.getQueuedDate()).thenReturn(new Date(3000000));
+
+    Assertions.assertThat(investigationsManager.findPreviousResponsible(project, sBuild, buildProblem)).isEqualTo(user);
+  }
+
+  public void Test_BuildProblemFindPreviousResponsible_FixedAfterQueued() {
+    when(buildResponsibilityEntry1.getState()).thenReturn(ResponsibilityEntry.State.FIXED);
+    when(buildResponsibilityEntry1.getProject()).thenReturn(project);
+    when(buildResponsibilityEntry1.getTimestamp()).thenReturn(new Date(3000000));
+    when(sBuild.getQueuedDate()).thenReturn(new Date(2000000));
+
+    Assertions.assertThat(investigationsManager.findPreviousResponsible(project, sBuild, buildProblem)).isNull();
+  }
+
+  public void Test_TestProblemFindPreviousResponsible_FixedBeforeQueued() {
+    when(testResponsibilityEntry1.getState()).thenReturn(ResponsibilityEntry.State.FIXED);
+    when(testResponsibilityEntry1.getResponsibleUser()).thenReturn(user);
+    when(testResponsibilityEntry1.getProject()).thenReturn(project);
+    when(testResponsibilityEntry1.getTimestamp()).thenReturn(new Date(2000000));
+    when(sBuild.getQueuedDate()).thenReturn(new Date(3000000));
+
+    Assertions.assertThat(investigationsManager.findPreviousResponsible(project, sBuild, sTest)).isEqualTo(user);
+  }
+
+  public void Test_TestProblemFindPreviousResponsible_FixedAfterQueued() {
+    when(testResponsibilityEntry1.getState()).thenReturn(ResponsibilityEntry.State.FIXED);
+    when(testResponsibilityEntry1.getProject()).thenReturn(project);
+    when(testResponsibilityEntry1.getTimestamp()).thenReturn(new Date(3000000));
+    when(sBuild.getQueuedDate()).thenReturn(new Date(2000000));
+
+    Assertions.assertThat(investigationsManager.findPreviousResponsible(project, sBuild, sTest)).isNull();
   }
 }
