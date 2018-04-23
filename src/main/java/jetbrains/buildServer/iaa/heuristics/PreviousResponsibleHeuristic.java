@@ -30,18 +30,18 @@ import jetbrains.buildServer.users.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class FixedPreviouslyHeuristic implements Heuristic {
+public class PreviousResponsibleHeuristic implements Heuristic {
 
   private InvestigationsManager myInvestigationsManager;
 
-  FixedPreviouslyHeuristic(InvestigationsManager investigationsManager) {
+  PreviousResponsibleHeuristic(InvestigationsManager investigationsManager) {
     myInvestigationsManager = investigationsManager;
   }
 
   @NotNull
   @Override
   public String getName() {
-    return "Fixed Previously Heuristic";
+    return "Previous Responsible Heuristic";
   }
 
   @NotNull
