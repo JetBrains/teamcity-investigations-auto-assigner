@@ -55,15 +55,15 @@ public class PreviousResponsibleHeuristic implements Heuristic {
   public Pair<User, String> findResponsibleUser(@NotNull ProblemInfo problemInfo) {
     User responsibleUser = null;
     String description = null;
-    SProject sProject = problemInfo.mySProject;
-    SBuild sBuild = problemInfo.mySBuild;
+    SProject sProject = problemInfo.getSProject();
+    SBuild sBuild = problemInfo.getSBuild();
     if (problemInfo instanceof TestProblemInfo) {
-      STest sTest = ((TestProblemInfo)problemInfo).mySTest;
+      STest sTest = ((TestProblemInfo)problemInfo).getSTest();
       responsibleUser = myInvestigationsManager.findPreviousResponsible(sProject, sBuild, sTest);
       description = String.format("%s you were responsible for the test: %s in build %s previous time",
                                   Constants.REASON_PREFIX, sTest.getTestNameId(), sBuild.getFullName());
     } else if (problemInfo instanceof BuildProblemInfo) {
-      BuildProblemImpl buildProblem = ((BuildProblemInfo)problemInfo).myBuildProblem;
+      BuildProblemImpl buildProblem = ((BuildProblemInfo)problemInfo).getBuildProblem();
       responsibleUser = myInvestigationsManager.findPreviousResponsible(sProject, sBuild, buildProblem);
       String buildProblemType = buildProblem.getBuildProblemData().getType();
       description = String.format("%s you were responsible for the build problem: %s in build %s previous time",

@@ -45,7 +45,7 @@ public class OneCommitterHeuristic implements Heuristic {
   @Override
   @Nullable
   public Pair<User, String> findResponsibleUser(@NotNull ProblemInfo problemInfo) {
-    SBuild build = problemInfo.mySBuild;
+    SBuild build = problemInfo.getSBuild();
     final SelectPrevBuildPolicy selectPrevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
     final Set<SUser> committers = build.getCommitters(selectPrevBuildPolicy).getUsers();
     if (committers.isEmpty()) {

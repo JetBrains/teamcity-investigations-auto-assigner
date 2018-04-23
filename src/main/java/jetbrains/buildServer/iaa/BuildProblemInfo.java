@@ -23,7 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class BuildProblemInfo extends ProblemInfo {
-  @NotNull public final BuildProblemImpl myBuildProblem;
+  @NotNull private final BuildProblemImpl myBuildProblem;
 
   BuildProblemInfo(@NotNull final BuildProblemImpl problem,
                           @NotNull final SBuild sBuild,
@@ -31,5 +31,10 @@ public class BuildProblemInfo extends ProblemInfo {
                           @Nullable final String problemText) {
     super(sBuild, project, problemText);
     myBuildProblem = problem;
+  }
+
+  @NotNull
+  public BuildProblemImpl getBuildProblem() {
+    return myBuildProblem;
   }
 }

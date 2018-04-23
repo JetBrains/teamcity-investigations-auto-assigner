@@ -34,9 +34,9 @@ public class ResponsibleUserFinder {
 
   @Nullable
   Pair<User, String> findResponsibleUser(@NotNull ProblemInfo problemInfo) {
-    long buildId = problemInfo.mySBuild.getBuildId();
+    long buildId = problemInfo.getSBuild().getBuildId();
     LOGGER.debug(String.format("Attempt to find responsible user for failed build #%s. ProblemText is %s",
-                               buildId, problemInfo.myProblemText));
+                               buildId, problemInfo.getProblemText()));
     Pair<User, String> responsibleUser = null;
     for (Heuristic heuristic: myOrderedHeuristics) {
       LOGGER.debug(String.format("Attempt to find responsible user for failed build #%s with heuristic %s",
@@ -44,12 +44,12 @@ public class ResponsibleUserFinder {
       responsibleUser = heuristic.findResponsibleUser(problemInfo);
       if (responsibleUser != null) {
         LOGGER.info(String.format("Responsible user %s for failed build #%s has been found according to %s",
-                                  responsibleUser.first, problemInfo.mySBuild.getBuildId(), responsibleUser.second));
+                                  responsibleUser.first, problemInfo.getSBuild().getBuildId(), responsibleUser.second));
         break;
       }
     }
     if (responsibleUser == null) {
-      LOGGER.info(String.format("Responsible user for failed build #%s not found", problemInfo.mySBuild.getBuildId()));
+      LOGGER.info(String.format("Responsible user for failed build #%s not found", problemInfo.getSBuild().getBuildId()));
     }
     return responsibleUser;
   }

@@ -22,14 +22,19 @@ import jetbrains.buildServer.serverSide.STest;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class TestProblemInfo extends ProblemInfo{
-  @NotNull public final STest mySTest;
+public class TestProblemInfo extends ProblemInfo {
+  @NotNull private final STest mySTest;
 
   TestProblemInfo(@NotNull final STest test,
-                         @NotNull final SBuild sBuild,
-                         @NotNull final SProject project,
-                         @Nullable final String problemText) {
+                  @NotNull final SBuild sBuild,
+                  @NotNull final SProject project,
+                  @Nullable final String problemText) {
     super(sBuild, project, problemText);
     mySTest = test;
+  }
+
+  @NotNull
+  public STest getSTest() {
+    return mySTest;
   }
 }

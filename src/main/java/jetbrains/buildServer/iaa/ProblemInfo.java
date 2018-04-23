@@ -22,9 +22,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class ProblemInfo {
-  @NotNull public final SBuild mySBuild;
-  @NotNull public final SProject mySProject;
-  @Nullable public final String myProblemText;
+  @NotNull private final SBuild mySBuild;
+  @NotNull private final SProject mySProject;
+  @Nullable private final String myProblemText;
 
   public ProblemInfo(@NotNull final SBuild sBuild,
                      @NotNull final SProject project,
@@ -32,5 +32,20 @@ public class ProblemInfo {
     mySBuild = sBuild;
     mySProject = project;
     myProblemText = problemText;
+  }
+
+  @NotNull
+  public SBuild getSBuild() {
+    return mySBuild;
+  }
+
+  @NotNull
+  public SProject getSProject() {
+    return mySProject;
+  }
+
+  @Nullable
+  public String getProblemText() {
+    return myProblemText;
   }
 }

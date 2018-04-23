@@ -54,7 +54,7 @@ public class DefaultUserHeuristic implements Heuristic {
   @Override
   @Nullable
   public Pair<User, String> findResponsibleUser(@NotNull ProblemInfo problemInfo) {
-    SBuild build = problemInfo.mySBuild;
+    SBuild build = problemInfo.getSBuild();
     Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
     if (descriptors.isEmpty()) return null;
 
