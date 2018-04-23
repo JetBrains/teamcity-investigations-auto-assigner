@@ -60,13 +60,13 @@ public class PreviousResponsibleHeuristic implements Heuristic {
     if (problemInfo instanceof TestProblemInfo) {
       STest sTest = ((TestProblemInfo)problemInfo).getSTest();
       responsibleUser = myInvestigationsManager.findPreviousResponsible(sProject, sBuild, sTest);
-      description = String.format("%s you were responsible for the test: %s in build %s previous time",
-                                  Constants.REASON_PREFIX, sTest.getTestNameId(), sBuild.getFullName());
+      description = String.format("%s you were responsible for the test: `%s` in build `%s` previous time",
+                                  Constants.REASON_PREFIX, sTest.getName(), sBuild.getFullName());
     } else if (problemInfo instanceof BuildProblemInfo) {
       BuildProblemImpl buildProblem = ((BuildProblemInfo)problemInfo).getBuildProblem();
       responsibleUser = myInvestigationsManager.findPreviousResponsible(sProject, sBuild, buildProblem);
       String buildProblemType = buildProblem.getBuildProblemData().getType();
-      description = String.format("%s you were responsible for the build problem: %s in build %s previous time",
+      description = String.format("%s you were responsible for the build problem: `%s` in build `%s` previous time",
                                   Constants.REASON_PREFIX, buildProblemType, sBuild.getFullName());
     }
 
