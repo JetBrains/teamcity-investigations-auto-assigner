@@ -39,8 +39,6 @@ import static org.mockito.Mockito.when;
 public class OneCommitterHeuristicTest extends BaseTestCase {
 
   private OneCommitterHeuristic heuristic;
-  private SBuild sBuildMock;
-  private SProject sProjectMock;
   private UserSet userSetMock;
   private User firstUser;
   private SUser secondUser;
@@ -51,13 +49,13 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     heuristic = new OneCommitterHeuristic();
-    sBuildMock = Mockito.mock(SBuild.class);
-    sProjectMock = Mockito.mock(SProject.class);
+    final SBuild sBuildMock = Mockito.mock(SBuild.class);
+    final SProject sProjectMock = Mockito.mock(SProject.class);
     userSetMock = Mockito.mock(UserSet.class);
     firstUser = Mockito.mock(User.class);
     secondUser = Mockito.mock(SUser.class);
     when(sBuildMock.getCommitters(SelectPrevBuildPolicy.SINCE_LAST_BUILD)).thenReturn(userSetMock);
-    problemInfo = new ProblemInfo(sBuildMock, sProjectMock,"problem text");
+    problemInfo = new ProblemInfo(sBuildMock, sProjectMock, "problem text");
   }
 
   public void TestWithOneResponsible() {
