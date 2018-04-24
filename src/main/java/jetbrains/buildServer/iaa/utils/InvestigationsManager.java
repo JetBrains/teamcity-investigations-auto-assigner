@@ -23,12 +23,23 @@ import jetbrains.buildServer.responsibility.TestNameResponsibilityEntry;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STest;
+import jetbrains.buildServer.serverSide.audit.*;
+import jetbrains.buildServer.serverSide.impl.audit.filters.ActionTypesFilter;
+import jetbrains.buildServer.serverSide.impl.audit.filters.BuildProblemAuditId;
+import jetbrains.buildServer.serverSide.impl.audit.filters.ObjectTypeFilter;
+import jetbrains.buildServer.serverSide.impl.audit.filters.TestId;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.users.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class InvestigationsManager {
+
+  @NotNull private final AuditLogProvider auditLogProvider;
+
+  InvestigationsManager(@NotNull final AuditLogProvider auditLogProvider) {
+    this.auditLogProvider = auditLogProvider;
+  }
 
   public boolean checkUnderInvestigation(@NotNull final SProject project,
                                          @NotNull final SBuild sBuild,
@@ -67,11 +78,42 @@ public class InvestigationsManager {
   public User findPreviousResponsible(@NotNull final SProject project,
                                       @NotNull final SBuild sBuild,
                                       @NotNull final BuildProblem problem) {
+    User responsible = this.findInCache(project, sBuild, problem);
+    if (responsible == null) {
+      responsible = this.findInAudit(problem);
+    }
+    return responsible;
+  }
+
+  @Nullable
+  private User findInCache(final SProject project, final SBuild sBuild, final BuildProblem problem) {
     for (BuildProblemResponsibilityEntry entry : problem.getAllResponsibilities()) {
       final ResponsibilityEntry.State state = entry.getState();
       if (state.isFixed() &&
           !createdBeforeBuildQueued(entry, sBuild) &&
-          belongSameProjectOrParent(entry.getProject(), project)) return entry.getResponsibleUser();
+          belongSameProjectOrParent(entry.getProject(), project)) {
+        return entry.getResponsibleUser();
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private User findInAudit(final BuildProblem buildProblem) {
+    AuditLogBuilder builder = auditLogProvider.getBuilder();
+    builder.setObjectId(BuildProblemAuditId.fromBuildProblem(buildProblem).asString());
+    builder.addFilter(new ActionTypesFilter(ActionType.BUILD_PROBLEM_MARK_AS_FIXED));
+    builder.addFilter(new ObjectTypeFilter(ObjectType.BUILD_PROBLEM));
+    AuditLogAction lastAction = builder.findLastAction();
+    if (lastAction == null) {
+      return null;
+    }
+
+    for (ObjectWrapper obj : lastAction.getObjects()) {
+      Object user = obj.getObject();
+      if (user instanceof User) {
+        return (User)user;
+      }
     }
     return null;
   }
@@ -80,11 +122,41 @@ public class InvestigationsManager {
   public User findPreviousResponsible(@NotNull final SProject project,
                                       @NotNull final SBuild sBuild,
                                       @NotNull final STest test) {
+    User responsible = this.findInCache(project, sBuild, test);
+    if (responsible == null) {
+      responsible = this.findInAudit(test);
+    }
+    return responsible;
+  }
+
+  private User findInCache(final SProject project, final SBuild sBuild, final STest test) {
     for (TestNameResponsibilityEntry entry : test.getAllResponsibilities()) {
       final ResponsibilityEntry.State state = entry.getState();
       if (state.isFixed() &&
           !createdBeforeBuildQueued(entry, sBuild) &&
-          belongSameProjectOrParent(entry.getProject(), project)) return entry.getResponsibleUser();
+          belongSameProjectOrParent(entry.getProject(), project)) {
+        return entry.getResponsibleUser();
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private User findInAudit(final STest sTest) {
+    AuditLogBuilder builder = auditLogProvider.getBuilder();
+    builder.setObjectId(TestId.createOn(sTest).asString());
+    builder.addFilter(new ActionTypesFilter(ActionType.TEST_MARK_AS_FIXED));
+    builder.addFilter(new ObjectTypeFilter(ObjectType.TEST));
+    AuditLogAction lastAction = builder.findLastAction();
+    if (lastAction == null) {
+      return null;
+    }
+
+    for (ObjectWrapper obj : lastAction.getObjects()) {
+      Object user = obj.getObject();
+      if (user instanceof User) {
+        return (User)user;
+      }
     }
     return null;
   }
