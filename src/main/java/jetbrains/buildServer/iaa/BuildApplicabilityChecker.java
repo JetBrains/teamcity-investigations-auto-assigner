@@ -16,7 +16,10 @@
 
 package jetbrains.buildServer.iaa;
 
+import java.util.Collections;
+import java.util.Set;
 import jetbrains.buildServer.BuildProject;
+import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.serverSide.SProject;
@@ -25,8 +28,14 @@ import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.jetbrains.annotations.NotNull;
 
 public class BuildApplicabilityChecker {
+  private final Set<String> supportedTypes =
+    Collections.unmodifiableSet(Collections.singleton(Constants.TC_COMPILATION_ERROR_TYPE));
+
   boolean check(@NotNull final SProject project, @NotNull final BuildProblemImpl problem) {
-    return (!problem.isMuted() && isNew(problem) && !isInvestigated(problem, project));
+    return (!problem.isMuted() &&
+            isNew(problem) &&
+            supportedTypes.contains(problem.getBuildProblemData().getType()) &&
+            !isInvestigated(problem, project));
   }
 
   private static boolean isNew(@NotNull final BuildProblemImpl problem) {
