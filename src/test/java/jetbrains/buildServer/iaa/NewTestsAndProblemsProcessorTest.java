@@ -106,7 +106,7 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
     Mockito.verify(sTestRun, Mockito.atLeastOnce()).getTest();
   }
 
-  public void Tes_OnTestFailed_ApplicabilityFailed() {
+  public void Test_OnTestFailed_ApplicabilityFailed() {
     when(testApplicabilityChecker.check(any(), any(), any())).thenReturn(false);
 
     processor.onTestFailed(sRunningBuild, sTestRun);
