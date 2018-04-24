@@ -10,6 +10,8 @@ import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STest;
 import jetbrains.buildServer.serverSide.STestRun;
+import jetbrains.buildServer.serverSide.audit.AuditLogBuilder;
+import jetbrains.buildServer.serverSide.audit.AuditLogProvider;
 import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import jetbrains.buildServer.users.User;
 import org.assertj.core.api.Assertions;
@@ -56,16 +58,21 @@ public class InvestigationsManagerTest extends BaseTestCase {
     when(buildResponsibilityEntry1.getTimestamp()).thenReturn(new Date(1000000));
     when(buildResponsibilityEntry1.getState()).thenReturn(ResponsibilityEntry.State.NONE);
     when(buildProblem.getAllResponsibilities()).thenReturn(Collections.singletonList(buildResponsibilityEntry1));
+    when(buildProblem.getProjectId()).thenReturn("123");
 
     sTestRun = Mockito.mock(STestRun.class);
     sTest = Mockito.mock(STest.class);
     testResponsibilityEntry1 = Mockito.mock(TestNameResponsibilityEntry.class);
+    final AuditLogProvider auditLogProvider = Mockito.mock(AuditLogProvider.class);
+    final AuditLogBuilder auditLogBuilder = Mockito.mock(AuditLogBuilder.class);
+    when(auditLogProvider.getBuilder()).thenReturn(auditLogBuilder);
     when(testResponsibilityEntry1.getTimestamp()).thenReturn(new Date(1000000));
     when(testResponsibilityEntry1.getState()).thenReturn(ResponsibilityEntry.State.NONE);
     when(sTestRun.getTest()).thenReturn(sTest);
     when(sTest.getAllResponsibilities()).thenReturn(Collections.singletonList(testResponsibilityEntry1));
+    when(sTest.getProjectId()).thenReturn("123");
 
-    investigationsManager = new InvestigationsManager();
+    investigationsManager = new InvestigationsManager(auditLogProvider);
   }
 
   public void Test_BuildIsUnderInvestigationInSameProject() {

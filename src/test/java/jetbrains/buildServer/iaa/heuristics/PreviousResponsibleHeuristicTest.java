@@ -48,7 +48,6 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
   private TestProblemInfo testProblemInfo;
   private BuildProblemImpl buildProblem;
   private User user1;
-  private BuildProblemData buildProblemData;
   private STest sTest;
   private User user2;
 
@@ -62,7 +61,7 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
     buildProblemInfo = Mockito.mock(BuildProblemInfo.class);
     buildProblem = Mockito.mock(BuildProblemImpl.class);
     testProblemInfo = Mockito.mock(TestProblemInfo.class);
-    buildProblemData = Mockito.mock(BuildProblemData.class);
+    final BuildProblemData buildProblemData = Mockito.mock(BuildProblemData.class);
     user1 = Mockito.mock(User.class);
     user2 = Mockito.mock(User.class);
     sTest = Mockito.mock(STest.class);
@@ -80,6 +79,7 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
     when(testProblemInfo.getSBuild()).thenReturn(sBuild);
     when(testProblemInfo.getSProject()).thenReturn(sProject);
     when(sTest.getTestNameId()).thenReturn(12982318457L);
+    when(sTest.getProjectId()).thenReturn("2134124");
     when(investigationsManager.findPreviousResponsible(sProject, sBuild, sTest)).thenReturn(user2);
   }
 
