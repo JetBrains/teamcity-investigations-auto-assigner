@@ -16,6 +16,10 @@
 
 package jetbrains.buildServer.iaa.utils;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
 import jetbrains.buildServer.BuildProject;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
@@ -159,5 +163,22 @@ public class InvestigationsManager {
       }
     }
     return null;
+  }
+
+  @Nullable
+  public HashMap<String, AuditLogAction> findInAudit(@NotNull final Collection<STest> sTests) {
+    AuditLogBuilder builder = auditLogProvider.getBuilder();
+    builder.setActionTypes(ActionType.TEST_MARK_AS_FIXED);
+    builder.addFilter(new ObjectIdsFilter(sTests.stream()
+                                                .map(test -> TestId.createOn(test).asString())
+                                                .collect(Collectors.toSet())));
+    List<AuditLogAction> lastActions = builder.getLogActions(100);
+    HashMap<String, AuditLogAction> result = new HashMap<>(100);
+    for (AuditLogAction action : lastActions) {
+      if (!result.containsKey(action.getObjectId())) {
+        result.put(action.getObjectId(), action);
+      }
+    }
+    return result;
   }
 }
