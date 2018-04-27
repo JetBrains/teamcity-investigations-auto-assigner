@@ -26,4 +26,7 @@ public class Constants {
 
   //Message constants
   public static final String REASON_PREFIX = "Auto-assigned investigation:";
+
+  //Constants
+  public static final String TC_COMPILATION_ERROR_TYPE = "TC_COMPILATION_ERROR";
 }

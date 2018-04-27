@@ -16,12 +16,11 @@
 
 package jetbrains.buildServer.iaa;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.iaa.common.Constants;
+import jetbrains.buildServer.iaa.utils.CustomParameters;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
@@ -32,12 +31,21 @@ import org.jetbrains.annotations.NotNull;
 public class NewTestsAndProblemsDispatcher {
   @NotNull private final NewTestsAndProblemsProcessor myProcessor;
   @NotNull private final ExecutorService myQueue;
+  // Map isn't synchronized because we work with it from synchronized method
+  @NotNull private final Map<Long, Integer> testsPerBuildMap;
+  @NotNull private final Integer BUILD_HISTORY_LIMIT = 100;
 
   public NewTestsAndProblemsDispatcher(@NotNull final BuildTestsEventDispatcher buildTestsEventDispatcher,
                                        @NotNull final BuildServerListenerEventDispatcher buildServerListenerEventDispatcher,
                                        @NotNull final NewTestsAndProblemsProcessor processor) {
     myProcessor = processor;
     myQueue = ExecutorsFactory.newExecutor("Investigator-Auto-Assigner-");
+    testsPerBuildMap = new LinkedHashMap<Long, Integer>() {
+      @Override
+      protected boolean removeEldestEntry(final Map.Entry eldest) {
+        return size() > BUILD_HISTORY_LIMIT;
+      }
+    };
 
     buildTestsEventDispatcher.addListener(new BuildTestsListener() {
       public void testPassed(@NotNull SRunningBuild sRunningBuild, @NotNull List<Long> list) {
@@ -46,12 +54,17 @@ public class NewTestsAndProblemsDispatcher {
 
       public void testFailed(@NotNull SRunningBuild build, @NotNull List<Long> testNameIds) {
         if (shouldIgnore(build)) return;
-        List<STestRun> testRuns = new ArrayList<>();
+
+        Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(build);
+
         for (Long testNameId : testNameIds) {
-          testRuns.add(build.getFullStatistics().findTestByTestNameId(testNameId));
-        }
-        if (!testRuns.isEmpty()) {
-          onTestFailed(build, testRuns.get(testRuns.size() - 1));
+          if (!countTestAndCheckThreshold(build, threshold)) {
+            return;
+          }
+          STestRun testRun = build.getFullStatistics().findTestByTestNameId(testNameId);
+          if (testRun != null) {
+            onTestFailed(build, testRun);
+          }
         }
       }
 
@@ -109,5 +122,15 @@ public class NewTestsAndProblemsDispatcher {
     Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
 
     return descriptors.isEmpty();
+  }
+
+  private synchronized boolean countTestAndCheckThreshold(SBuild build, Integer threshold) {
+    Integer testsPerBuild = testsPerBuildMap.getOrDefault(build.getBuildId(), 0);
+    if (threshold >= ++testsPerBuild) {
+      testsPerBuildMap.put(build.getBuildId(), testsPerBuild);
+      return true;
+    } else {
+      return false;
+    }
   }
 }

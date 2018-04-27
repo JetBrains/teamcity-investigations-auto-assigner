@@ -19,6 +19,8 @@ package jetbrains.buildServer.iaa;
 import java.util.Arrays;
 import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.iaa.utils.InvestigationsManager;
+import jetbrains.buildServer.BuildProblemData;
+import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.serverSide.SBuild;
@@ -40,6 +42,7 @@ public class BuildApplicabilityCheckerTest extends BaseTestCase {
   private BuildProblemImpl buildProblem;
   private InvestigationsManager investigationsManager;
   private SBuild sBuild;
+  private BuildProblemData buildProblemData;
 
   @BeforeMethod
   @Override
@@ -51,6 +54,7 @@ public class BuildApplicabilityCheckerTest extends BaseTestCase {
     SProject parentProject = Mockito.mock(SProject.class);
     final SProject project2 = Mockito.mock(SProject.class);
     responsibilityEntry1 = Mockito.mock(BuildProblemResponsibilityEntry.class);
+    buildProblemData = Mockito.mock(BuildProblemData.class);
     BuildProblemResponsibilityEntry responsibilityEntry2 = Mockito.mock(BuildProblemResponsibilityEntry.class);
     investigationsManager = Mockito.mock(InvestigationsManager.class);
 
@@ -60,6 +64,8 @@ public class BuildApplicabilityCheckerTest extends BaseTestCase {
     when(project.getParentProject()).thenReturn(parentProject);
     when(responsibilityEntry1.getState()).thenReturn(ResponsibilityEntry.State.NONE);
     when(responsibilityEntry2.getState()).thenReturn(ResponsibilityEntry.State.NONE);
+    when(buildProblem.getBuildProblemData()).thenReturn(buildProblemData);
+    when(buildProblemData.getType()).thenReturn(Constants.TC_COMPILATION_ERROR_TYPE);
     when(buildProblem.isMuted()).thenReturn(false);
     when(buildProblem.isNew()).thenReturn(true);
     when(buildProblem.getAllResponsibilities()).thenReturn(Arrays.asList(responsibilityEntry1, responsibilityEntry2));
@@ -118,4 +124,19 @@ public class BuildApplicabilityCheckerTest extends BaseTestCase {
     Assert.assertTrue(isApplicable);
   }
 
+  public void Test_BuildProblemHasIncompatibleType() {
+    when(buildProblemData.getType()).thenReturn("Incompatible Type");
+
+    boolean isApplicable = applicabilityChecker.check(project, sBuild, buildProblem);
+
+    Assert.assertFalse(isApplicable);
+  }
+
+  public void Test_BuildProblemHasCompatibleType() {
+    when(buildProblemData.getType()).thenReturn(Constants.TC_COMPILATION_ERROR_TYPE);
+
+    boolean isApplicable = applicabilityChecker.check(project, sBuild, buildProblem);
+
+    Assert.assertTrue(isApplicable);
+  }
 }

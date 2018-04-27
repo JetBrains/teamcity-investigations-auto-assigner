@@ -16,6 +16,9 @@
 
 package jetbrains.buildServer.iaa;
 
+import java.util.Collections;
+import java.util.Set;
+import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.iaa.utils.InvestigationsManager;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
@@ -23,8 +26,10 @@ import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import org.jetbrains.annotations.NotNull;
 
 public class BuildApplicabilityChecker {
-
   private InvestigationsManager myInvestigationsManager;
+  private final Set<String> supportedTypes =
+    Collections.unmodifiableSet(Collections.singleton(Constants.TC_COMPILATION_ERROR_TYPE));
+
 
   BuildApplicabilityChecker(@NotNull final InvestigationsManager investigationsManager) {
     myInvestigationsManager = investigationsManager;
@@ -35,6 +40,7 @@ public class BuildApplicabilityChecker {
                 @NotNull final BuildProblemImpl problem) {
     return (!problem.isMuted() &&
             isNew(problem) &&
+            supportedTypes.contains(problem.getBuildProblemData().getType()) &&
             !myInvestigationsManager.checkUnderInvestigation(project, sBuild, problem));
   }
 
