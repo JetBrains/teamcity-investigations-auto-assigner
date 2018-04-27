@@ -17,7 +17,8 @@
 package jetbrains.buildServer.iaa;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.iaa.utils.CustomParameters;
@@ -30,22 +31,23 @@ import org.jetbrains.annotations.NotNull;
 
 public class NewTestsAndProblemsDispatcher {
   @NotNull private final NewTestsAndProblemsProcessor myProcessor;
-  @NotNull private final ExecutorService myQueue;
+  @NotNull private final BuildsManager myBuildsManager;
+  @NotNull private final TestApplicabilityChecker myTestApplicabilityChecker;
   // Map isn't synchronized because we work with it from synchronized method
-  @NotNull private final Map<Long, Integer> testsPerBuildMap;
-  @NotNull private final Integer BUILD_HISTORY_LIMIT = 100;
+  @NotNull private final FailedBuildManager myFailedBuildManager;
+  @NotNull private final ScheduledExecutorService myDaemon;
 
   public NewTestsAndProblemsDispatcher(@NotNull final BuildTestsEventDispatcher buildTestsEventDispatcher,
                                        @NotNull final BuildServerListenerEventDispatcher buildServerListenerEventDispatcher,
-                                       @NotNull final NewTestsAndProblemsProcessor processor) {
+                                       @NotNull final NewTestsAndProblemsProcessor processor,
+                                       @NotNull final BuildsManager buildsManager,
+                                       @NotNull final TestApplicabilityChecker testApplicabilityChecker) {
     myProcessor = processor;
-    myQueue = ExecutorsFactory.newExecutor("Investigator-Auto-Assigner-");
-    testsPerBuildMap = new LinkedHashMap<Long, Integer>() {
-      @Override
-      protected boolean removeEldestEntry(final Map.Entry eldest) {
-        return size() > BUILD_HISTORY_LIMIT;
-      }
-    };
+    myBuildsManager = buildsManager;
+    myTestApplicabilityChecker = testApplicabilityChecker;
+    myFailedBuildManager = new FailedBuildManager();
+    myDaemon = ExecutorsFactory.newFixedScheduledDaemonExecutor("Investigator-Auto-Assigner-", 1);
+    myDaemon.scheduleWithFixedDelay(this::processBrokenBuilds, 2, 2, TimeUnit.MINUTES);
 
     buildTestsEventDispatcher.addListener(new BuildTestsListener() {
       public void testPassed(@NotNull SRunningBuild sRunningBuild, @NotNull List<Long> list) {
@@ -54,18 +56,7 @@ public class NewTestsAndProblemsDispatcher {
 
       public void testFailed(@NotNull SRunningBuild build, @NotNull List<Long> testNameIds) {
         if (shouldIgnore(build)) return;
-
-        Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(build);
-
-        for (Long testNameId : testNameIds) {
-          if (!countTestAndCheckThreshold(build, threshold)) {
-            return;
-          }
-          STestRun testRun = build.getFullStatistics().findTestByTestNameId(testNameId);
-          if (testRun != null) {
-            onTestFailed(build, testRun);
-          }
-        }
+        myFailedBuildManager.addFailedBuild(build);
       }
 
 
@@ -90,17 +81,57 @@ public class NewTestsAndProblemsDispatcher {
 
       @Override
       public void serverShutdown() {
-        myQueue.shutdown();
+        myDaemon.shutdown();
       }
     });
   }
 
-  private void onTestFailed(@NotNull final SRunningBuild build, @NotNull final STestRun testRun) {
-    myQueue.submit(() -> myProcessor.onTestFailed(build, testRun));
+  private void processBrokenBuilds() {
+    for (Long buildId : myFailedBuildManager.getBuilds()) {
+      SBuild build = myBuildsManager.findBuildInstanceById(buildId);
+      if (build == null) continue;
+      processBuild(build);
+    }
+  }
+
+  private void processBuild(final SBuild build) {
+    Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(build);
+    final SBuildType buildType = build.getBuildType();
+    if (buildType == null) return;
+    FailedBuildInfo buildInfo = myFailedBuildManager.getFailedBuildInfo(build);
+    if (buildInfo.processed >= threshold) return;
+
+    boolean shouldDelete = build.isFinished();
+    List<STestRun> failedTests = requestBrokenTestsWithStats(build);
+
+    failedTests.stream()
+               .filter(testRun -> !buildInfo.checkProcessed(testRun))
+               .filter(testRun -> myTestApplicabilityChecker.check(buildType.getProject(), build, testRun))
+               .forEach(testRun -> {
+                 if (buildInfo.processed < threshold) {
+                   buildInfo.processed++;
+                   myProcessor.onTestFailed(build, testRun);
+                 }
+               });
+
+    if (shouldDelete) {
+      myFailedBuildManager.removeBuild(build);
+    } else {
+      buildInfo.addProcessedTestRuns(failedTests);
+    }
+  }
+
+  private List<STestRun> requestBrokenTestsWithStats(final SBuild build) {
+    BuildStatisticsOptions options = new BuildStatisticsOptions(
+      BuildStatisticsOptions.FIRST_FAILED_IN_BUILD | BuildStatisticsOptions.FIXED_IN_BUILD,
+      -1);
+    BuildStatistics stats = build.getBuildStatistics(options);
+
+    return stats.getFailedTests();
   }
 
   private void onBuildProblemOccurred(@NotNull final BuildEx build, @NotNull final BuildProblemData problem) {
-    myQueue.submit(() -> {
+    myDaemon.submit(() -> {
       final List<BuildProblem> buildProblems = build.getBuildProblems();
       BuildProblemImpl.fillIsNew(build.getBuildPromotion(), buildProblems);
       for (BuildProblem buildProblem : buildProblems) {
@@ -122,15 +153,5 @@ public class NewTestsAndProblemsDispatcher {
     Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
 
     return descriptors.isEmpty();
-  }
-
-  private synchronized boolean countTestAndCheckThreshold(SBuild build, Integer threshold) {
-    Integer testsPerBuild = testsPerBuildMap.getOrDefault(build.getBuildId(), 0);
-    if (threshold >= ++testsPerBuild) {
-      testsPerBuildMap.put(build.getBuildId(), testsPerBuild);
-      return true;
-    } else {
-      return false;
-    }
   }
 }

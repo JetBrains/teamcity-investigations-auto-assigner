@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2014 JetBrains s.r.o.
+ * Copyright 2000-2018 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,23 @@
 
 package jetbrains.buildServer.iaa;
 
-import jetbrains.buildServer.serverSide.SBuild;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import jetbrains.buildServer.serverSide.STestRun;
-import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import org.jetbrains.annotations.NotNull;
 
-public interface NewTestsAndProblemsProcessor {
-  void onTestFailed(@NotNull SBuild build, @NotNull STestRun testRun);
+class FailedBuildInfo {
+  private Set<Integer> checkedTests = new HashSet<>();
+  int processed = 0;
 
-  void onBuildProblemOccurred(@NotNull SBuild build, @NotNull BuildProblemImpl problem);
+  void addProcessedTestRuns(@NotNull Collection<STestRun> tests) {
+    for (STestRun testRun : tests) {
+      checkedTests.add(testRun.getTestRunId());
+    }
+  }
+
+  boolean checkProcessed(STestRun sTestRun) {
+    return checkedTests.contains(sTestRun.getTestRunId());
+  }
 }
