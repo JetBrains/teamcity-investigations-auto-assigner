@@ -18,7 +18,7 @@ package jetbrains.buildServer.iaa.heuristics;
 
 import com.intellij.openapi.util.Pair;
 import jetbrains.buildServer.iaa.ProblemInfo;
-import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.users.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,5 +46,5 @@ public interface Heuristic {
    * @return probable responsible user data with a short description why the algorithm selected particular user.
    */
   @Nullable
-  Pair<SUser, String> findResponsibleUser(@NotNull ProblemInfo problemInfo);
+  Pair<User, String> findResponsibleUser(@NotNull ProblemInfo problemInfo);
 }

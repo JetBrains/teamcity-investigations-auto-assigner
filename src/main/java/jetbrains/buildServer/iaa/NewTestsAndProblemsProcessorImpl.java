@@ -31,7 +31,7 @@ import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import jetbrains.buildServer.serverSide.problems.BuildLogCompileErrorCollector;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.tests.TestName;
-import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.util.Dates;
 import jetbrains.buildServer.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
@@ -48,7 +48,7 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
 
   private static final Logger LOGGER = Logger.getInstance(NewTestsAndProblemsProcessorImpl.class.getName());
 
-  public NewTestsAndProblemsProcessorImpl(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade,
+  NewTestsAndProblemsProcessorImpl(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade,
                                           @NotNull final BuildProblemResponsibilityFacade buildProblemResponsibilityFacade,
                                           @NotNull final ResponsibleUserFinder responsibleUserFinder,
                                           @NotNull final TestApplicabilityChecker testApplicabilityChecker,
@@ -66,15 +66,15 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     final STest test = testRun.getTest();
     final SProject project = buildType.getProject();
 
-    if (!myTestApplicabilityChecker.check(project, testRun)) {
+    if (!myTestApplicabilityChecker.check(project, build, testRun)) {
       LOGGER.debug(String.format("Stop processing a failed test %s as it's incompatible", test.getTestNameId()));
       return;
     }
 
     final TestName testName = test.getName();
     final String text = testName.getAsString() + " " + testRun.getFullText();
-
-    Pair<SUser, String> responsibleUser = myResponsibleUserFinder.findResponsibleUser(build, text);
+    TestProblemInfo problemInfo = new TestProblemInfo(test, build, project, text);
+    Pair<User, String> responsibleUser = myResponsibleUserFinder.findResponsibleUser(problemInfo);
     if (responsibleUser == null) return;
 
     myTestNameResponsibilityFacade.setTestNameResponsibility(
@@ -92,13 +92,14 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     if (buildType == null) return;
     final SProject project = buildType.getProject();
 
-    if (!myBuildApplicabilityChecker.check(project, problem)) {
+    if (!myBuildApplicabilityChecker.check(project, build, problem)) {
       LOGGER.debug(String.format("Stop processing a failed build #%s as it's applicable", build.getBuildId()));
       return;
     }
 
     final String text = getBuildProblemText(problem, build);
-    Pair<SUser, String> responsibleUser = myResponsibleUserFinder.findResponsibleUser(build, text);
+    BuildProblemInfo problemInfo = new BuildProblemInfo(problem, build, project, text);
+    Pair<User, String> responsibleUser = myResponsibleUserFinder.findResponsibleUser(problemInfo);
     if (responsibleUser == null) return;
 
     myBuildProblemResponsibilityFacade.setBuildProblemResponsibility(

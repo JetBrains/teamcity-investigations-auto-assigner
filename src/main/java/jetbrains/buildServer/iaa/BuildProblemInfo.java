@@ -18,34 +18,23 @@ package jetbrains.buildServer.iaa;
 
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
+import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ProblemInfo {
-  @NotNull private final SBuild mySBuild;
-  @NotNull private final SProject mySProject;
-  @Nullable private final String myProblemText;
+public class BuildProblemInfo extends ProblemInfo {
+  @NotNull private final BuildProblemImpl myBuildProblem;
 
-  public ProblemInfo(@NotNull final SBuild sBuild,
-                     @NotNull final SProject project,
-                     @Nullable final String problemText) {
-    mySBuild = sBuild;
-    mySProject = project;
-    myProblemText = problemText;
+  BuildProblemInfo(@NotNull final BuildProblemImpl problem,
+                          @NotNull final SBuild sBuild,
+                          @NotNull final SProject project,
+                          @Nullable final String problemText) {
+    super(sBuild, project, problemText);
+    myBuildProblem = problem;
   }
 
   @NotNull
-  public SBuild getSBuild() {
-    return mySBuild;
-  }
-
-  @NotNull
-  public SProject getSProject() {
-    return mySProject;
-  }
-
-  @Nullable
-  public String getProblemText() {
-    return myProblemText;
+  public BuildProblemImpl getBuildProblem() {
+    return myBuildProblem;
   }
 }

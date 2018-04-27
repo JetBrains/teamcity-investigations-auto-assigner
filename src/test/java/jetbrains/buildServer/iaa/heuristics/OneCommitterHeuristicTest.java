@@ -23,7 +23,9 @@ import java.util.HashSet;
 import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.iaa.ProblemInfo;
 import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.users.UserSet;
 import jetbrains.buildServer.vcs.SelectPrevBuildPolicy;
 import org.mockito.Mockito;
@@ -37,9 +39,8 @@ import static org.mockito.Mockito.when;
 public class OneCommitterHeuristicTest extends BaseTestCase {
 
   private OneCommitterHeuristic heuristic;
-  private SBuild sBuildMock;
   private UserSet userSetMock;
-  private SUser firstUser;
+  private User firstUser;
   private SUser secondUser;
   private ProblemInfo problemInfo;
 
@@ -48,30 +49,31 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     heuristic = new OneCommitterHeuristic();
-    sBuildMock = Mockito.mock(SBuild.class);
+    final SBuild sBuildMock = Mockito.mock(SBuild.class);
+    final SProject sProjectMock = Mockito.mock(SProject.class);
     userSetMock = Mockito.mock(UserSet.class);
-    firstUser = Mockito.mock(SUser.class);
+    firstUser = Mockito.mock(User.class);
     secondUser = Mockito.mock(SUser.class);
     when(sBuildMock.getCommitters(SelectPrevBuildPolicy.SINCE_LAST_BUILD)).thenReturn(userSetMock);
-    problemInfo = new ProblemInfo(sBuildMock, "problem text");
+    problemInfo = new ProblemInfo(sBuildMock, sProjectMock, "problem text");
   }
 
   public void TestWithOneResponsible() {
-    when(userSetMock.getUsers()).thenReturn(new HashSet<SUser>(Collections.singletonList(firstUser)));
-    Pair<SUser, String> responsible = heuristic.findResponsibleUser(problemInfo);
+    when(userSetMock.getUsers()).thenReturn(new HashSet<>(Collections.singletonList(firstUser)));
+    Pair<User, String> responsible = heuristic.findResponsibleUser(problemInfo);
     Assert.assertNotNull(responsible);
     Assert.assertEquals(responsible.first, firstUser);
   }
 
   public void TestWithoutResponsible() {
-    when(userSetMock.getUsers()).thenReturn(new HashSet<SUser>());
-    Pair<SUser, String> responsible = heuristic.findResponsibleUser(problemInfo);
+    when(userSetMock.getUsers()).thenReturn(new HashSet<User>());
+    Pair<User, String> responsible = heuristic.findResponsibleUser(problemInfo);
     Assert.assertNull(responsible);
   }
 
   public void TestWithManyResponsible() {
-    when(userSetMock.getUsers()).thenReturn(new HashSet<SUser>(Arrays.asList(firstUser, secondUser)));
-    Pair<SUser, String> responsible = heuristic.findResponsibleUser(problemInfo);
+    when(userSetMock.getUsers()).thenReturn(new HashSet<>(Arrays.asList(firstUser, secondUser)));
+    Pair<User, String> responsible = heuristic.findResponsibleUser(problemInfo);
     Assert.assertNull(responsible);
   }
 }

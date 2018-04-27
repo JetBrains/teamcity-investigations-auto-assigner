@@ -15,6 +15,7 @@
 
   <bean class="jetbrains.buildServer.iaa.AutoAssignerBuildFeature"/>
   <bean class="jetbrains.buildServer.iaa.NewTestsAndProblemsProcessorImpl"/>
+  <bean class="jetbrains.buildServer.iaa.utils.InvestigationsManager"/>
   <bean class="jetbrains.buildServer.iaa.BuildApplicabilityChecker"/>
   <bean class="jetbrains.buildServer.iaa.TestApplicabilityChecker"/>
   <bean class="jetbrains.buildServer.iaa.utils.FlakyTestDetector"/>
@@ -23,6 +24,7 @@
       <list>
         <ref bean="oneCommitterHeuristic"/>
         <ref bean="brokenFileHeuristic"/>
+        <ref bean="previousResponsibleHeuristic"/>
         <ref bean="defaultUserHeuristic"/>
       </list>
     </constructor-arg>
@@ -30,4 +32,5 @@
   <bean id="oneCommitterHeuristic" class="jetbrains.buildServer.iaa.heuristics.OneCommitterHeuristic"/>
   <bean id="brokenFileHeuristic" class="jetbrains.buildServer.iaa.heuristics.BrokenFileHeuristic"/>
   <bean id="defaultUserHeuristic" class="jetbrains.buildServer.iaa.heuristics.DefaultUserHeuristic"/>
+  <bean id="previousResponsibleHeuristic" class="jetbrains.buildServer.iaa.heuristics.PreviousResponsibleHeuristic"/>
 </beans>

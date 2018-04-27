@@ -6,7 +6,6 @@
         <option name="CONTINUATION_INDENT_SIZE" value="4" />
       </value>
     </option>
-    <option name="RIGHT_MARGIN" value="180" />
     <option name="LINE_COMMENT_AT_FIRST_COLUMN" value="false" />
     <option name="BLOCK_COMMENT_AT_FIRST_COLUMN" value="false" />
     <option name="DO_NOT_INDENT_TOP_LEVEL_CLASS_MEMBERS" value="true" />

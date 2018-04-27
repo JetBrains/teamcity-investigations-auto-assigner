@@ -26,6 +26,7 @@ import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import jetbrains.buildServer.serverSide.problems.BuildProblemInfo;
 import jetbrains.buildServer.tests.TestName;
 import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.users.User;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -80,11 +81,11 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
     when(sTestRun.getTest()).thenReturn(sTest);
     when(sTestRun.getFullText()).thenReturn("Full Text Test Run");
     when(sTest.getName()).thenReturn(testName);
-    when(testApplicabilityChecker.check(any(), any())).thenReturn(true);
-    when(buildApplicabilityChecker.check(any(), any())).thenReturn(true);
+    when(testApplicabilityChecker.check(any(), any(), any())).thenReturn(true);
+    when(buildApplicabilityChecker.check(any(), any(), any())).thenReturn(true);
     when(testName.getAsString()).thenReturn("Test Name as String");
-    Pair<SUser, String> anyPair = new Pair<>(sUser, "Failed description");
-    when(responsibleUserFinder.findResponsibleUser(any(), any())).thenReturn(anyPair);
+    Pair<User, String> anyPair = new Pair<>(sUser, "Failed description");
+    when(responsibleUserFinder.findResponsibleUser(any())).thenReturn(anyPair);
     when(buildProblem.getBuildProblemData()).thenReturn(buildProblemData);
     when(buildProblemData.getType()).thenReturn("1234");
   }
@@ -105,8 +106,8 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
     Mockito.verify(sTestRun, Mockito.atLeastOnce()).getTest();
   }
 
-  public void Tes_OnTestFailed_ApplicabilityFailed() {
-    when(testApplicabilityChecker.check(any(), any())).thenReturn(false);
+  public void Test_OnTestFailed_ApplicabilityFailed() {
+    when(testApplicabilityChecker.check(any(), any(), any())).thenReturn(false);
 
     processor.onTestFailed(sRunningBuild, sTestRun);
 
@@ -114,7 +115,7 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
   }
 
   public void Test_OnTestFailed_ApplicabilitySucceed() {
-    when(testApplicabilityChecker.check(any(), any())).thenReturn(true);
+    when(testApplicabilityChecker.check(any(), any(), any())).thenReturn(true);
 
     processor.onTestFailed(sRunningBuild, sTestRun);
 
@@ -122,7 +123,7 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
   }
 
   public void Test_OnTestFailed_ResponsibleUserNotFound() {
-    when(responsibleUserFinder.findResponsibleUser(any(), any())).thenReturn(null);
+    when(responsibleUserFinder.findResponsibleUser(any())).thenReturn(null);
 
     processor.onTestFailed(sRunningBuild, sTestRun);
 
@@ -132,8 +133,8 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
 
   public void Test_OnTestFailed_ResponsibleUserFound() {
     SUser sUser = Mockito.mock(SUser.class);
-    Pair<SUser, String> anyPair = new Pair<>(sUser, "Failed description");
-    when(responsibleUserFinder.findResponsibleUser(any(), any())).thenReturn(anyPair);
+    Pair<User, String> anyPair = new Pair<>(sUser, "Failed description");
+    when(responsibleUserFinder.findResponsibleUser(any())).thenReturn(anyPair);
 
     processor.onTestFailed(sRunningBuild, sTestRun);
 
@@ -146,7 +147,7 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
 
     processor.onBuildProblemOccurred(sBuild, buildProblem);
 
-    Mockito.verify(buildApplicabilityChecker, Mockito.never()).check(any(), any());
+    Mockito.verify(buildApplicabilityChecker, Mockito.never()).check(any(), any(), any());
   }
 
   public void Test_BuildProblemOccurred_BuildTypeNotNull() {
@@ -154,27 +155,27 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
 
     processor.onBuildProblemOccurred(sBuild, buildProblem);
 
-    Mockito.verify(buildApplicabilityChecker, Mockito.atLeastOnce()).check(any(), any());
+    Mockito.verify(buildApplicabilityChecker, Mockito.atLeastOnce()).check(any(), any(), any());
   }
 
   public void Test_BuildProblemOccurred_ApplicabilityFailed() {
-    when(buildApplicabilityChecker.check(any(), any())).thenReturn(false);
+    when(buildApplicabilityChecker.check(any(), any(), any())).thenReturn(false);
 
     processor.onBuildProblemOccurred(sBuild, buildProblem);
 
-    Mockito.verify(responsibleUserFinder, Mockito.never()).findResponsibleUser(any(), any());
+    Mockito.verify(responsibleUserFinder, Mockito.never()).findResponsibleUser(any());
   }
 
   public void Test_BuildProblemOccurred_ApplicabilitySucceed() {
-    when(buildApplicabilityChecker.check(any(), any())).thenReturn(true);
+    when(buildApplicabilityChecker.check(any(), any(), any())).thenReturn(true);
 
     processor.onBuildProblemOccurred(sBuild, buildProblem);
 
-    Mockito.verify(responsibleUserFinder, Mockito.atLeastOnce()).findResponsibleUser(any(), any());
+    Mockito.verify(responsibleUserFinder, Mockito.atLeastOnce()).findResponsibleUser(any());
   }
 
   public void Test_BuildProblemOccurred_ResponsibleUserNotFound() {
-    when(responsibleUserFinder.findResponsibleUser(any(), any())).thenReturn(null);
+    when(responsibleUserFinder.findResponsibleUser(any())).thenReturn(null);
 
     processor.onBuildProblemOccurred(sBuild, buildProblem);
 
@@ -184,8 +185,8 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
 
   public void Test_BuildProblemOccurred_ResponsibleUserFound() {
     SUser sUser = Mockito.mock(SUser.class);
-    Pair<SUser, String> anyPair = new Pair<>(sUser, "Failed description");
-    when(responsibleUserFinder.findResponsibleUser(any(), any())).thenReturn(anyPair);
+    Pair<User, String> anyPair = new Pair<>(sUser, "Failed description");
+    when(responsibleUserFinder.findResponsibleUser(any())).thenReturn(anyPair);
 
     processor.onBuildProblemOccurred(sBuild, buildProblem);
 

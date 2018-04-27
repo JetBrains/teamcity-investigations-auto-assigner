@@ -23,7 +23,7 @@ import jetbrains.buildServer.iaa.ProblemInfo;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SBuildFeatureDescriptor;
-import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.users.UserModelEx;
 import jetbrains.buildServer.users.impl.UserEx;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +35,7 @@ public class DefaultUserHeuristic implements Heuristic {
 
   @NotNull private UserModelEx myUserModel;
 
-  public DefaultUserHeuristic(@NotNull final UserModelEx userModel) {
+  DefaultUserHeuristic(@NotNull final UserModelEx userModel) {
     myUserModel = userModel;
   }
 
@@ -53,8 +53,8 @@ public class DefaultUserHeuristic implements Heuristic {
 
   @Override
   @Nullable
-  public Pair<SUser, String> findResponsibleUser(@NotNull ProblemInfo problemInfo) {
-    SBuild build = problemInfo.mySBuild;
+  public Pair<User, String> findResponsibleUser(@NotNull ProblemInfo problemInfo) {
+    SBuild build = problemInfo.getSBuild();
     Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
     if (descriptors.isEmpty()) return null;
 

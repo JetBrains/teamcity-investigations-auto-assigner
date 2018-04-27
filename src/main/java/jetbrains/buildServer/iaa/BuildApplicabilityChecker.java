@@ -18,48 +18,34 @@ package jetbrains.buildServer.iaa;
 
 import java.util.Collections;
 import java.util.Set;
-import jetbrains.buildServer.BuildProject;
 import jetbrains.buildServer.iaa.common.Constants;
-import jetbrains.buildServer.responsibility.BuildProblemResponsibilityEntry;
-import jetbrains.buildServer.responsibility.ResponsibilityEntry;
+import jetbrains.buildServer.iaa.utils.InvestigationsManager;
+import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
-import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.jetbrains.annotations.NotNull;
 
 public class BuildApplicabilityChecker {
+  private InvestigationsManager myInvestigationsManager;
   private final Set<String> supportedTypes =
     Collections.unmodifiableSet(Collections.singleton(Constants.TC_COMPILATION_ERROR_TYPE));
 
-  boolean check(@NotNull final SProject project, @NotNull final BuildProblemImpl problem) {
+
+  BuildApplicabilityChecker(@NotNull final InvestigationsManager investigationsManager) {
+    myInvestigationsManager = investigationsManager;
+  }
+
+  boolean check(@NotNull final SProject project,
+                @NotNull final SBuild sBuild,
+                @NotNull final BuildProblemImpl problem) {
     return (!problem.isMuted() &&
             isNew(problem) &&
             supportedTypes.contains(problem.getBuildProblemData().getType()) &&
-            !isInvestigated(problem, project));
+            !myInvestigationsManager.checkUnderInvestigation(project, sBuild, problem));
   }
 
   private static boolean isNew(@NotNull final BuildProblemImpl problem) {
     final Boolean isNew = problem.isNew();
     return isNew != null && isNew;
   }
-
-  private static boolean isInvestigated(@NotNull final BuildProblem problem, @NotNull final SProject project) {
-    for (BuildProblemResponsibilityEntry entry : problem.getAllResponsibilities()) {
-      if (isActiveOrFixed(entry) && isSameOrParent(entry.getProject(), project)) return true;
-    }
-    return false;
-  }
-
-  private static boolean isActiveOrFixed(@NotNull final ResponsibilityEntry entry) {
-    final ResponsibilityEntry.State state = entry.getState();
-    return state.isActive() || state.isFixed();
-  }
-
-  private static boolean isSameOrParent(@NotNull final BuildProject parent, @NotNull final BuildProject project) {
-    if (parent.getProjectId().equals(project.getProjectId())) return true;
-    final BuildProject parentProject = project.getParentProject();
-    return parentProject != null && isSameOrParent(parent, parentProject);
-  }
-
-
 }

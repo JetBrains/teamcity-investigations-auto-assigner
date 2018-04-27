@@ -17,12 +17,13 @@
 package jetbrains.buildServer.iaa;
 
 import java.util.Arrays;
-import java.util.Collections;
 import jetbrains.buildServer.BaseTestCase;
+import jetbrains.buildServer.iaa.utils.InvestigationsManager;
 import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
+import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import org.mockito.Mockito;
@@ -37,9 +38,10 @@ public class BuildApplicabilityCheckerTest extends BaseTestCase {
 
   private SProject project;
   private BuildProblemResponsibilityEntry responsibilityEntry1;
-  private SProject project2;
   private BuildApplicabilityChecker applicabilityChecker;
   private BuildProblemImpl buildProblem;
+  private InvestigationsManager investigationsManager;
+  private SBuild sBuild;
   private BuildProblemData buildProblemData;
 
   @BeforeMethod
@@ -48,11 +50,13 @@ public class BuildApplicabilityCheckerTest extends BaseTestCase {
     super.setUp();
     buildProblem = Mockito.mock(BuildProblemImpl.class);
     project = Mockito.mock(SProject.class);
+    sBuild = Mockito.mock(SBuild.class);
     SProject parentProject = Mockito.mock(SProject.class);
-    project2 = Mockito.mock(SProject.class);
+    final SProject project2 = Mockito.mock(SProject.class);
     responsibilityEntry1 = Mockito.mock(BuildProblemResponsibilityEntry.class);
     buildProblemData = Mockito.mock(BuildProblemData.class);
     BuildProblemResponsibilityEntry responsibilityEntry2 = Mockito.mock(BuildProblemResponsibilityEntry.class);
+    investigationsManager = Mockito.mock(InvestigationsManager.class);
 
     when(project.getProjectId()).thenReturn("Project ID");
     when(project2.getProjectId()).thenReturn("Project ID 2");
@@ -65,13 +69,15 @@ public class BuildApplicabilityCheckerTest extends BaseTestCase {
     when(buildProblem.isMuted()).thenReturn(false);
     when(buildProblem.isNew()).thenReturn(true);
     when(buildProblem.getAllResponsibilities()).thenReturn(Arrays.asList(responsibilityEntry1, responsibilityEntry2));
-    applicabilityChecker = new BuildApplicabilityChecker();
+    when(investigationsManager.checkUnderInvestigation(project, sBuild, buildProblem)).thenReturn(false);
+    when(investigationsManager.checkUnderInvestigation(project2, sBuild, buildProblem)).thenReturn(false);
+    applicabilityChecker = new BuildApplicabilityChecker(investigationsManager);
   }
 
   public void Test_BuildProblemIsMuted() {
     when(buildProblem.isMuted()).thenReturn(true);
 
-    boolean isApplicable = applicabilityChecker.check(project, buildProblem);
+    boolean isApplicable = applicabilityChecker.check(project, sBuild, buildProblem);
 
     Assert.assertFalse(isApplicable);
   }
@@ -79,7 +85,7 @@ public class BuildApplicabilityCheckerTest extends BaseTestCase {
   public void Test_BuildProblemIsNotMuted() {
     when(buildProblem.isMuted()).thenReturn(false);
 
-    boolean isApplicable = applicabilityChecker.check(project, buildProblem);
+    boolean isApplicable = applicabilityChecker.check(project, sBuild, buildProblem);
 
     Assert.assertTrue(isApplicable);
   }
@@ -87,7 +93,7 @@ public class BuildApplicabilityCheckerTest extends BaseTestCase {
   public void Test_BuildProblemNotNew() {
     when(buildProblem.isNew()).thenReturn(false);
 
-    boolean isApplicable = applicabilityChecker.check(project, buildProblem);
+    boolean isApplicable = applicabilityChecker.check(project, sBuild, buildProblem);
 
     Assert.assertFalse(isApplicable);
   }
@@ -95,43 +101,25 @@ public class BuildApplicabilityCheckerTest extends BaseTestCase {
   public void Test_BuildProblemIsNew() {
     when(buildProblem.isNew()).thenReturn(true);
 
-    boolean isApplicable = applicabilityChecker.check(project, buildProblem);
+    boolean isApplicable = applicabilityChecker.check(project, sBuild, buildProblem);
 
     Assert.assertTrue(isApplicable);
   }
 
-  public void Test_BuildProblemIsUnderInvestigationSameProject() {
-    when(responsibilityEntry1.getState()).thenReturn(ResponsibilityEntry.State.TAKEN);
+  public void Test_BuildProblemIsUnderInvestigation() {
+    when(investigationsManager.checkUnderInvestigation(project, sBuild, buildProblem)).thenReturn(true);
     when(responsibilityEntry1.getProject()).thenReturn(project);
 
-    boolean isApplicable = applicabilityChecker.check(project, buildProblem);
+    boolean isApplicable = applicabilityChecker.check(project, sBuild, buildProblem);
 
     Assert.assertFalse(isApplicable);
-  }
-
-  public void Test_BuildProblemIsUnderInvestigationParentProject() {
-    when(responsibilityEntry1.getState()).thenReturn(ResponsibilityEntry.State.TAKEN);
-    SProject parentProject = project.getParentProject();
-    when(responsibilityEntry1.getProject()).thenReturn(parentProject);
-
-    boolean isApplicable = applicabilityChecker.check(project, buildProblem);
-
-    Assert.assertFalse(isApplicable);
-  }
-
-  public void Test_BuildProblemIsUnderInvestigationOtherProject() {
-    when(responsibilityEntry1.getState()).thenReturn(ResponsibilityEntry.State.TAKEN);
-    when(responsibilityEntry1.getProject()).thenReturn(project2);
-
-    boolean isApplicable = applicabilityChecker.check(project, buildProblem);
-
-    Assert.assertTrue(isApplicable);
   }
 
   public void Test_BuildProblemNotUnderInvestigation() {
-    when(buildProblem.getAllResponsibilities()).thenReturn(Collections.emptyList());
+    when(investigationsManager.checkUnderInvestigation(project, sBuild, buildProblem)).thenReturn(false);
+    when(responsibilityEntry1.getProject()).thenReturn(project);
 
-    boolean isApplicable = applicabilityChecker.check(project, buildProblem);
+    boolean isApplicable = applicabilityChecker.check(project, sBuild, buildProblem);
 
     Assert.assertTrue(isApplicable);
   }
@@ -139,7 +127,7 @@ public class BuildApplicabilityCheckerTest extends BaseTestCase {
   public void Test_BuildProblemHasIncompatibleType() {
     when(buildProblemData.getType()).thenReturn("Incompatible Type");
 
-    boolean isApplicable = applicabilityChecker.check(project, buildProblem);
+    boolean isApplicable = applicabilityChecker.check(project, sBuild, buildProblem);
 
     Assert.assertFalse(isApplicable);
   }
@@ -147,7 +135,7 @@ public class BuildApplicabilityCheckerTest extends BaseTestCase {
   public void Test_BuildProblemHasCompatibleType() {
     when(buildProblemData.getType()).thenReturn(Constants.TC_COMPILATION_ERROR_TYPE);
 
-    boolean isApplicable = applicabilityChecker.check(project, buildProblem);
+    boolean isApplicable = applicabilityChecker.check(project, sBuild, buildProblem);
 
     Assert.assertTrue(isApplicable);
   }
