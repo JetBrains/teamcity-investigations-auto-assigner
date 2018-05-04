@@ -35,9 +35,9 @@ public class BuildApplicabilityChecker {
     myInvestigationsManager = investigationsManager;
   }
 
-  boolean check(@NotNull final SProject project,
-                @NotNull final SBuild sBuild,
-                @NotNull final BuildProblemImpl problem) {
+  boolean isApplicable(@NotNull final SProject project,
+                       @NotNull final SBuild sBuild,
+                       @NotNull final BuildProblemImpl problem) {
     return (!problem.isMuted() &&
             isNew(problem) &&
             supportedTypes.contains(problem.getBuildProblemData().getType()) &&

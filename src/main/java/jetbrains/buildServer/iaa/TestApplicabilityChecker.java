@@ -35,9 +35,9 @@ class TestApplicabilityChecker {
     myInvestigationsManager = investigationsManager;
   }
 
-  boolean check(@NotNull final SProject project,
-                @NotNull final SBuild sBuild,
-                @NotNull final STestRun testRun) {
+  boolean isApplicable(@NotNull final SProject project,
+                       @NotNull final SBuild sBuild,
+                       @NotNull final STestRun testRun) {
     final STest test = testRun.getTest();
 
     return !testRun.isMuted() &&

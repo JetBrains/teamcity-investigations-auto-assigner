@@ -36,106 +36,107 @@ import static org.mockito.Mockito.when;
 @Test
 public class BuildApplicabilityCheckerTest extends BaseTestCase {
 
-  private SProject project;
-  private BuildProblemResponsibilityEntry responsibilityEntry1;
-  private BuildApplicabilityChecker applicabilityChecker;
-  private BuildProblemImpl buildProblem;
-  private InvestigationsManager investigationsManager;
-  private SBuild sBuild;
-  private BuildProblemData buildProblemData;
+  private SProject mySProject;
+  private BuildProblemResponsibilityEntry myResponsibilityEntry;
+  private BuildApplicabilityChecker myApplicabilityChecker;
+  private BuildProblemImpl myBuildProblem;
+  private InvestigationsManager myInvestigationsManager;
+  private SBuild mySBuild;
+  private BuildProblemData myBuildProblemData;
 
   @BeforeMethod
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    buildProblem = Mockito.mock(BuildProblemImpl.class);
-    project = Mockito.mock(SProject.class);
-    sBuild = Mockito.mock(SBuild.class);
+    myBuildProblem = Mockito.mock(BuildProblemImpl.class);
+    mySProject = Mockito.mock(SProject.class);
+    mySBuild = Mockito.mock(SBuild.class);
     SProject parentProject = Mockito.mock(SProject.class);
     final SProject project2 = Mockito.mock(SProject.class);
-    responsibilityEntry1 = Mockito.mock(BuildProblemResponsibilityEntry.class);
-    buildProblemData = Mockito.mock(BuildProblemData.class);
+    myResponsibilityEntry = Mockito.mock(BuildProblemResponsibilityEntry.class);
+    myBuildProblemData = Mockito.mock(BuildProblemData.class);
     BuildProblemResponsibilityEntry responsibilityEntry2 = Mockito.mock(BuildProblemResponsibilityEntry.class);
-    investigationsManager = Mockito.mock(InvestigationsManager.class);
+    myInvestigationsManager = Mockito.mock(InvestigationsManager.class);
 
-    when(project.getProjectId()).thenReturn("Project ID");
+    when(mySProject.getProjectId()).thenReturn("Project ID");
     when(project2.getProjectId()).thenReturn("Project ID 2");
     when(parentProject.getProjectId()).thenReturn("Parent Project ID");
-    when(project.getParentProject()).thenReturn(parentProject);
-    when(responsibilityEntry1.getState()).thenReturn(ResponsibilityEntry.State.NONE);
+    when(mySProject.getParentProject()).thenReturn(parentProject);
+    when(myResponsibilityEntry.getState()).thenReturn(ResponsibilityEntry.State.NONE);
     when(responsibilityEntry2.getState()).thenReturn(ResponsibilityEntry.State.NONE);
-    when(buildProblem.getBuildProblemData()).thenReturn(buildProblemData);
-    when(buildProblemData.getType()).thenReturn(Constants.TC_COMPILATION_ERROR_TYPE);
-    when(buildProblem.isMuted()).thenReturn(false);
-    when(buildProblem.isNew()).thenReturn(true);
-    when(buildProblem.getAllResponsibilities()).thenReturn(Arrays.asList(responsibilityEntry1, responsibilityEntry2));
-    when(investigationsManager.checkUnderInvestigation(project, sBuild, buildProblem)).thenReturn(false);
-    when(investigationsManager.checkUnderInvestigation(project2, sBuild, buildProblem)).thenReturn(false);
-    applicabilityChecker = new BuildApplicabilityChecker(investigationsManager);
+    when(myBuildProblem.getBuildProblemData()).thenReturn(myBuildProblemData);
+    when(myBuildProblemData.getType()).thenReturn(Constants.TC_COMPILATION_ERROR_TYPE);
+    when(myBuildProblem.isMuted()).thenReturn(false);
+    when(myBuildProblem.isNew()).thenReturn(true);
+    when(myBuildProblem.getAllResponsibilities())
+      .thenReturn(Arrays.asList(myResponsibilityEntry, responsibilityEntry2));
+    when(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, myBuildProblem)).thenReturn(false);
+    when(myInvestigationsManager.checkUnderInvestigation(project2, mySBuild, myBuildProblem)).thenReturn(false);
+    myApplicabilityChecker = new BuildApplicabilityChecker(myInvestigationsManager);
   }
 
   public void Test_BuildProblemIsMuted() {
-    when(buildProblem.isMuted()).thenReturn(true);
+    when(myBuildProblem.isMuted()).thenReturn(true);
 
-    boolean isApplicable = applicabilityChecker.check(project, sBuild, buildProblem);
+    boolean isApplicable = myApplicabilityChecker.isApplicable(mySProject, mySBuild, myBuildProblem);
 
     Assert.assertFalse(isApplicable);
   }
 
   public void Test_BuildProblemIsNotMuted() {
-    when(buildProblem.isMuted()).thenReturn(false);
+    when(myBuildProblem.isMuted()).thenReturn(false);
 
-    boolean isApplicable = applicabilityChecker.check(project, sBuild, buildProblem);
+    boolean isApplicable = myApplicabilityChecker.isApplicable(mySProject, mySBuild, myBuildProblem);
 
     Assert.assertTrue(isApplicable);
   }
 
   public void Test_BuildProblemNotNew() {
-    when(buildProblem.isNew()).thenReturn(false);
+    when(myBuildProblem.isNew()).thenReturn(false);
 
-    boolean isApplicable = applicabilityChecker.check(project, sBuild, buildProblem);
+    boolean isApplicable = myApplicabilityChecker.isApplicable(mySProject, mySBuild, myBuildProblem);
 
     Assert.assertFalse(isApplicable);
   }
 
   public void Test_BuildProblemIsNew() {
-    when(buildProblem.isNew()).thenReturn(true);
+    when(myBuildProblem.isNew()).thenReturn(true);
 
-    boolean isApplicable = applicabilityChecker.check(project, sBuild, buildProblem);
+    boolean isApplicable = myApplicabilityChecker.isApplicable(mySProject, mySBuild, myBuildProblem);
 
     Assert.assertTrue(isApplicable);
   }
 
   public void Test_BuildProblemIsUnderInvestigation() {
-    when(investigationsManager.checkUnderInvestigation(project, sBuild, buildProblem)).thenReturn(true);
-    when(responsibilityEntry1.getProject()).thenReturn(project);
+    when(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, myBuildProblem)).thenReturn(true);
+    when(myResponsibilityEntry.getProject()).thenReturn(mySProject);
 
-    boolean isApplicable = applicabilityChecker.check(project, sBuild, buildProblem);
+    boolean isApplicable = myApplicabilityChecker.isApplicable(mySProject, mySBuild, myBuildProblem);
 
     Assert.assertFalse(isApplicable);
   }
 
   public void Test_BuildProblemNotUnderInvestigation() {
-    when(investigationsManager.checkUnderInvestigation(project, sBuild, buildProblem)).thenReturn(false);
-    when(responsibilityEntry1.getProject()).thenReturn(project);
+    when(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, myBuildProblem)).thenReturn(false);
+    when(myResponsibilityEntry.getProject()).thenReturn(mySProject);
 
-    boolean isApplicable = applicabilityChecker.check(project, sBuild, buildProblem);
+    boolean isApplicable = myApplicabilityChecker.isApplicable(mySProject, mySBuild, myBuildProblem);
 
     Assert.assertTrue(isApplicable);
   }
 
   public void Test_BuildProblemHasIncompatibleType() {
-    when(buildProblemData.getType()).thenReturn("Incompatible Type");
+    when(myBuildProblemData.getType()).thenReturn("Incompatible Type");
 
-    boolean isApplicable = applicabilityChecker.check(project, sBuild, buildProblem);
+    boolean isApplicable = myApplicabilityChecker.isApplicable(mySProject, mySBuild, myBuildProblem);
 
     Assert.assertFalse(isApplicable);
   }
 
   public void Test_BuildProblemHasCompatibleType() {
-    when(buildProblemData.getType()).thenReturn(Constants.TC_COMPILATION_ERROR_TYPE);
+    when(myBuildProblemData.getType()).thenReturn(Constants.TC_COMPILATION_ERROR_TYPE);
 
-    boolean isApplicable = applicabilityChecker.check(project, sBuild, buildProblem);
+    boolean isApplicable = myApplicabilityChecker.isApplicable(mySProject, mySBuild, myBuildProblem);
 
     Assert.assertTrue(isApplicable);
   }

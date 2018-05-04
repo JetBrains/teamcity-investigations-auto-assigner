@@ -37,160 +37,161 @@ import static org.mockito.Mockito.when;
 
 @Test
 public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
-  private NewTestsAndProblemsProcessorImpl processor;
-  private TestNameResponsibilityFacade testNameResponsibilityFacade;
-  private BuildProblemResponsibilityFacade buildProblemResponsibilityFacade;
-  private ResponsibleUserFinder responsibleUserFinder;
-  private TestApplicabilityChecker testApplicabilityChecker;
-  private BuildApplicabilityChecker buildApplicabilityChecker;
-  private SRunningBuild sRunningBuild;
-  private SBuild sBuild;
-  private STestRun sTestRun;
-  private SBuildType sBuildType;
-  private STest sTest;
-  private BuildProblemImpl buildProblem;
+  private NewTestsAndProblemsProcessorImpl myProcessor;
+  private TestNameResponsibilityFacade myTestNameResponsibilityFacade;
+  private BuildProblemResponsibilityFacade myBuildProblemResponsibilityFacade;
+  private ResponsibleUserFinder myResponsibleUserFinder;
+  private TestApplicabilityChecker myTestApplicabilityChecker;
+  private BuildApplicabilityChecker myBuildApplicabilityChecker;
+  private SRunningBuild mySRunningBuild;
+  private SBuild mySBuild;
+  private STestRun mySTestRun;
+  private SBuildType mySBuildType;
+  private STest mySTest;
+  private BuildProblemImpl myBuildProblem;
 
   @BeforeMethod
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    testNameResponsibilityFacade = Mockito.mock(TestNameResponsibilityFacade.class);
-    buildProblemResponsibilityFacade = Mockito.mock(BuildProblemResponsibilityFacade.class);
-    responsibleUserFinder = Mockito.mock(ResponsibleUserFinder.class);
-    testApplicabilityChecker = Mockito.mock(TestApplicabilityChecker.class);
-    buildApplicabilityChecker = Mockito.mock(BuildApplicabilityChecker.class);
-    processor = new NewTestsAndProblemsProcessorImpl(testNameResponsibilityFacade, buildProblemResponsibilityFacade,
-                                                     responsibleUserFinder, testApplicabilityChecker,
-                                                     buildApplicabilityChecker);
+    myTestNameResponsibilityFacade = Mockito.mock(TestNameResponsibilityFacade.class);
+    myBuildProblemResponsibilityFacade = Mockito.mock(BuildProblemResponsibilityFacade.class);
+    myResponsibleUserFinder = Mockito.mock(ResponsibleUserFinder.class);
+    myTestApplicabilityChecker = Mockito.mock(TestApplicabilityChecker.class);
+    myBuildApplicabilityChecker = Mockito.mock(BuildApplicabilityChecker.class);
+    myProcessor =
+      new NewTestsAndProblemsProcessorImpl(myTestNameResponsibilityFacade, myBuildProblemResponsibilityFacade,
+                                           myResponsibleUserFinder, myTestApplicabilityChecker,
+                                           myBuildApplicabilityChecker);
 
-    sRunningBuild = Mockito.mock(SRunningBuild.class);
-    sBuild = Mockito.mock(SBuild.class);
-    buildProblem = Mockito.mock(BuildProblemImpl.class);
+    mySRunningBuild = Mockito.mock(SRunningBuild.class);
+    mySBuild = Mockito.mock(SBuild.class);
+    myBuildProblem = Mockito.mock(BuildProblemImpl.class);
     BuildProblemData buildProblemData = Mockito.mock(BuildProblemData.class);
-    sTestRun = Mockito.mock(STestRun.class);
-    sBuildType = Mockito.mock(SBuildType.class);
+    mySTestRun = Mockito.mock(STestRun.class);
+    mySBuildType = Mockito.mock(SBuildType.class);
     SProject sProject = Mockito.mock(SProject.class);
-    sTest = Mockito.mock(STest.class);
+    mySTest = Mockito.mock(STest.class);
     TestName testName = Mockito.mock(TestName.class);
     SUser sUser = Mockito.mock(SUser.class);
 
-    when(sRunningBuild.getBuildType()).thenReturn(sBuildType);
-    when(sBuild.getBuildType()).thenReturn(sBuildType);
-    when(sBuildType.getProject()).thenReturn(sProject);
+    when(mySRunningBuild.getBuildType()).thenReturn(mySBuildType);
+    when(mySBuild.getBuildType()).thenReturn(mySBuildType);
+    when(mySBuildType.getProject()).thenReturn(sProject);
     when(sProject.getProjectId()).thenReturn("projectId");
-    when(sTestRun.getTest()).thenReturn(sTest);
-    when(sTestRun.getFullText()).thenReturn("Full Text Test Run");
-    when(sTest.getName()).thenReturn(testName);
-    when(testApplicabilityChecker.check(any(), any(), any())).thenReturn(true);
-    when(buildApplicabilityChecker.check(any(), any(), any())).thenReturn(true);
+    when(mySTestRun.getTest()).thenReturn(mySTest);
+    when(mySTestRun.getFullText()).thenReturn("Full Text Test Run");
+    when(mySTest.getName()).thenReturn(testName);
+    when(myTestApplicabilityChecker.isApplicable(any(), any(), any())).thenReturn(true);
+    when(myBuildApplicabilityChecker.isApplicable(any(), any(), any())).thenReturn(true);
     when(testName.getAsString()).thenReturn("Test Name as String");
     Pair<User, String> anyPair = new Pair<>(sUser, "Failed description");
-    when(responsibleUserFinder.findResponsibleUser(any())).thenReturn(anyPair);
-    when(buildProblem.getBuildProblemData()).thenReturn(buildProblemData);
+    when(myResponsibleUserFinder.findResponsibleUser(any())).thenReturn(anyPair);
+    when(myBuildProblem.getBuildProblemData()).thenReturn(buildProblemData);
     when(buildProblemData.getType()).thenReturn("1234");
   }
 
   public void Test_OnTestFailed_BuildTypeIsNull() {
-    when(sRunningBuild.getBuildType()).thenReturn(null);
+    when(mySRunningBuild.getBuildType()).thenReturn(null);
 
-    processor.onTestFailed(sRunningBuild, sTestRun);
+    myProcessor.onTestFailed(mySRunningBuild, mySTestRun);
 
-    Mockito.verify(sTestRun, Mockito.never()).getTest();
+    Mockito.verify(mySTestRun, Mockito.never()).getTest();
   }
 
   public void Test_OnTestFailed_BuildTypeNotNull() {
-    when(sRunningBuild.getBuildType()).thenReturn(sBuildType);
+    when(mySRunningBuild.getBuildType()).thenReturn(mySBuildType);
 
-    processor.onTestFailed(sRunningBuild, sTestRun);
+    myProcessor.onTestFailed(mySRunningBuild, mySTestRun);
 
-    Mockito.verify(sTestRun, Mockito.atLeastOnce()).getTest();
+    Mockito.verify(mySTestRun, Mockito.atLeastOnce()).getTest();
   }
 
   public void Test_OnTestFailed_ApplicabilityFailed() {
-    when(testApplicabilityChecker.check(any(), any(), any())).thenReturn(false);
+    when(myTestApplicabilityChecker.isApplicable(any(), any(), any())).thenReturn(false);
 
-    processor.onTestFailed(sRunningBuild, sTestRun);
+    myProcessor.onTestFailed(mySRunningBuild, mySTestRun);
 
-    Mockito.verify(sTest, Mockito.never()).getName();
+    Mockito.verify(mySTest, Mockito.never()).getName();
   }
 
   public void Test_OnTestFailed_ApplicabilitySucceed() {
-    when(testApplicabilityChecker.check(any(), any(), any())).thenReturn(true);
+    when(myTestApplicabilityChecker.isApplicable(any(), any(), any())).thenReturn(true);
 
-    processor.onTestFailed(sRunningBuild, sTestRun);
+    myProcessor.onTestFailed(mySRunningBuild, mySTestRun);
 
-    Mockito.verify(sTest, Mockito.atLeastOnce()).getName();
+    Mockito.verify(mySTest, Mockito.atLeastOnce()).getName();
   }
 
   public void Test_OnTestFailed_ResponsibleUserNotFound() {
-    when(responsibleUserFinder.findResponsibleUser(any())).thenReturn(null);
+    when(myResponsibleUserFinder.findResponsibleUser(any())).thenReturn(null);
 
-    processor.onTestFailed(sRunningBuild, sTestRun);
+    myProcessor.onTestFailed(mySRunningBuild, mySTestRun);
 
-    Mockito.verify(testNameResponsibilityFacade, Mockito.never())
+    Mockito.verify(myTestNameResponsibilityFacade, Mockito.never())
            .setTestNameResponsibility(any(TestName.class), anyString(), any());
   }
 
   public void Test_OnTestFailed_ResponsibleUserFound() {
     SUser sUser = Mockito.mock(SUser.class);
     Pair<User, String> anyPair = new Pair<>(sUser, "Failed description");
-    when(responsibleUserFinder.findResponsibleUser(any())).thenReturn(anyPair);
+    when(myResponsibleUserFinder.findResponsibleUser(any())).thenReturn(anyPair);
 
-    processor.onTestFailed(sRunningBuild, sTestRun);
+    myProcessor.onTestFailed(mySRunningBuild, mySTestRun);
 
-    Mockito.verify(testNameResponsibilityFacade, Mockito.atLeastOnce())
+    Mockito.verify(myTestNameResponsibilityFacade, Mockito.atLeastOnce())
            .setTestNameResponsibility(any(TestName.class), any(), any());
   }
 
   public void Test_BuildProblemOccurred_BuildTypeIsNull() {
-    when(sBuild.getBuildType()).thenReturn(null);
+    when(mySBuild.getBuildType()).thenReturn(null);
 
-    processor.onBuildProblemOccurred(sBuild, buildProblem);
+    myProcessor.onBuildProblemOccurred(mySBuild, myBuildProblem);
 
-    Mockito.verify(buildApplicabilityChecker, Mockito.never()).check(any(), any(), any());
+    Mockito.verify(myBuildApplicabilityChecker, Mockito.never()).isApplicable(any(), any(), any());
   }
 
   public void Test_BuildProblemOccurred_BuildTypeNotNull() {
-    when(sBuild.getBuildType()).thenReturn(sBuildType);
+    when(mySBuild.getBuildType()).thenReturn(mySBuildType);
 
-    processor.onBuildProblemOccurred(sBuild, buildProblem);
+    myProcessor.onBuildProblemOccurred(mySBuild, myBuildProblem);
 
-    Mockito.verify(buildApplicabilityChecker, Mockito.atLeastOnce()).check(any(), any(), any());
+    Mockito.verify(myBuildApplicabilityChecker, Mockito.atLeastOnce()).isApplicable(any(), any(), any());
   }
 
   public void Test_BuildProblemOccurred_ApplicabilityFailed() {
-    when(buildApplicabilityChecker.check(any(), any(), any())).thenReturn(false);
+    when(myBuildApplicabilityChecker.isApplicable(any(), any(), any())).thenReturn(false);
 
-    processor.onBuildProblemOccurred(sBuild, buildProblem);
+    myProcessor.onBuildProblemOccurred(mySBuild, myBuildProblem);
 
-    Mockito.verify(responsibleUserFinder, Mockito.never()).findResponsibleUser(any());
+    Mockito.verify(myResponsibleUserFinder, Mockito.never()).findResponsibleUser(any());
   }
 
   public void Test_BuildProblemOccurred_ApplicabilitySucceed() {
-    when(buildApplicabilityChecker.check(any(), any(), any())).thenReturn(true);
+    when(myBuildApplicabilityChecker.isApplicable(any(), any(), any())).thenReturn(true);
 
-    processor.onBuildProblemOccurred(sBuild, buildProblem);
+    myProcessor.onBuildProblemOccurred(mySBuild, myBuildProblem);
 
-    Mockito.verify(responsibleUserFinder, Mockito.atLeastOnce()).findResponsibleUser(any());
+    Mockito.verify(myResponsibleUserFinder, Mockito.atLeastOnce()).findResponsibleUser(any());
   }
 
   public void Test_BuildProblemOccurred_ResponsibleUserNotFound() {
-    when(responsibleUserFinder.findResponsibleUser(any())).thenReturn(null);
+    when(myResponsibleUserFinder.findResponsibleUser(any())).thenReturn(null);
 
-    processor.onBuildProblemOccurred(sBuild, buildProblem);
+    myProcessor.onBuildProblemOccurred(mySBuild, myBuildProblem);
 
-    Mockito.verify(testNameResponsibilityFacade, Mockito.never())
+    Mockito.verify(myTestNameResponsibilityFacade, Mockito.never())
            .setTestNameResponsibility(any(TestName.class), anyString(), any());
   }
 
   public void Test_BuildProblemOccurred_ResponsibleUserFound() {
     SUser sUser = Mockito.mock(SUser.class);
     Pair<User, String> anyPair = new Pair<>(sUser, "Failed description");
-    when(responsibleUserFinder.findResponsibleUser(any())).thenReturn(anyPair);
+    when(myResponsibleUserFinder.findResponsibleUser(any())).thenReturn(anyPair);
 
-    processor.onBuildProblemOccurred(sBuild, buildProblem);
+    myProcessor.onBuildProblemOccurred(mySBuild, myBuildProblem);
 
-    Mockito.verify(buildProblemResponsibilityFacade, Mockito.atLeastOnce())
+    Mockito.verify(myBuildProblemResponsibilityFacade, Mockito.atLeastOnce())
            .setBuildProblemResponsibility(any(BuildProblemInfo.class), any(), any());
   }
 }

@@ -37,61 +37,63 @@ import static org.mockito.Mockito.when;
 
 @Test
 public class DefaultUserHeuristicTest extends BaseTestCase {
-  private DefaultUserHeuristic heuristic;
-  private UserModelEx userModelEx;
-  private SBuild sBuildMock;
-  private UserEx firstUser;
-  private ProblemInfo problemInfo;
+  private DefaultUserHeuristic myHeuristic;
+  private UserModelEx myUserModelEx;
+  private SBuild mySBuildMock;
+  private UserEx myUserEx;
+  private ProblemInfo myProblemInfo;
   private static final String USER_NAME = "rugpanov";
-  private HashMap<String, String> buildFeatureParams;
+  private HashMap<String, String> myBuildFeatureParams;
 
   @BeforeMethod
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    userModelEx = Mockito.mock(UserModelEx.class);
-    heuristic = new DefaultUserHeuristic(userModelEx);
+    myUserModelEx = Mockito.mock(UserModelEx.class);
+    myHeuristic = new DefaultUserHeuristic(myUserModelEx);
     final SBuildFeatureDescriptor descriptor = Mockito.mock(SBuildFeatureDescriptor.class);
-    sBuildMock = Mockito.mock(SBuild.class);
+    mySBuildMock = Mockito.mock(SBuild.class);
     final SProject sProjectMock = Mockito.mock(SProject.class);
-    firstUser = Mockito.mock(UserEx.class);
-    problemInfo = new ProblemInfo(sBuildMock, sProjectMock, "problem text");
+    myUserEx = Mockito.mock(UserEx.class);
+    myProblemInfo = new ProblemInfo(mySBuildMock, sProjectMock, "problem text");
 
-    buildFeatureParams = new HashMap<>();
-    when(sBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE)).thenReturn(Collections.singletonList(descriptor));
-    when(descriptor.getParameters()).thenReturn(buildFeatureParams);
+    myBuildFeatureParams = new HashMap<>();
+    when(
+      mySBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE))
+      .thenReturn(Collections.singletonList(descriptor));
+    when(descriptor.getParameters()).thenReturn(myBuildFeatureParams);
   }
 
   public void TestFeatureIsDisabled() {
-    when(sBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE)).thenReturn(Collections.emptyList());
-    Pair<User, String> responsible = heuristic.findResponsibleUser(problemInfo);
+    when(mySBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE)).thenReturn(Collections.emptyList());
+    Pair<User, String> responsible = myHeuristic.findResponsibleUser(myProblemInfo);
     Assert.assertNull(responsible);
   }
 
   public void TestNoResponsibleSpecified() {
-    //buildFeatureParams is empty
-    Pair<User, String> responsible = heuristic.findResponsibleUser(problemInfo);
+    //myBuildFeatureParams is empty
+    Pair<User, String> responsible = myHeuristic.findResponsibleUser(myProblemInfo);
     Assert.assertNull(responsible);
 
-    buildFeatureParams.put(Constants.DEFAULT_RESPONSIBLE, "");
-    responsible = heuristic.findResponsibleUser(problemInfo);
+    myBuildFeatureParams.put(Constants.DEFAULT_RESPONSIBLE, "");
+    responsible = myHeuristic.findResponsibleUser(myProblemInfo);
     Assert.assertNull(responsible);
   }
 
   public void TestResponsibleNotFound() {
-    buildFeatureParams.put(Constants.DEFAULT_RESPONSIBLE, USER_NAME);
-    when(userModelEx.findUserAccount(null, USER_NAME)).thenReturn(null);
-    Pair<User, String> responsible = heuristic.findResponsibleUser(problemInfo);
+    myBuildFeatureParams.put(Constants.DEFAULT_RESPONSIBLE, USER_NAME);
+    when(myUserModelEx.findUserAccount(null, USER_NAME)).thenReturn(null);
+    Pair<User, String> responsible = myHeuristic.findResponsibleUser(myProblemInfo);
 
     Assert.assertNull(responsible);
   }
 
   public void TestResponsibleFound() {
-    buildFeatureParams.put(Constants.DEFAULT_RESPONSIBLE, USER_NAME);
-    when(userModelEx.findUserAccount(null, USER_NAME)).thenReturn(firstUser);
-    Pair<User, String> responsible = heuristic.findResponsibleUser(problemInfo);
+    myBuildFeatureParams.put(Constants.DEFAULT_RESPONSIBLE, USER_NAME);
+    when(myUserModelEx.findUserAccount(null, USER_NAME)).thenReturn(myUserEx);
+    Pair<User, String> responsible = myHeuristic.findResponsibleUser(myProblemInfo);
 
     Assert.assertNotNull(responsible);
-    Assert.assertEquals(responsible.first, firstUser);
+    Assert.assertEquals(responsible.first, myUserEx);
   }
 }

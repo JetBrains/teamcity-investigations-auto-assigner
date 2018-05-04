@@ -40,88 +40,88 @@ import static org.mockito.Mockito.when;
 @Test
 public class PreviousResponsibleHeuristicTest extends BaseTestCase {
 
-  private PreviousResponsibleHeuristic heuristic;
-  private InvestigationsManager investigationsManager;
-  private SBuild sBuild;
-  private SProject sProject;
-  private BuildProblemInfo buildProblemInfo;
-  private TestProblemInfo testProblemInfo;
-  private BuildProblemImpl buildProblem;
-  private User user1;
-  private STest sTest;
-  private User user2;
+  private PreviousResponsibleHeuristic myHeuristic;
+  private InvestigationsManager myInvestigationsManager;
+  private SBuild mySBuild;
+  private SProject mySProject;
+  private BuildProblemInfo myBuildProblemInfo;
+  private TestProblemInfo myTestProblemInfo;
+  private BuildProblemImpl myBuildProblem;
+  private User myUser;
+  private STest mySTest;
+  private User myUser2;
 
   @BeforeMethod
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    investigationsManager = Mockito.mock(InvestigationsManager.class);
-    sBuild = Mockito.mock(SBuild.class);
-    sProject = Mockito.mock(SProject.class);
-    buildProblemInfo = Mockito.mock(BuildProblemInfo.class);
-    buildProblem = Mockito.mock(BuildProblemImpl.class);
-    testProblemInfo = Mockito.mock(TestProblemInfo.class);
+    myInvestigationsManager = Mockito.mock(InvestigationsManager.class);
+    mySBuild = Mockito.mock(SBuild.class);
+    mySProject = Mockito.mock(SProject.class);
+    myBuildProblemInfo = Mockito.mock(BuildProblemInfo.class);
+    myBuildProblem = Mockito.mock(BuildProblemImpl.class);
+    myTestProblemInfo = Mockito.mock(TestProblemInfo.class);
     final BuildProblemData buildProblemData = Mockito.mock(BuildProblemData.class);
-    user1 = Mockito.mock(User.class);
-    user2 = Mockito.mock(User.class);
-    sTest = Mockito.mock(STest.class);
+    myUser = Mockito.mock(User.class);
+    myUser2 = Mockito.mock(User.class);
+    mySTest = Mockito.mock(STest.class);
 
-    heuristic = new PreviousResponsibleHeuristic(investigationsManager);
-    when(buildProblemInfo.getBuildProblem()).thenReturn(buildProblem);
-    when(buildProblemInfo.getSBuild()).thenReturn(sBuild);
-    when(buildProblemInfo.getSProject()).thenReturn(sProject);
-    when(buildProblem.getBuildProblemData()).thenReturn(buildProblemData);
+    myHeuristic = new PreviousResponsibleHeuristic(myInvestigationsManager);
+    when(myBuildProblemInfo.getBuildProblem()).thenReturn(myBuildProblem);
+    when(myBuildProblemInfo.getSBuild()).thenReturn(mySBuild);
+    when(myBuildProblemInfo.getSProject()).thenReturn(mySProject);
+    when(myBuildProblem.getBuildProblemData()).thenReturn(buildProblemData);
     when(buildProblemData.getType()).thenReturn("Type");
-    when(sBuild.getFullName()).thenReturn("Full SBuild Name");
-    when(investigationsManager.findPreviousResponsible(sProject, sBuild, buildProblem)).thenReturn(user1);
+    when(mySBuild.getFullName()).thenReturn("Full SBuild Name");
+    when(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, myBuildProblem)).thenReturn(myUser);
 
-    when(testProblemInfo.getSTest()).thenReturn(sTest);
-    when(testProblemInfo.getSBuild()).thenReturn(sBuild);
-    when(testProblemInfo.getSProject()).thenReturn(sProject);
-    when(sTest.getTestNameId()).thenReturn(12982318457L);
-    when(sTest.getProjectId()).thenReturn("2134124");
-    when(investigationsManager.findPreviousResponsible(sProject, sBuild, sTest)).thenReturn(user2);
+    when(myTestProblemInfo.getSTest()).thenReturn(mySTest);
+    when(myTestProblemInfo.getSBuild()).thenReturn(mySBuild);
+    when(myTestProblemInfo.getSProject()).thenReturn(mySProject);
+    when(mySTest.getTestNameId()).thenReturn(12982318457L);
+    when(mySTest.getProjectId()).thenReturn("2134124");
+    when(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, mySTest)).thenReturn(myUser2);
   }
 
   public void TestBuildProblemInfo_ResponsibleFound() {
-    when(investigationsManager.findPreviousResponsible(sProject, sBuild, buildProblem)).thenReturn(user1);
+    when(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, myBuildProblem)).thenReturn(myUser);
 
-    Pair<User, String> result = heuristic.findResponsibleUser(buildProblemInfo);
+    Pair<User, String> result = myHeuristic.findResponsibleUser(myBuildProblemInfo);
     Assertions.assertThat(result).isNotNull();
-    Assertions.assertThat(result.first).isEqualTo(user1);
+    Assertions.assertThat(result.first).isEqualTo(myUser);
   }
 
   public void TestBuildProblemInfo_ResponsibleNotFound() {
-    when(investigationsManager.findPreviousResponsible(sProject, sBuild, buildProblem)).thenReturn(null);
+    when(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, myBuildProblem)).thenReturn(null);
 
-    Assertions.assertThat(heuristic.findResponsibleUser(buildProblemInfo)).isNull();
+    Assertions.assertThat(myHeuristic.findResponsibleUser(myBuildProblemInfo)).isNull();
   }
 
   public void TestTestProblemInfo_ResponsibleFound() {
-    when(investigationsManager.findPreviousResponsible(sProject, sBuild, sTest)).thenReturn(user2);
+    when(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, mySTest)).thenReturn(myUser2);
 
-    Pair<User, String> result = heuristic.findResponsibleUser(testProblemInfo);
+    Pair<User, String> result = myHeuristic.findResponsibleUser(myTestProblemInfo);
     Assertions.assertThat(result).isNotNull();
-    Assertions.assertThat(result.first).isEqualTo(user2);
+    Assertions.assertThat(result.first).isEqualTo(myUser2);
   }
 
   public void TestTestProblemInfo_ResponsibleNotFound() {
-    when(investigationsManager.findPreviousResponsible(sProject, sBuild, sTest)).thenReturn(null);
+    when(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, mySTest)).thenReturn(null);
 
-    Assertions.assertThat(heuristic.findResponsibleUser(testProblemInfo)).isNull();
+    Assertions.assertThat(myHeuristic.findResponsibleUser(myTestProblemInfo)).isNull();
   }
 
   public void TestIncompatibleProblemInfo() {
-    ProblemInfo problemInfo = new IncompatibleProblemInfo(sBuild, sProject, "Any text");
+    ProblemInfo problemInfo = new IncompatibleProblemInfo(mySBuild, mySProject, "Any text");
 
-    Assertions.assertThat(heuristic.findResponsibleUser(problemInfo)).isNull();
+    Assertions.assertThat(myHeuristic.findResponsibleUser(problemInfo)).isNull();
   }
 
   class IncompatibleProblemInfo extends ProblemInfo {
 
-     IncompatibleProblemInfo(@NotNull final SBuild sBuild,
-                                   @NotNull final SProject project,
-                                   @Nullable final String problemText) {
+    IncompatibleProblemInfo(@NotNull final SBuild sBuild,
+                            @NotNull final SProject project,
+                            @Nullable final String problemText) {
       super(sBuild, project, problemText);
     }
   }

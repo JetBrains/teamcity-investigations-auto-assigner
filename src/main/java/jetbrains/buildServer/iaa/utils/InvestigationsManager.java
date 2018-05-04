@@ -39,10 +39,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class InvestigationsManager {
 
-  @NotNull private final AuditLogProvider auditLogProvider;
+  @NotNull private final AuditLogProvider myAuditLogProvider;
 
   InvestigationsManager(@NotNull final AuditLogProvider auditLogProvider) {
-    this.auditLogProvider = auditLogProvider;
+    this.myAuditLogProvider = auditLogProvider;
   }
 
   public boolean checkUnderInvestigation(@NotNull final SProject project,
@@ -104,7 +104,7 @@ public class InvestigationsManager {
 
   @Nullable
   private User findInAudit(final BuildProblem buildProblem) {
-    AuditLogBuilder builder = auditLogProvider.getBuilder();
+    AuditLogBuilder builder = myAuditLogProvider.getBuilder();
     builder.setObjectId(BuildProblemAuditId.fromBuildProblem(buildProblem).asString());
     builder.addFilter(new ActionTypesFilter(ActionType.BUILD_PROBLEM_MARK_AS_FIXED));
     builder.addFilter(new ObjectTypeFilter(ObjectType.BUILD_PROBLEM));
@@ -147,7 +147,7 @@ public class InvestigationsManager {
 
   @Nullable
   private User findInAudit(final STest sTest) {
-    AuditLogBuilder builder = auditLogProvider.getBuilder();
+    AuditLogBuilder builder = myAuditLogProvider.getBuilder();
     builder.setObjectId(TestId.createOn(sTest).asString());
     builder.addFilter(new ActionTypesFilter(ActionType.TEST_MARK_AS_FIXED));
     builder.addFilter(new ObjectTypeFilter(ObjectType.TEST));
@@ -167,7 +167,7 @@ public class InvestigationsManager {
 
   @Nullable
   public HashMap<String, AuditLogAction> findInAudit(@NotNull final Collection<STest> sTests) {
-    AuditLogBuilder builder = auditLogProvider.getBuilder();
+    AuditLogBuilder builder = myAuditLogProvider.getBuilder();
     builder.setActionTypes(ActionType.TEST_MARK_AS_FIXED);
     builder.addFilter(new ObjectIdsFilter(sTests.stream()
                                                 .map(test -> TestId.createOn(test).asString())
