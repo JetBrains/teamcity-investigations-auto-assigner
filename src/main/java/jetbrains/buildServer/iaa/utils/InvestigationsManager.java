@@ -24,6 +24,7 @@ import jetbrains.buildServer.BuildProject;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityEntry;
+import jetbrains.buildServer.responsibility.impl.ResponsibilityFacadeImpl;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STest;
@@ -40,9 +41,12 @@ import org.jetbrains.annotations.Nullable;
 public class InvestigationsManager {
 
   @NotNull private final AuditLogProvider myAuditLogProvider;
+  @NotNull private final ResponsibilityFacadeImpl myResponsibilityFacade;
 
-  InvestigationsManager(@NotNull final AuditLogProvider auditLogProvider) {
+  InvestigationsManager(@NotNull final AuditLogProvider auditLogProvider,
+                        @NotNull final ResponsibilityFacadeImpl responsibilityFacade) {
     this.myAuditLogProvider = auditLogProvider;
+    myResponsibilityFacade = responsibilityFacade;
   }
 
   public boolean checkUnderInvestigation(@NotNull final SProject project,
@@ -82,24 +86,11 @@ public class InvestigationsManager {
   public User findPreviousResponsible(@NotNull final SProject project,
                                       @NotNull final SBuild sBuild,
                                       @NotNull final BuildProblem problem) {
-    User responsible = this.findInCache(project, sBuild, problem);
+    User responsible = this.findAmongEntries(project, sBuild, problem.getAllResponsibilities());
     if (responsible == null) {
       responsible = this.findInAudit(problem);
     }
     return responsible;
-  }
-
-  @Nullable
-  private User findInCache(final SProject project, final SBuild sBuild, final BuildProblem problem) {
-    for (BuildProblemResponsibilityEntry entry : problem.getAllResponsibilities()) {
-      final ResponsibilityEntry.State state = entry.getState();
-      if (state.isFixed() &&
-          !createdBeforeBuildQueued(entry, sBuild) &&
-          belongSameProjectOrParent(entry.getProject(), project)) {
-        return entry.getResponsibleUser();
-      }
-    }
-    return null;
   }
 
   @Nullable
@@ -126,19 +117,21 @@ public class InvestigationsManager {
   public User findPreviousResponsible(@NotNull final SProject project,
                                       @NotNull final SBuild sBuild,
                                       @NotNull final STest test) {
-    User responsible = this.findInCache(project, sBuild, test);
+    User responsible = this.findAmongEntries(project, sBuild, test.getAllResponsibilities());
     if (responsible == null) {
       responsible = this.findInAudit(test);
     }
     return responsible;
   }
 
-  private User findInCache(final SProject project, final SBuild sBuild, final STest test) {
-    for (TestNameResponsibilityEntry entry : test.getAllResponsibilities()) {
+  private User findAmongEntries(final SProject project, final SBuild sBuild, List<? extends ResponsibilityEntry> responsibilityEntries) {
+    for (ResponsibilityEntry entry : responsibilityEntries) {
+      BuildProject entryProject = myResponsibilityFacade.getProject(entry);
       final ResponsibilityEntry.State state = entry.getState();
       if (state.isFixed() &&
           !createdBeforeBuildQueued(entry, sBuild) &&
-          belongSameProjectOrParent(entry.getProject(), project)) {
+          entryProject != null &&
+          belongSameProjectOrParent(entryProject, project)) {
         return entry.getResponsibleUser();
       }
     }

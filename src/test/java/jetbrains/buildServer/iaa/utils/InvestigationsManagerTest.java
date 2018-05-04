@@ -6,6 +6,7 @@ import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityEntry;
+import jetbrains.buildServer.responsibility.impl.ResponsibilityFacadeImpl;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STest;
@@ -19,6 +20,7 @@ import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @Test
@@ -65,6 +67,8 @@ public class InvestigationsManagerTest extends BaseTestCase {
     mySTest = Mockito.mock(STest.class);
     myResponsibilityEntry = Mockito.mock(TestNameResponsibilityEntry.class);
     final AuditLogProvider auditLogProvider = Mockito.mock(AuditLogProvider.class);
+    final ResponsibilityFacadeImpl responsibilityFacade = Mockito.mock(ResponsibilityFacadeImpl.class);
+    when(responsibilityFacade.getProject(any())).thenCallRealMethod();
     final AuditLogBuilder auditLogBuilder = Mockito.mock(AuditLogBuilder.class);
     when(auditLogProvider.getBuilder()).thenReturn(auditLogBuilder);
     when(myResponsibilityEntry.getTimestamp()).thenReturn(new Date(1000000));
@@ -73,7 +77,7 @@ public class InvestigationsManagerTest extends BaseTestCase {
     when(mySTest.getAllResponsibilities()).thenReturn(Collections.singletonList(myResponsibilityEntry));
     when(mySTest.getProjectId()).thenReturn("123");
 
-    myInvestigationsManager = new InvestigationsManager(auditLogProvider);
+    myInvestigationsManager = new InvestigationsManager(auditLogProvider, responsibilityFacade);
   }
 
   public void Test_BuildIsUnderInvestigationInSameProject() {
