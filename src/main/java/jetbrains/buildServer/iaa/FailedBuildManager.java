@@ -16,19 +16,16 @@
 
 package jetbrains.buildServer.iaa;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import jetbrains.buildServer.serverSide.SBuild;
 import org.jetbrains.annotations.NotNull;
 
 class FailedBuildManager {
-  private Map<Long, FailedBuildInfo> failedBuilds = new HashMap<>();
+  private ConcurrentHashMap<Long, FailedBuildInfo> failedBuilds = new ConcurrentHashMap<>();
 
   void addFailedBuild(SBuild sBuild) {
-    if (!failedBuilds.containsKey(sBuild.getBuildId())) {
-      failedBuilds.put(sBuild.getBuildId(), new FailedBuildInfo());
-    }
+    failedBuilds.putIfAbsent(sBuild.getBuildId(), new FailedBuildInfo());
   }
 
   void removeBuild(SBuild sBuild) {
