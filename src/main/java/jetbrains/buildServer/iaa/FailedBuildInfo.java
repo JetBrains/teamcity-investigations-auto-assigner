@@ -32,7 +32,7 @@ class FailedBuildInfo {
     }
   }
 
-  boolean checkProcessed(STestRun sTestRun) {
-    return checkedTests.contains(sTestRun.getTestRunId());
+  boolean checkNotProcessed(STestRun sTestRun) {
+    return !checkedTests.contains(sTestRun.getTestRunId());
   }
 }

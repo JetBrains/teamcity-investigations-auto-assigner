@@ -105,7 +105,7 @@ public class NewTestsAndProblemsDispatcher {
     List<STestRun> failedTests = requestBrokenTestsWithStats(build);
 
     failedTests.stream()
-               .filter(testRun -> !buildInfo.checkProcessed(testRun))
+               .filter(buildInfo::checkNotProcessed)
                .filter(testRun -> myTestApplicabilityChecker.check(buildType.getProject(), build, testRun))
                .forEach(testRun -> {
                  if (buildInfo.processed < threshold) {
