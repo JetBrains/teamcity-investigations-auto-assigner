@@ -44,12 +44,12 @@ public class ResponsibleUserFinder {
       responsibleUser = heuristic.findResponsibleUser(problemInfo);
       if (responsibleUser != null) {
         LOGGER.info(String.format("Responsible user %s for failed build #%s has been found according to %s",
-                                  responsibleUser.first, problemInfo.getSBuild().getBuildId(), responsibleUser.second));
+                                  responsibleUser.first, buildId, responsibleUser.second));
         break;
       }
     }
     if (responsibleUser == null) {
-      LOGGER.info(String.format("Responsible user for failed build #%s not found", problemInfo.getSBuild().getBuildId()));
+      LOGGER.info(String.format("Responsible user for failed build #%s not found", buildId));
     }
     return responsibleUser;
   }
