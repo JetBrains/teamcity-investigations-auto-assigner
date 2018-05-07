@@ -19,13 +19,17 @@ package jetbrains.buildServer.iaa;
 import java.util.*;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.iaa.utils.CustomParameters;
+import jetbrains.buildServer.iaa.utils.InvestigationsManager;
 import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.serverSide.audit.AuditLogAction;
 import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.serverSide.stat.BuildTestsListener;
+import jetbrains.buildServer.tests.TestName;
 import jetbrains.buildServer.util.executors.ExecutorsFactory;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,6 +37,7 @@ public class NewTestsAndProblemsDispatcher {
   @NotNull private final NewTestsAndProblemsProcessor myProcessor;
   @NotNull private final BuildsManager myBuildsManager;
   @NotNull private final TestApplicabilityChecker myTestApplicabilityChecker;
+  @NotNull private final InvestigationsManager myInvestigationsManager;
   // Map isn't synchronized because we work with it from synchronized method
   @NotNull private final FailedBuildManager myFailedBuildManager;
   @NotNull private final ScheduledExecutorService myDaemon;
@@ -41,10 +46,12 @@ public class NewTestsAndProblemsDispatcher {
                                        @NotNull final BuildServerListenerEventDispatcher buildServerListenerEventDispatcher,
                                        @NotNull final NewTestsAndProblemsProcessor processor,
                                        @NotNull final BuildsManager buildsManager,
-                                       @NotNull final TestApplicabilityChecker testApplicabilityChecker) {
+                                       @NotNull final TestApplicabilityChecker testApplicabilityChecker,
+                                       @NotNull final InvestigationsManager investigationsManager) {
     myProcessor = processor;
     myBuildsManager = buildsManager;
     myTestApplicabilityChecker = testApplicabilityChecker;
+    myInvestigationsManager = investigationsManager;
     myFailedBuildManager = new FailedBuildManager();
     myDaemon = ExecutorsFactory.newFixedScheduledDaemonExecutor("Investigator-Auto-Assigner-", 1);
     myDaemon.scheduleWithFixedDelay(this::processBrokenBuildsOneThread, 2, 2, TimeUnit.MINUTES);
@@ -104,15 +111,24 @@ public class NewTestsAndProblemsDispatcher {
     boolean shouldDelete = build.isFinished();
     List<STestRun> failedTests = requestBrokenTestsWithStats(build);
 
-    failedTests.stream()
-               .filter(buildInfo::checkNotProcessed)
-               .filter(testRun -> myTestApplicabilityChecker.isApplicable(buildType.getProject(), build, testRun))
-               .forEach(testRun -> {
-                 if (buildInfo.processed < threshold) {
-                   buildInfo.processed++;
-                   myProcessor.processFailedTest(build, testRun);
-                 }
-               });
+    List<STestRun> applicableTestRuns = failedTests.stream()
+                                                   .filter(buildInfo::checkNotProcessed)
+                                                   .filter(testRun -> myTestApplicabilityChecker
+                                                     .isApplicable(buildType.getProject(), build, testRun))
+                                                   .limit(threshold - buildInfo.processed)
+                                                   .collect(Collectors.toList());
+    List<STest> applicableTests = applicableTestRuns.stream().map(STestRun::getTest).collect(Collectors.toList());
+    HashMap<String, AuditLogAction> testId2Investigation = myInvestigationsManager.findInAudit(applicableTests);
+
+    buildInfo.processed += applicableTestRuns.size();
+    for (STestRun testRun : applicableTestRuns) {
+      final STest test = testRun.getTest();
+      final TestName testName = test.getName();
+      final String problemText = testName.getAsString() + " " + testRun.getFullText();
+      TestProblemInfo problemInfo =
+        new TestProblemInfo(test, build, buildType.getProject(), problemText, testId2Investigation);
+      myProcessor.processFailedTest(build, testRun, problemInfo);
+    }
 
     if (shouldDelete) {
       myFailedBuildManager.removeBuild(build);

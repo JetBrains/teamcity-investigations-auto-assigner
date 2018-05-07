@@ -57,15 +57,15 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     myBuildApplicabilityChecker = buildApplicabilityChecker;
   }
 
-  public void processFailedTest(@NotNull final SBuild build, @NotNull final STestRun testRun) {
+  public void processFailedTest(@NotNull final SBuild build,
+                                @NotNull final STestRun testRun,
+                                @NotNull TestProblemInfo problemInfo) {
     final SBuildType buildType = build.getBuildType();
     if (buildType == null) return;
     final STest test = testRun.getTest();
     final SProject project = buildType.getProject();
 
     final TestName testName = test.getName();
-    final String text = testName.getAsString() + " " + testRun.getFullText();
-    TestProblemInfo problemInfo = new TestProblemInfo(test, build, project, text);
     Pair<User, String> responsibleUser = myResponsibleUserFinder.findResponsibleUser(problemInfo);
     if (responsibleUser == null) return;
 
@@ -111,7 +111,8 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     if (problem.getBuildProblemData().getType().equals(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE)) {
       final Integer compileBlockIndex = getCompileBlockIndex(problem);
       if (compileBlockIndex != null) {
-        final List<LogMessage> errors = new BuildLogCompileErrorCollector().collectCompileErrors(compileBlockIndex, (SBuild)build.getBuildLog());
+        final List<LogMessage> errors =
+          new BuildLogCompileErrorCollector().collectCompileErrors(compileBlockIndex, (SBuild)build.getBuildLog());
         for (LogMessage error : errors) {
           problemSpecificText.append(error.getText()).append(" ");
         }
@@ -127,7 +128,8 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     if (compilationBlockIndex == null) return null;
 
     try {
-      return Integer.parseInt(StringUtil.stringToProperties(compilationBlockIndex, StringUtil.STD_ESCAPER2).get(COMPILE_BLOCK_INDEX));
+      return Integer.parseInt(
+        StringUtil.stringToProperties(compilationBlockIndex, StringUtil.STD_ESCAPER2).get(COMPILE_BLOCK_INDEX));
     } catch (Exception e) {
       return null;
     }

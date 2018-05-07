@@ -22,7 +22,9 @@ import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import org.jetbrains.annotations.NotNull;
 
 public interface NewTestsAndProblemsProcessor {
-  void processFailedTest(@NotNull SBuild build, @NotNull STestRun testRun);
+  void processFailedTest(@NotNull SBuild build,
+                         @NotNull STestRun testRun,
+                         @NotNull TestProblemInfo problemInfo);
 
   void onBuildProblemOccurred(@NotNull SBuild build, @NotNull BuildProblemImpl problem);
 }
