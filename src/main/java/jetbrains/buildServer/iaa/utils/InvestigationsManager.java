@@ -23,8 +23,8 @@ import java.util.stream.Collectors;
 import jetbrains.buildServer.BuildProject;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
+import jetbrains.buildServer.responsibility.ResponsibilityFacadeEx;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityEntry;
-import jetbrains.buildServer.responsibility.impl.ResponsibilityFacadeImpl;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STest;
@@ -41,10 +41,10 @@ import org.jetbrains.annotations.Nullable;
 public class InvestigationsManager {
 
   @NotNull private final AuditLogProvider myAuditLogProvider;
-  @NotNull private final ResponsibilityFacadeImpl myResponsibilityFacade;
+  @NotNull private final ResponsibilityFacadeEx myResponsibilityFacade;
 
   InvestigationsManager(@NotNull final AuditLogProvider auditLogProvider,
-                        @NotNull final ResponsibilityFacadeImpl responsibilityFacade) {
+                        @NotNull final ResponsibilityFacadeEx responsibilityFacade) {
     this.myAuditLogProvider = auditLogProvider;
     myResponsibilityFacade = responsibilityFacade;
   }
