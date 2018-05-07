@@ -3,6 +3,7 @@ package jetbrains.buildServer.iaa.utils;
 import java.util.Collections;
 import java.util.Date;
 import jetbrains.buildServer.BaseTestCase;
+import jetbrains.buildServer.iaa.TestProblemInfo;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityEntry;
@@ -39,6 +40,7 @@ public class InvestigationsManagerTest extends BaseTestCase {
   private TestNameResponsibilityEntry myResponsibilityEntry;
   private SBuild mySBuild;
   private User myUser;
+  private TestProblemInfo myTestProblemInfo;
 
   @BeforeMethod
   @Override
@@ -48,6 +50,7 @@ public class InvestigationsManagerTest extends BaseTestCase {
     myProject2 = Mockito.mock(SProject.class);
     mySBuild = Mockito.mock(SBuild.class);
     myUser = Mockito.mock(User.class);
+    myTestProblemInfo = Mockito.mock(TestProblemInfo.class);
     SProject parentProject = Mockito.mock(SProject.class);
     when(myProject.getParentProject()).thenReturn(parentProject);
     when(myProject.getProjectId()).thenReturn("Project ID");
@@ -76,6 +79,9 @@ public class InvestigationsManagerTest extends BaseTestCase {
     when(mySTestRun.getTest()).thenReturn(mySTest);
     when(mySTest.getAllResponsibilities()).thenReturn(Collections.singletonList(myResponsibilityEntry));
     when(mySTest.getProjectId()).thenReturn("123");
+    when(myTestProblemInfo.getSTest()).thenReturn(mySTest);
+    when(myTestProblemInfo.getSBuild()).thenReturn(mySBuild);
+    when(myTestProblemInfo.getSProject()).thenReturn(myProject);
 
     myInvestigationsManager = new InvestigationsManager(auditLogProvider, responsibilityFacade);
   }
@@ -202,7 +208,7 @@ public class InvestigationsManagerTest extends BaseTestCase {
     when(myResponsibilityEntry.getTimestamp()).thenReturn(new Date(2000000));
     when(mySBuild.getQueuedDate()).thenReturn(new Date(3000000));
 
-    Assertions.assertThat(myInvestigationsManager.findPreviousResponsible(myProject, mySBuild, mySTest)).isEqualTo(
+    Assertions.assertThat(myInvestigationsManager.findPreviousResponsible(myTestProblemInfo)).isEqualTo(
       myUser);
   }
 
@@ -212,6 +218,6 @@ public class InvestigationsManagerTest extends BaseTestCase {
     when(myResponsibilityEntry.getTimestamp()).thenReturn(new Date(3000000));
     when(mySBuild.getQueuedDate()).thenReturn(new Date(2000000));
 
-    Assertions.assertThat(myInvestigationsManager.findPreviousResponsible(myProject, mySBuild, mySTest)).isNull();
+    Assertions.assertThat(myInvestigationsManager.findPreviousResponsible(myTestProblemInfo)).isNull();
   }
 }

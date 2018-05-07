@@ -20,26 +20,30 @@ import java.util.HashMap;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STest;
-import jetbrains.buildServer.serverSide.audit.AuditLogAction;
+import jetbrains.buildServer.users.User;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class TestProblemInfo extends ProblemInfo {
   @NotNull private final STest mySTest;
-  private final HashMap<String, AuditLogAction> myTestId2Investigation;
+  private final HashMap<String, User> myTestId2Responsible;
 
   TestProblemInfo(@NotNull final STest test,
                   @NotNull final SBuild sBuild,
                   @NotNull final SProject project,
                   @Nullable final String problemText,
-                  final HashMap<String, AuditLogAction> testId2Investigation) {
+                  final HashMap<String, User> testId2Responsible) {
     super(sBuild, project, problemText);
     mySTest = test;
-    myTestId2Investigation = testId2Investigation;
+    myTestId2Responsible = testId2Responsible;
   }
 
   @NotNull
   public STest getSTest() {
     return mySTest;
+  }
+
+  public HashMap<String, User> getTestId2Responsible() {
+    return myTestId2Responsible;
   }
 }

@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import jetbrains.buildServer.BuildProject;
+import jetbrains.buildServer.iaa.TestProblemInfo;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityFacadeEx;
@@ -114,16 +115,18 @@ public class InvestigationsManager {
   }
 
   @Nullable
-  public User findPreviousResponsible(@NotNull final SProject project,
-                                      @NotNull final SBuild sBuild,
-                                      @NotNull final STest test) {
-    User responsible = this.findAmongEntries(project, sBuild, test.getAllResponsibilities());
+  public User findPreviousResponsible(@NotNull final TestProblemInfo testProblemInfo) {
+    SProject sProject = testProblemInfo.getSProject();
+    SBuild sBuild = testProblemInfo.getSBuild();
+    STest sTest = testProblemInfo.getSTest();
+    User responsible = this.findAmongEntries(sProject, sBuild, sTest.getAllResponsibilities());
     if (responsible == null) {
-      responsible = this.findInAudit(test);
+      responsible = testProblemInfo.getTestId2Responsible().get(TestId.createOn(sTest).asString());
     }
     return responsible;
   }
 
+  @Nullable
   private User findAmongEntries(final SProject project, final SBuild sBuild, List<? extends ResponsibilityEntry> responsibilityEntries) {
     for (ResponsibilityEntry entry : responsibilityEntries) {
       BuildProject entryProject = myResponsibilityFacade.getProject(entry);
@@ -159,17 +162,21 @@ public class InvestigationsManager {
   }
 
   @Nullable
-  public HashMap<String, AuditLogAction> findInAudit(@NotNull final Collection<STest> sTests) {
+  public HashMap<String, User> findInAudit(@NotNull final Collection<STest> sTests) {
     AuditLogBuilder builder = myAuditLogProvider.getBuilder();
     builder.setActionTypes(ActionType.TEST_MARK_AS_FIXED);
     builder.addFilter(new ObjectIdsFilter(sTests.stream()
                                                 .map(test -> TestId.createOn(test).asString())
                                                 .collect(Collectors.toSet())));
     List<AuditLogAction> lastActions = builder.getLogActions(100);
-    HashMap<String, AuditLogAction> result = new HashMap<>(100);
+    HashMap<String, User> result = new HashMap<>(100);
     for (AuditLogAction action : lastActions) {
-      if (!result.containsKey(action.getObjectId())) {
-        result.put(action.getObjectId(), action);
+      for (ObjectWrapper obj : action.getObjects()) {
+        Object user = obj.getObject();
+        if (user instanceof User) {
+          result.putIfAbsent(action.getObjectId(), (User)user);
+          break;
+        }
       }
     }
     return result;

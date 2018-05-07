@@ -80,7 +80,7 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
     when(myTestProblemInfo.getSProject()).thenReturn(mySProject);
     when(mySTest.getTestNameId()).thenReturn(12982318457L);
     when(mySTest.getProjectId()).thenReturn("2134124");
-    when(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, mySTest)).thenReturn(myUser2);
+    when(myInvestigationsManager.findPreviousResponsible(myTestProblemInfo)).thenReturn(myUser2);
   }
 
   public void TestBuildProblemInfo_ResponsibleFound() {
@@ -98,7 +98,7 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
   }
 
   public void TestTestProblemInfo_ResponsibleFound() {
-    when(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, mySTest)).thenReturn(myUser2);
+    when(myInvestigationsManager.findPreviousResponsible(myTestProblemInfo)).thenReturn(myUser2);
 
     Pair<User, String> result = myHeuristic.findResponsibleUser(myTestProblemInfo);
     Assertions.assertThat(result).isNotNull();
@@ -106,7 +106,7 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
   }
 
   public void TestTestProblemInfo_ResponsibleNotFound() {
-    when(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, mySTest)).thenReturn(null);
+    when(myInvestigationsManager.findPreviousResponsible(myTestProblemInfo)).thenReturn(null);
 
     Assertions.assertThat(myHeuristic.findResponsibleUser(myTestProblemInfo)).isNull();
   }

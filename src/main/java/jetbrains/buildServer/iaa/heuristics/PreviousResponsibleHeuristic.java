@@ -59,7 +59,7 @@ public class PreviousResponsibleHeuristic implements Heuristic {
     SBuild sBuild = problemInfo.getSBuild();
     if (problemInfo instanceof TestProblemInfo) {
       STest sTest = ((TestProblemInfo)problemInfo).getSTest();
-      responsibleUser = myInvestigationsManager.findPreviousResponsible(sProject, sBuild, sTest);
+      responsibleUser = myInvestigationsManager.findPreviousResponsible((TestProblemInfo)problemInfo);
       description = String.format("%s you were responsible for the test: `%s` in build `%s` previous time",
                                   Constants.REASON_PREFIX, sTest.getName(), sBuild.getFullName());
     } else if (problemInfo instanceof BuildProblemInfo) {
