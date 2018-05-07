@@ -60,7 +60,7 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     myBuildApplicabilityChecker = buildApplicabilityChecker;
   }
 
-  public void onTestFailed(@NotNull final SBuild build, @NotNull final STestRun testRun) {
+  public void processFailedTest(@NotNull final SBuild build, @NotNull final STestRun testRun) {
     final SBuildType buildType = build.getBuildType();
     if (buildType == null) return;
     final STest test = testRun.getTest();

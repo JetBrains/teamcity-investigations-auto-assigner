@@ -94,7 +94,7 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
   public void Test_OnTestFailed_BuildTypeIsNull() {
     when(mySRunningBuild.getBuildType()).thenReturn(null);
 
-    myProcessor.onTestFailed(mySRunningBuild, mySTestRun);
+    myProcessor.processFailedTest(mySRunningBuild, mySTestRun);
 
     Mockito.verify(mySTestRun, Mockito.never()).getTest();
   }
@@ -102,7 +102,7 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
   public void Test_OnTestFailed_BuildTypeNotNull() {
     when(mySRunningBuild.getBuildType()).thenReturn(mySBuildType);
 
-    myProcessor.onTestFailed(mySRunningBuild, mySTestRun);
+    myProcessor.processFailedTest(mySRunningBuild, mySTestRun);
 
     Mockito.verify(mySTestRun, Mockito.atLeastOnce()).getTest();
   }
@@ -110,7 +110,7 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
   public void Test_OnTestFailed_ApplicabilityFailed() {
     when(myTestApplicabilityChecker.isApplicable(any(), any(), any())).thenReturn(false);
 
-    myProcessor.onTestFailed(mySRunningBuild, mySTestRun);
+    myProcessor.processFailedTest(mySRunningBuild, mySTestRun);
 
     Mockito.verify(mySTest, Mockito.never()).getName();
   }
@@ -118,7 +118,7 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
   public void Test_OnTestFailed_ApplicabilitySucceed() {
     when(myTestApplicabilityChecker.isApplicable(any(), any(), any())).thenReturn(true);
 
-    myProcessor.onTestFailed(mySRunningBuild, mySTestRun);
+    myProcessor.processFailedTest(mySRunningBuild, mySTestRun);
 
     Mockito.verify(mySTest, Mockito.atLeastOnce()).getName();
   }
@@ -126,7 +126,7 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
   public void Test_OnTestFailed_ResponsibleUserNotFound() {
     when(myResponsibleUserFinder.findResponsibleUser(any())).thenReturn(null);
 
-    myProcessor.onTestFailed(mySRunningBuild, mySTestRun);
+    myProcessor.processFailedTest(mySRunningBuild, mySTestRun);
 
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.never())
            .setTestNameResponsibility(any(TestName.class), anyString(), any());
@@ -137,7 +137,7 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
     Pair<User, String> anyPair = new Pair<>(sUser, "Failed description");
     when(myResponsibleUserFinder.findResponsibleUser(any())).thenReturn(anyPair);
 
-    myProcessor.onTestFailed(mySRunningBuild, mySTestRun);
+    myProcessor.processFailedTest(mySRunningBuild, mySTestRun);
 
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.atLeastOnce())
            .setTestNameResponsibility(any(TestName.class), any(), any());

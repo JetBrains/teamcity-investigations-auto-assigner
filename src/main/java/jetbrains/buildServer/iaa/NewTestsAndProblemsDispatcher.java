@@ -47,7 +47,7 @@ public class NewTestsAndProblemsDispatcher {
     myTestApplicabilityChecker = testApplicabilityChecker;
     myFailedBuildManager = new FailedBuildManager();
     myDaemon = ExecutorsFactory.newFixedScheduledDaemonExecutor("Investigator-Auto-Assigner-", 1);
-    myDaemon.scheduleWithFixedDelay(this::processBrokenBuilds, 2, 2, TimeUnit.MINUTES);
+    myDaemon.scheduleWithFixedDelay(this::processBrokenBuildsOneThread, 2, 2, TimeUnit.MINUTES);
 
     buildTestsEventDispatcher.addListener(new BuildTestsListener() {
       public void testPassed(@NotNull SRunningBuild sRunningBuild, @NotNull List<Long> list) {
@@ -86,15 +86,15 @@ public class NewTestsAndProblemsDispatcher {
     });
   }
 
-  private void processBrokenBuilds() {
+  private void processBrokenBuildsOneThread() {
     for (Long buildId : myFailedBuildManager.getBuilds()) {
       SBuild build = myBuildsManager.findBuildInstanceById(buildId);
       if (build == null) continue;
-      processBuild(build);
+      processBuildOneThread(build);
     }
   }
 
-  private void processBuild(final SBuild build) {
+  private void processBuildOneThread(final SBuild build) {
     Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(build);
     final SBuildType buildType = build.getBuildType();
     if (buildType == null) return;
@@ -110,7 +110,7 @@ public class NewTestsAndProblemsDispatcher {
                .forEach(testRun -> {
                  if (buildInfo.processed < threshold) {
                    buildInfo.processed++;
-                   myProcessor.onTestFailed(build, testRun);
+                   myProcessor.processFailedTest(build, testRun);
                  }
                });
 
