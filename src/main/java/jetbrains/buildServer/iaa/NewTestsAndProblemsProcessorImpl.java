@@ -66,11 +66,6 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     final STest test = testRun.getTest();
     final SProject project = buildType.getProject();
 
-    if (!myTestApplicabilityChecker.isApplicable(project, build, testRun)) {
-      LOGGER.debug(String.format("Stop processing a failed test %s as it's incompatible", test.getTestNameId()));
-      return;
-    }
-
     final TestName testName = test.getName();
     final String text = testName.getAsString() + " " + testRun.getFullText();
     TestProblemInfo problemInfo = new TestProblemInfo(test, build, project, text);
