@@ -43,20 +43,17 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
   @NotNull private final TestNameResponsibilityFacade myTestNameResponsibilityFacade;
   @NotNull private final BuildProblemResponsibilityFacade myBuildProblemResponsibilityFacade;
   @NotNull private ResponsibleUserFinder myResponsibleUserFinder;
-  @NotNull private TestApplicabilityChecker myTestApplicabilityChecker;
   @NotNull private BuildApplicabilityChecker myBuildApplicabilityChecker;
 
   private static final Logger LOGGER = Logger.getInstance(NewTestsAndProblemsProcessorImpl.class.getName());
 
   NewTestsAndProblemsProcessorImpl(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade,
-                                          @NotNull final BuildProblemResponsibilityFacade buildProblemResponsibilityFacade,
-                                          @NotNull final ResponsibleUserFinder responsibleUserFinder,
-                                          @NotNull final TestApplicabilityChecker testApplicabilityChecker,
-                                          @NotNull final BuildApplicabilityChecker buildApplicabilityChecker) {
+                                   @NotNull final BuildProblemResponsibilityFacade buildProblemResponsibilityFacade,
+                                   @NotNull final ResponsibleUserFinder responsibleUserFinder,
+                                   @NotNull final BuildApplicabilityChecker buildApplicabilityChecker) {
     myTestNameResponsibilityFacade = testNameResponsibilityFacade;
     myBuildProblemResponsibilityFacade = buildProblemResponsibilityFacade;
     myResponsibleUserFinder = responsibleUserFinder;
-    myTestApplicabilityChecker = testApplicabilityChecker;
     myBuildApplicabilityChecker = buildApplicabilityChecker;
   }
 

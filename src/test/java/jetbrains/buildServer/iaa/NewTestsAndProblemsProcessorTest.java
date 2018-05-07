@@ -41,14 +41,13 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
   private TestNameResponsibilityFacade myTestNameResponsibilityFacade;
   private BuildProblemResponsibilityFacade myBuildProblemResponsibilityFacade;
   private ResponsibleUserFinder myResponsibleUserFinder;
-  private TestApplicabilityChecker myTestApplicabilityChecker;
   private BuildApplicabilityChecker myBuildApplicabilityChecker;
   private SRunningBuild mySRunningBuild;
   private SBuild mySBuild;
   private STestRun mySTestRun;
   private SBuildType mySBuildType;
-  private STest mySTest;
   private BuildProblemImpl myBuildProblem;
+  private TestProblemInfo myTestProblemInfo;
 
   @BeforeMethod
   @Override
@@ -57,11 +56,10 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
     myTestNameResponsibilityFacade = Mockito.mock(TestNameResponsibilityFacade.class);
     myBuildProblemResponsibilityFacade = Mockito.mock(BuildProblemResponsibilityFacade.class);
     myResponsibleUserFinder = Mockito.mock(ResponsibleUserFinder.class);
-    myTestApplicabilityChecker = Mockito.mock(TestApplicabilityChecker.class);
     myBuildApplicabilityChecker = Mockito.mock(BuildApplicabilityChecker.class);
     myProcessor =
       new NewTestsAndProblemsProcessorImpl(myTestNameResponsibilityFacade, myBuildProblemResponsibilityFacade,
-                                           myResponsibleUserFinder, myTestApplicabilityChecker,
+                                           myResponsibleUserFinder,
                                            myBuildApplicabilityChecker);
 
     mySRunningBuild = Mockito.mock(SRunningBuild.class);
@@ -70,8 +68,9 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
     BuildProblemData buildProblemData = Mockito.mock(BuildProblemData.class);
     mySTestRun = Mockito.mock(STestRun.class);
     mySBuildType = Mockito.mock(SBuildType.class);
+    myTestProblemInfo = Mockito.mock(TestProblemInfo.class);
     SProject sProject = Mockito.mock(SProject.class);
-    mySTest = Mockito.mock(STest.class);
+    final STest STest = Mockito.mock(jetbrains.buildServer.serverSide.STest.class);
     TestName testName = Mockito.mock(TestName.class);
     SUser sUser = Mockito.mock(SUser.class);
 
@@ -79,10 +78,9 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
     when(mySBuild.getBuildType()).thenReturn(mySBuildType);
     when(mySBuildType.getProject()).thenReturn(sProject);
     when(sProject.getProjectId()).thenReturn("projectId");
-    when(mySTestRun.getTest()).thenReturn(mySTest);
+    when(mySTestRun.getTest()).thenReturn(STest);
     when(mySTestRun.getFullText()).thenReturn("Full Text Test Run");
-    when(mySTest.getName()).thenReturn(testName);
-    when(myTestApplicabilityChecker.isApplicable(any(), any(), any())).thenReturn(true);
+    when(STest.getName()).thenReturn(testName);
     when(myBuildApplicabilityChecker.isApplicable(any(), any(), any())).thenReturn(true);
     when(testName.getAsString()).thenReturn("Test Name as String");
     Pair<User, String> anyPair = new Pair<>(sUser, "Failed description");
@@ -94,7 +92,7 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
   public void Test_OnTestFailed_BuildTypeIsNull() {
     when(mySRunningBuild.getBuildType()).thenReturn(null);
 
-    myProcessor.processFailedTest(mySRunningBuild, mySTestRun);
+    myProcessor.processFailedTest(mySRunningBuild, mySTestRun, myTestProblemInfo);
 
     Mockito.verify(mySTestRun, Mockito.never()).getTest();
   }
@@ -102,31 +100,15 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
   public void Test_OnTestFailed_BuildTypeNotNull() {
     when(mySRunningBuild.getBuildType()).thenReturn(mySBuildType);
 
-    myProcessor.processFailedTest(mySRunningBuild, mySTestRun);
+    myProcessor.processFailedTest(mySRunningBuild, mySTestRun, myTestProblemInfo);
 
     Mockito.verify(mySTestRun, Mockito.atLeastOnce()).getTest();
-  }
-
-  public void Test_OnTestFailed_ApplicabilityFailed() {
-    when(myTestApplicabilityChecker.isApplicable(any(), any(), any())).thenReturn(false);
-
-    myProcessor.processFailedTest(mySRunningBuild, mySTestRun);
-
-    Mockito.verify(mySTest, Mockito.never()).getName();
-  }
-
-  public void Test_OnTestFailed_ApplicabilitySucceed() {
-    when(myTestApplicabilityChecker.isApplicable(any(), any(), any())).thenReturn(true);
-
-    myProcessor.processFailedTest(mySRunningBuild, mySTestRun);
-
-    Mockito.verify(mySTest, Mockito.atLeastOnce()).getName();
   }
 
   public void Test_OnTestFailed_ResponsibleUserNotFound() {
     when(myResponsibleUserFinder.findResponsibleUser(any())).thenReturn(null);
 
-    myProcessor.processFailedTest(mySRunningBuild, mySTestRun);
+    myProcessor.processFailedTest(mySRunningBuild, mySTestRun, myTestProblemInfo);
 
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.never())
            .setTestNameResponsibility(any(TestName.class), anyString(), any());
@@ -137,7 +119,7 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
     Pair<User, String> anyPair = new Pair<>(sUser, "Failed description");
     when(myResponsibleUserFinder.findResponsibleUser(any())).thenReturn(anyPair);
 
-    myProcessor.processFailedTest(mySRunningBuild, mySTestRun);
+    myProcessor.processFailedTest(mySRunningBuild, mySTestRun, myTestProblemInfo);
 
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.atLeastOnce())
            .setTestNameResponsibility(any(TestName.class), any(), any());
