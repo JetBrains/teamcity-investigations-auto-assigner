@@ -111,6 +111,7 @@ public class NewTestsAndProblemsDispatcher {
     FailedBuildInfo buildInfo = myFailedBuildManager.getFailedBuildInfo(build);
     if (buildInfo.processed >= threshold) return;
 
+    SProject project = buildType.getProject();
     boolean shouldDelete = build.isFinished();
     List<STestRun> failedTests = requestBrokenTestsWithStats(build);
 
@@ -121,7 +122,7 @@ public class NewTestsAndProblemsDispatcher {
                                                    .limit(threshold - buildInfo.processed)
                                                    .collect(Collectors.toList());
     List<STest> applicableTests = applicableTestRuns.stream().map(STestRun::getTest).collect(Collectors.toList());
-    HashMap<String, User> testId2Responsible = myInvestigationsManager.findInAudit(applicableTests);
+    HashMap<Long, User> testId2Responsible = myInvestigationsManager.findInAudit(applicableTests, project);
 
     buildInfo.processed += applicableTestRuns.size();
     for (STestRun testRun : applicableTestRuns) {

@@ -26,13 +26,13 @@ import org.jetbrains.annotations.Nullable;
 
 public class TestProblemInfo extends ProblemInfo {
   @NotNull private final STest mySTest;
-  private final HashMap<String, User> myTestId2Responsible;
+  private final HashMap<Long, User> myTestId2Responsible;
 
   TestProblemInfo(@NotNull final STest test,
                   @NotNull final SBuild sBuild,
                   @NotNull final SProject project,
                   @Nullable final String problemText,
-                  final HashMap<String, User> testId2Responsible) {
+                  final HashMap<Long, User> testId2Responsible) {
     super(sBuild, project, problemText);
     mySTest = test;
     myTestId2Responsible = testId2Responsible;
@@ -43,7 +43,7 @@ public class TestProblemInfo extends ProblemInfo {
     return mySTest;
   }
 
-  public HashMap<String, User> getTestId2Responsible() {
+  public HashMap<Long, User> getTestId2Responsible() {
     return myTestId2Responsible;
   }
 }
