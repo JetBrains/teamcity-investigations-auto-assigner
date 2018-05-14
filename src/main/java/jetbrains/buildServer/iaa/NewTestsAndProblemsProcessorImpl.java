@@ -60,14 +60,14 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
   public void processFailedTest(@NotNull final SBuild build,
                                 @NotNull final STestRun testRun,
                                 @NotNull TestProblemInfo problemInfo) {
+
+    Pair<User, String> responsibleUser = myResponsibleUserFinder.findResponsibleUser(problemInfo);
+
+    if (responsibleUser == null || build.getBuildType() == null) return;
     final SBuildType buildType = build.getBuildType();
-    if (buildType == null) return;
     final STest test = testRun.getTest();
     final SProject project = buildType.getProject();
-
     final TestName testName = test.getName();
-    Pair<User, String> responsibleUser = myResponsibleUserFinder.findResponsibleUser(problemInfo);
-    if (responsibleUser == null) return;
 
     myTestNameResponsibilityFacade.setTestNameResponsibility(
       testName,
