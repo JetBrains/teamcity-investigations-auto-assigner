@@ -17,12 +17,9 @@
 package jetbrains.buildServer.iaa;
 
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Pair;
 import java.util.List;
 import jetbrains.buildServer.iaa.heuristics.Heuristic;
-import jetbrains.buildServer.users.User;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class ResponsibleUserFinder {
   private static final Logger LOGGER = Logger.getInstance(ResponsibleUserFinder.class.getName());
@@ -32,25 +29,9 @@ public class ResponsibleUserFinder {
     myOrderedHeuristics = orderedHeuristics;
   }
 
-  @Nullable
-  Pair<User, String> findResponsibleUser(@NotNull ProblemInfo problemInfo) {
-    long buildId = problemInfo.getSBuild().getBuildId();
-    LOGGER.debug(String.format("Attempt to find responsible user for failed build #%s. ProblemText is %s",
-                               buildId, problemInfo.getProblemText()));
-    Pair<User, String> responsibleUser = null;
+ void findResponsibleUser(@NotNull FailedBuildContext failedBuildContext) {
     for (Heuristic heuristic: myOrderedHeuristics) {
-      LOGGER.debug(String.format("Attempt to find responsible user for failed build #%s with heuristic %s",
-                                 buildId,heuristic.getName()));
-      responsibleUser = heuristic.findResponsibleUser(problemInfo);
-      if (responsibleUser != null) {
-        LOGGER.info(String.format("Responsible user %s for failed build #%s has been found according to %s",
-                                  responsibleUser.first, buildId, responsibleUser.second));
-        break;
-      }
+      heuristic.findResponsibleUser(failedBuildContext);
     }
-    if (responsibleUser == null) {
-      LOGGER.info(String.format("Responsible user for failed build #%s not found", buildId));
-    }
-    return responsibleUser;
   }
 }

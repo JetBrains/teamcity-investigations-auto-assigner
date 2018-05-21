@@ -17,18 +17,16 @@
 package jetbrains.buildServer.iaa.heuristics;
 
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Pair;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
-import jetbrains.buildServer.iaa.ProblemInfo;
+import jetbrains.buildServer.iaa.FailedBuildContext;
+import jetbrains.buildServer.iaa.Responsibility;
 import jetbrains.buildServer.iaa.common.Constants;
-import jetbrains.buildServer.serverSide.BuildPromotion;
-import jetbrains.buildServer.serverSide.BuildPromotionEx;
-import jetbrains.buildServer.serverSide.ChangeDescriptor;
-import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.iaa.utils.ProblemTextExtractor;
+import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.users.SUser;
-import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.util.FileUtil;
 import jetbrains.buildServer.vcs.SVcsModification;
 import jetbrains.buildServer.vcs.SelectPrevBuildPolicy;
@@ -41,6 +39,11 @@ import static com.intellij.openapi.util.text.StringUtil.join;
 public class BrokenFileHeuristic implements Heuristic {
 
   private static final Logger LOGGER = Logger.getInstance(BrokenFileHeuristic.class.getName());
+  private final ProblemTextExtractor myProblemTextExtractor;
+
+  BrokenFileHeuristic(ProblemTextExtractor problemTextExtractor) {
+    myProblemTextExtractor = problemTextExtractor;
+  }
 
   @Override
   @NotNull
@@ -55,13 +58,11 @@ public class BrokenFileHeuristic implements Heuristic {
            "who changed the suspicious file. The suspicious file is the one that probably caused this failure.";
   }
 
-  @Override
-  @Nullable
-  public Pair<User, String> findResponsibleUser(@NotNull ProblemInfo problemInfo) {
-    if (problemInfo.getProblemText() == null) return null;
-    SBuild sBuild = problemInfo.getSBuild();
+  public void findResponsibleUser(@NotNull FailedBuildContext failedBuildContext) {
+    SBuild sBuild = failedBuildContext.sBuild;
+
     final BuildPromotion buildPromotion = sBuild.getBuildPromotion();
-    if (!(buildPromotion instanceof BuildPromotionEx)) return null;
+    if (!(buildPromotion instanceof BuildPromotionEx)) return;
 
     SelectPrevBuildPolicy prevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
     List<SVcsModification> vcsChanges = ((BuildPromotionEx)buildPromotion).getDetectedChanges(prevBuildPolicy, true)
@@ -69,19 +70,35 @@ public class BrokenFileHeuristic implements Heuristic {
                                                                           .map(ChangeDescriptor::getRelatedVcsChange)
                                                                           .filter(Objects::nonNull)
                                                                           .collect(Collectors.toList());
+    for (STestRun sTestRun : failedBuildContext.getTestRuns()) {
+      String problemText = myProblemTextExtractor.getBuildProblemText(sTestRun);
+      Responsibility responsibility = findResponsibleUser(vcsChanges, sBuild, problemText);
+      failedBuildContext.addResponsibility(sTestRun, responsibility);
+    }
+
+    for (BuildProblem buildProblem : failedBuildContext.getBuildProblems()) {
+      String problemText = myProblemTextExtractor.getBuildProblemText(buildProblem, sBuild);
+      Responsibility responsibility = findResponsibleUser(vcsChanges, sBuild, problemText);
+      failedBuildContext.addResponsibility(buildProblem, responsibility);
+    }
+
+
+  }
+
+  private Responsibility findResponsibleUser(List<SVcsModification> vcsChanges, SBuild sBuild, String problemText) {
     SUser responsibleUser = null;
     String brokenFile = null;
     for (SVcsModification vcsChange : vcsChanges) {
-      final String foundBrokenFile = findBrokenFile(vcsChange, problemInfo.getProblemText());
+      final String foundBrokenFile = findBrokenFile(vcsChange, problemText);
       if (foundBrokenFile == null) continue;
 
       final Collection<SUser> changeCommitters = vcsChange.getCommitters();
-      if (changeCommitters.size() != 1) return null;
+      if (changeCommitters.size() != 1) continue;
 
       final SUser foundResponsibleUser = changeCommitters.iterator().next();
       if (responsibleUser != null && !responsibleUser.equals(foundResponsibleUser)) {
         LOGGER.debug("There are more then one committers since last build for failed build #" + sBuild.getBuildId());
-        return null;
+        continue;
       }
 
       responsibleUser = foundResponsibleUser;
@@ -89,8 +106,9 @@ public class BrokenFileHeuristic implements Heuristic {
     }
 
     if (responsibleUser == null) return null;
-    return Pair.create(responsibleUser, String.format("%s you changed the \"%s\" file, which probably caused" +
-                                                      " this failure.", Constants.REASON_PREFIX, brokenFile));
+
+    return new Responsibility(responsibleUser, String.format("%s you changed the \"%s\" file, which probably caused" +
+                                                             " this failure.", Constants.REASON_PREFIX, brokenFile));
   }
 
   @Nullable
@@ -131,3 +149,4 @@ public class BrokenFileHeuristic implements Heuristic {
     return lastSlashPos == -1 ? null : path.substring(0, lastSlashPos);
   }
 }
+

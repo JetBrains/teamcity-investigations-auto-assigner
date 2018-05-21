@@ -59,21 +59,24 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
   }
 
   public void TestWithOneResponsible() {
-    when(myUserSetMock.getUsers()).thenReturn(new HashSet<>(Collections.singletonList(myFirstUser)));
-    Pair<User, String> responsible = myHeuristic.findResponsibleUser(myProblemInfo);
-    Assert.assertNotNull(responsible);
-    Assert.assertEquals(responsible.first, myFirstUser);
+    //when(myUserSetMock.getUsers()).thenReturn(new HashSet<>(Collections.singletonList(myFirstUser)));
+    //Pair<User, String> responsible = myHeuristic.findResponsibleUser(myProblemInfo);
+    //Assert.assertNotNull(responsible);
+    //Assert.assertEquals(responsible.first, myFirstUser);
+    Assert.fail();
   }
 
   public void TestWithoutResponsible() {
-    when(myUserSetMock.getUsers()).thenReturn(new HashSet<User>());
-    Pair<User, String> responsible = myHeuristic.findResponsibleUser(myProblemInfo);
-    Assert.assertNull(responsible);
+    //when(myUserSetMock.getUsers()).thenReturn(new HashSet<User>());
+    //Pair<User, String> responsible = myHeuristic.findResponsibleUser(myProblemInfo);
+    //Assert.assertNull(responsible);
+    Assert.fail();
   }
 
   public void TestWithManyResponsible() {
-    when(myUserSetMock.getUsers()).thenReturn(new HashSet<>(Arrays.asList(myFirstUser, mySecondUser)));
-    Pair<User, String> responsible = myHeuristic.findResponsibleUser(myProblemInfo);
-    Assert.assertNull(responsible);
+    //when(myUserSetMock.getUsers()).thenReturn(new HashSet<>(Arrays.asList(myFirstUser, mySecondUser)));
+    //Pair<User, String> responsible = myHeuristic.findResponsibleUser(myProblemInfo);
+    Assert.fail();
+    //Assert.assertNull(responsible);
   }
 }

@@ -66,34 +66,38 @@ public class DefaultUserHeuristicTest extends BaseTestCase {
 
   public void TestFeatureIsDisabled() {
     when(mySBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE)).thenReturn(Collections.emptyList());
-    Pair<User, String> responsible = myHeuristic.findResponsibleUser(myProblemInfo);
-    Assert.assertNull(responsible);
+    //Pair<User, String> responsible = myHeuristic.findResponsibleUser(myProblemInfo);
+    //Assert.assertNull(responsible);
+    Assert.fail();
   }
 
   public void TestNoResponsibleSpecified() {
     //myBuildFeatureParams is empty
-    Pair<User, String> responsible = myHeuristic.findResponsibleUser(myProblemInfo);
-    Assert.assertNull(responsible);
-
-    myBuildFeatureParams.put(Constants.DEFAULT_RESPONSIBLE, "");
-    responsible = myHeuristic.findResponsibleUser(myProblemInfo);
-    Assert.assertNull(responsible);
+    //Pair<User, String> responsible = myHeuristic.findResponsibleUser(myProblemInfo);
+    //Assert.assertNull(responsible);
+    //
+    //myBuildFeatureParams.put(Constants.DEFAULT_RESPONSIBLE, "");
+    //responsible = myHeuristic.findResponsibleUser(myProblemInfo);
+    //Assert.assertNull(responsible);
+    Assert.fail();
   }
 
   public void TestResponsibleNotFound() {
-    myBuildFeatureParams.put(Constants.DEFAULT_RESPONSIBLE, USER_NAME);
-    when(myUserModelEx.findUserAccount(null, USER_NAME)).thenReturn(null);
-    Pair<User, String> responsible = myHeuristic.findResponsibleUser(myProblemInfo);
-
-    Assert.assertNull(responsible);
+    //myBuildFeatureParams.put(Constants.DEFAULT_RESPONSIBLE, USER_NAME);
+    //when(myUserModelEx.findUserAccount(null, USER_NAME)).thenReturn(null);
+    //Pair<User, String> responsible = myHeuristic.findResponsibleUser(myProblemInfo);
+    //
+    //Assert.assertNull(responsible);
+    Assert.fail();
   }
 
   public void TestResponsibleFound() {
-    myBuildFeatureParams.put(Constants.DEFAULT_RESPONSIBLE, USER_NAME);
-    when(myUserModelEx.findUserAccount(null, USER_NAME)).thenReturn(myUserEx);
-    Pair<User, String> responsible = myHeuristic.findResponsibleUser(myProblemInfo);
-
-    Assert.assertNotNull(responsible);
-    Assert.assertEquals(responsible.first, myUserEx);
+    //myBuildFeatureParams.put(Constants.DEFAULT_RESPONSIBLE, USER_NAME);
+    //when(myUserModelEx.findUserAccount(null, USER_NAME)).thenReturn(myUserEx);
+    //Pair<User, String> responsible = myHeuristic.findResponsibleUser(myProblemInfo);
+    //
+    //Assert.assertNotNull(responsible);
+    //Assert.assertEquals(responsible.first, myUserEx);
+    Assert.fail();
   }
 }

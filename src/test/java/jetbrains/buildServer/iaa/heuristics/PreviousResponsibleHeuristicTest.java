@@ -32,6 +32,7 @@ import org.assertj.core.api.Assertions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mockito;
+import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -80,41 +81,50 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
     when(myTestProblemInfo.getSProject()).thenReturn(mySProject);
     when(mySTest.getTestNameId()).thenReturn(12982318457L);
     when(mySTest.getProjectId()).thenReturn("2134124");
-    when(myInvestigationsManager.findPreviousResponsible(myTestProblemInfo)).thenReturn(myUser2);
+    //when(myInvestigationsManager.findPreviousResponsible(myTestProblemInfo)).thenReturn(myUser2);
   }
 
   public void TestBuildProblemInfo_ResponsibleFound() {
-    when(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, myBuildProblem)).thenReturn(myUser);
+    //when(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, myBuildProblem)).thenReturn(myUser);
+    //
+    //Pair<User, String> result = myHeuristic.findResponsibleUser(myBuildProblemInfo);
+    //Assertions.assertThat(result).isNotNull();
+    //Assertions.assertThat(result.first).isEqualTo(myUser);
+    Assert.fail();
 
-    Pair<User, String> result = myHeuristic.findResponsibleUser(myBuildProblemInfo);
-    Assertions.assertThat(result).isNotNull();
-    Assertions.assertThat(result.first).isEqualTo(myUser);
   }
 
   public void TestBuildProblemInfo_ResponsibleNotFound() {
     when(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, myBuildProblem)).thenReturn(null);
+    Assert.fail();
 
-    Assertions.assertThat(myHeuristic.findResponsibleUser(myBuildProblemInfo)).isNull();
+    //Assertions.assertThat(myHeuristic.findResponsibleUser(myBuildProblemInfo)).isNull();
   }
 
   public void TestTestProblemInfo_ResponsibleFound() {
-    when(myInvestigationsManager.findPreviousResponsible(myTestProblemInfo)).thenReturn(myUser2);
+    Assert.fail();
 
-    Pair<User, String> result = myHeuristic.findResponsibleUser(myTestProblemInfo);
-    Assertions.assertThat(result).isNotNull();
-    Assertions.assertThat(result.first).isEqualTo(myUser2);
+    //when(myInvestigationsManager.findPreviousResponsible(myTestProblemInfo)).thenReturn(myUser2);
+    //
+    //Pair<User, String> result = myHeuristic.findResponsibleUser(myTestProblemInfo);
+    //Assertions.assertThat(result).isNotNull();
+    //Assertions.assertThat(result.first).isEqualTo(myUser2);
   }
 
   public void TestTestProblemInfo_ResponsibleNotFound() {
-    when(myInvestigationsManager.findPreviousResponsible(myTestProblemInfo)).thenReturn(null);
+    Assert.fail();
 
-    Assertions.assertThat(myHeuristic.findResponsibleUser(myTestProblemInfo)).isNull();
+    //when(myInvestigationsManager.findPreviousResponsible(myTestProblemInfo)).thenReturn(null);
+    //
+    //Assertions.assertThat(myHeuristic.findResponsibleUser(myTestProblemInfo)).isNull();
   }
 
   public void TestIncompatibleProblemInfo() {
-    ProblemInfo problemInfo = new IncompatibleProblemInfo(mySBuild, mySProject, "Any text");
+    Assert.fail();
 
-    Assertions.assertThat(myHeuristic.findResponsibleUser(problemInfo)).isNull();
+    //ProblemInfo problemInfo = new IncompatibleProblemInfo(mySBuild, mySProject, "Any text");
+    //
+    //Assertions.assertThat(myHeuristic.findResponsibleUser(problemInfo)).isNull();
   }
 
   class IncompatibleProblemInfo extends ProblemInfo {

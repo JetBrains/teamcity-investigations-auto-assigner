@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2014 JetBrains s.r.o.
+ * Copyright 2000-2018 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,22 @@
 
 package jetbrains.buildServer.iaa;
 
-import jetbrains.buildServer.serverSide.SBuild;
-import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
-import org.jetbrains.annotations.NotNull;
+import jetbrains.buildServer.users.User;
 
-public interface NewTestsAndProblemsProcessor {
-  void processFailedTest(@NotNull FailedBuildContext failedBuildContext);
+public class Responsibility {
+  private final User myUser;
+  private final String myDescription;
 
-  void onBuildProblemOccurred(@NotNull SBuild build, @NotNull BuildProblemImpl problem);
+  public Responsibility(User user, String description) {
+    myUser = user;
+    myDescription = description;
+  }
+
+  User getUser() {
+    return myUser;
+  }
+
+  String getDescription() {
+    return myDescription;
+  }
 }

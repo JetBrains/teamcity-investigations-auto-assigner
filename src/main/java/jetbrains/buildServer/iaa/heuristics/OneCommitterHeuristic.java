@@ -17,19 +17,18 @@
 package jetbrains.buildServer.iaa.heuristics;
 
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Pair;
 import java.util.Set;
-import jetbrains.buildServer.iaa.ProblemInfo;
+import jetbrains.buildServer.iaa.FailedBuildContext;
+import jetbrains.buildServer.iaa.Responsibility;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.users.SUser;
-import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.vcs.SelectPrevBuildPolicy;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class OneCommitterHeuristic implements Heuristic {
   private static final Logger LOGGER = Logger.getInstance(OneCommitterHeuristic.class.getName());
+
   @Override
   @NotNull
   public String getName() {
@@ -43,23 +42,27 @@ public class OneCommitterHeuristic implements Heuristic {
   }
 
   @Override
-  @Nullable
-  public Pair<User, String> findResponsibleUser(@NotNull ProblemInfo problemInfo) {
-    SBuild build = problemInfo.getSBuild();
+  public void findResponsibleUser(@NotNull FailedBuildContext failedBuildContext) {
+    SBuild build = failedBuildContext.sBuild;
     final SelectPrevBuildPolicy selectPrevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
     final Set<SUser> committers = build.getCommitters(selectPrevBuildPolicy).getUsers();
     if (committers.isEmpty()) {
       LOGGER.debug("There are no committers since last build for failed build #" + build.getBuildId());
-      return null;
     }
     if (committers.size() != 1) {
       LOGGER.debug(String.format("There are more then one committers (total: %d) since last build for failed build #%s",
-                                 committers.size() ,build.getBuildId()));
-      return null;
+                                 committers.size(), build.getBuildId()));
     }
 
-    return Pair.create(committers.iterator().next(), String.format("%s you were responsible the only committer to the " +
-                                                                   "build: %s # %s", Constants.REASON_PREFIX,
-                                                                   build.getFullName(), build.getBuildNumber()));
+
+    Responsibility responsibility = new Responsibility(
+      committers.iterator().next(), String.format("%s you were responsible the only committer to the " +
+                                                  "build: %s # %s", Constants.REASON_PREFIX,
+                                                  build.getFullName(), build.getBuildNumber()));
+
+    failedBuildContext.sTestRuns.forEach(sTestRun -> failedBuildContext.addResponsibility(sTestRun, responsibility));
+
+    failedBuildContext.buildProblems
+      .forEach(buildProblem -> failedBuildContext.addResponsibility(buildProblem, responsibility));
   }
 }

@@ -18,7 +18,6 @@ package jetbrains.buildServer.iaa.utils;
 
 import java.util.*;
 import jetbrains.buildServer.BuildProject;
-import jetbrains.buildServer.iaa.TestProblemInfo;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityFacadeEx;
@@ -26,6 +25,7 @@ import jetbrains.buildServer.responsibility.TestNameResponsibilityEntry;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STest;
+import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.serverSide.audit.*;
 import jetbrains.buildServer.serverSide.impl.audit.filters.ActionTypesFilter;
 import jetbrains.buildServer.serverSide.impl.audit.filters.BuildProblemAuditId;
@@ -111,15 +111,10 @@ public class InvestigationsManager {
   }
 
   @Nullable
-  public User findPreviousResponsible(@NotNull final TestProblemInfo testProblemInfo) {
-    SProject sProject = testProblemInfo.getSProject();
-    SBuild sBuild = testProblemInfo.getSBuild();
-    STest sTest = testProblemInfo.getSTest();
-    User responsible = this.findAmongEntries(sProject, sBuild, sTest.getAllResponsibilities());
-    if (responsible == null) {
-      responsible = testProblemInfo.getTestId2Responsible().get(sTest.getTestNameId());
-    }
-    return responsible;
+  public User findPreviousResponsible(@NotNull final SProject sProject,
+                                      @NotNull final SBuild sBuild,
+                                      @NotNull final STest sTest) {
+    return this.findAmongEntries(sProject, sBuild, sTest.getAllResponsibilities());
   }
 
   @Nullable
@@ -139,15 +134,15 @@ public class InvestigationsManager {
     return null;
   }
 
-  @Nullable
-  public HashMap<Long, User> findInAudit(@NotNull final Collection<STest> sTests, @NotNull SProject project) {
+  @NotNull
+  public HashMap<Long, User> findInAudit(@NotNull final Iterable<STestRun> sTestRuns, @NotNull SProject project) {
     AuditLogBuilder builder = myAuditLogProvider.getBuilder();
     builder.setActionTypes(ActionType.TEST_MARK_AS_FIXED, ActionType.TEST_INVESTIGATION_ASSIGN);
     List<String> projectIds = collectProjectHierarchyIds(project);
     Set<String> objectIds = new HashSet<>();
-    for (STest test : sTests) {
+    for (STestRun testRun : sTestRuns) {
       for (String projectId : projectIds) {
-        objectIds.add(TestId.createOn(test.getTestNameId(), projectId).asString());
+        objectIds.add(TestId.createOn(testRun.getTest().getTestNameId(), projectId).asString());
       }
     }
     builder.addFilter(new ObjectIdsFilter(objectIds));

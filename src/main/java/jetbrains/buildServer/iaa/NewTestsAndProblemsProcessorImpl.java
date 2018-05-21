@@ -17,27 +17,18 @@
 package jetbrains.buildServer.iaa;
 
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Pair;
-import java.util.List;
-import jetbrains.buildServer.BuildProblemTypes;
+import java.util.Collections;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityFacade;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntryFactory;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityFacade;
 import jetbrains.buildServer.responsibility.impl.BuildProblemResponsibilityEntryImpl;
 import jetbrains.buildServer.serverSide.*;
-import jetbrains.buildServer.serverSide.buildLog.LogMessage;
 import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
-import jetbrains.buildServer.serverSide.problems.BuildLogCompileErrorCollector;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.tests.TestName;
-import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.util.Dates;
-import jetbrains.buildServer.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import static jetbrains.buildServer.serverSide.impl.problems.types.CompilationErrorTypeDetailsProvider.COMPILE_BLOCK_INDEX;
 
 public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProcessor {
   @NotNull private final TestNameResponsibilityFacade myTestNameResponsibilityFacade;
@@ -57,26 +48,45 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     myBuildApplicabilityChecker = buildApplicabilityChecker;
   }
 
-  public void processFailedTest(@NotNull final SBuild build,
-                                @NotNull final STestRun testRun,
-                                @NotNull TestProblemInfo problemInfo) {
+  public void processFailedTest(@NotNull FailedBuildContext failedBuildContext) {
+    SBuild sBuild = failedBuildContext.sBuild;
+    assert sBuild.getBuildType() != null;
 
-    Pair<User, String> responsibleUser = myResponsibleUserFinder.findResponsibleUser(problemInfo);
+    final SBuildType buildType = sBuild.getBuildType();
 
-    if (responsibleUser == null || build.getBuildType() == null) return;
-    final SBuildType buildType = build.getBuildType();
-    final STest test = testRun.getTest();
-    final SProject project = buildType.getProject();
-    final TestName testName = test.getName();
 
-    myTestNameResponsibilityFacade.setTestNameResponsibility(
-      testName,
-      project.getProjectId(),
-      ResponsibilityEntryFactory.createEntry(
-        testName, test.getTestNameId(), ResponsibilityEntry.State.TAKEN, responsibleUser.getFirst(), null,
-        Dates.now(), responsibleUser.getSecond(), project, ResponsibilityEntry.RemoveMethod.WHEN_FIXED
-      )
-    );
+    myResponsibleUserFinder.findResponsibleUser(failedBuildContext);
+    for (STestRun sTestRun : failedBuildContext.getTestRuns()) {
+      Responsibility responsibility = failedBuildContext.getResponsibility(sTestRun);
+      if (responsibility != null) {
+        final STest test = sTestRun.getTest();
+        final SProject project = buildType.getProject();
+        final TestName testName = test.getName();
+
+        myTestNameResponsibilityFacade.setTestNameResponsibility(
+          testName, project.getProjectId(),
+          ResponsibilityEntryFactory.createEntry(
+            testName, test.getTestNameId(), ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null,
+            Dates.now(), responsibility.getDescription(), project, ResponsibilityEntry.RemoveMethod.WHEN_FIXED
+          )
+        );
+      }
+    }
+
+    for (BuildProblem buildProblem : failedBuildContext.getBuildProblems()) {
+      Responsibility responsibility = failedBuildContext.getResponsibility(buildProblem);
+      if (responsibility != null) {
+        final SProject project = buildType.getProject();
+
+        myBuildProblemResponsibilityFacade.setBuildProblemResponsibility(
+          buildProblem, project.getProjectId(),
+          new BuildProblemResponsibilityEntryImpl(
+            ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
+            responsibility.getDescription(), ResponsibilityEntry.RemoveMethod.WHEN_FIXED, project, buildProblem.getId()
+          )
+        );
+      }
+    }
   }
 
   public void onBuildProblemOccurred(@NotNull final SBuild build, @NotNull final BuildProblemImpl problem) {
@@ -89,49 +99,20 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
       return;
     }
 
-    final String text = getBuildProblemText(problem, build);
-    BuildProblemInfo problemInfo = new BuildProblemInfo(problem, build, project, text);
-    Pair<User, String> responsibleUser = myResponsibleUserFinder.findResponsibleUser(problemInfo);
-    if (responsibleUser == null) return;
+    FailedBuildContext failedBuildContext =
+      new FailedBuildContext(build, Collections.singletonList(problem), Collections.emptyList());
+    myResponsibleUserFinder.findResponsibleUser(failedBuildContext);
+
+    Responsibility responsibility = failedBuildContext.getResponsibility(problem);
+    if (responsibility == null) return;
 
     myBuildProblemResponsibilityFacade.setBuildProblemResponsibility(
       problem,
       project.getProjectId(),
       new BuildProblemResponsibilityEntryImpl(
-        ResponsibilityEntry.State.TAKEN, responsibleUser.getFirst(), null, Dates.now(), responsibleUser.getSecond(),
-        ResponsibilityEntry.RemoveMethod.WHEN_FIXED, project, problem.getId()
+        ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
+        responsibility.getDescription(), ResponsibilityEntry.RemoveMethod.WHEN_FIXED, project, problem.getId()
       )
     );
-  }
-
-  private static String getBuildProblemText(@NotNull final BuildProblem problem, @NotNull final SBuild build) {
-    StringBuilder problemSpecificText = new StringBuilder();
-
-    // todo make an extension point here
-    if (problem.getBuildProblemData().getType().equals(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE)) {
-      final Integer compileBlockIndex = getCompileBlockIndex(problem);
-      if (compileBlockIndex != null) {
-        final List<LogMessage> errors =
-          new BuildLogCompileErrorCollector().collectCompileErrors(compileBlockIndex, (SBuild)build.getBuildLog());
-        for (LogMessage error : errors) {
-          problemSpecificText.append(error.getText()).append(" ");
-        }
-      }
-    }
-
-    return problemSpecificText + " " + problem.getBuildProblemDescription();
-  }
-
-  @Nullable
-  private static Integer getCompileBlockIndex(@NotNull final BuildProblem problem) {
-    final String compilationBlockIndex = problem.getBuildProblemData().getAdditionalData();
-    if (compilationBlockIndex == null) return null;
-
-    try {
-      return Integer.parseInt(
-        StringUtil.stringToProperties(compilationBlockIndex, StringUtil.STD_ESCAPER2).get(COMPILE_BLOCK_INDEX));
-    } catch (Exception e) {
-      return null;
-    }
   }
 }

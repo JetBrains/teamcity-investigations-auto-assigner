@@ -53,17 +53,17 @@ public class ResponsibleUserFinderTest extends BaseTestCase {
   }
 
   public void Test_FindResponsibleUser_ResponsibleNotFound() {
-    when(myHeuristic.findResponsibleUser(any())).thenReturn(null);
-    when(myHeuristic2.findResponsibleUser(any())).thenReturn(null);
-    Pair<User, String> responsible = myUserFinder.findResponsibleUser(myProblemInfo);
-
-    Assert.assertNull(responsible);
+   // when(myHeuristic.findResponsibleUser(any())).thenReturn(null);
+  //  when(myHeuristic2.findResponsibleUser(any())).thenReturn(null);
+    //Pair<User, String> responsible = myUserFinder.findResponsibleUser(myProblemInfo);
+    Assert.fail();
+    //Assert.assertNull(responsible);
   }
 
   public void Test_FindResponsibleUser_CheckSecondIfNotFoundInFirst() {
-    when(myHeuristic.findResponsibleUser(any())).thenReturn(null);
+  //  when(myHeuristic.findResponsibleUser(any())).thenReturn(null);
 
-    myUserFinder.findResponsibleUser(myProblemInfo);
+  //  myUserFinder.findResponsibleUser(myProblemInfo);
 
     Mockito.verify(myHeuristic2, Mockito.atLeastOnce()).findResponsibleUser(any());
   }
@@ -71,9 +71,9 @@ public class ResponsibleUserFinderTest extends BaseTestCase {
   public void Test_FindResponsibleUser_NotCallSecondIfFoundInFirst() {
     SUser sUser = Mockito.mock(SUser.class);
     Pair<User, String> anyPair = new Pair<>(sUser, "Failed description");
-    when(myHeuristic.findResponsibleUser(any())).thenReturn(anyPair);
+   // when(myHeuristic.findResponsibleUser(any())).thenReturn(anyPair);
 
-    myUserFinder.findResponsibleUser(myProblemInfo);
+  //  myUserFinder.findResponsibleUser(myProblemInfo);
 
     Mockito.verify(myHeuristic2, Mockito.never()).findResponsibleUser(any());
   }
@@ -82,12 +82,12 @@ public class ResponsibleUserFinderTest extends BaseTestCase {
     SUser sUser = Mockito.mock(SUser.class);
     Pair<User, String> anyPair = new Pair<>(sUser, "Description 1");
     Pair<User, String> anyPair2 = new Pair<>(sUser, "Description 2");
-    when(myHeuristic.findResponsibleUser(any())).thenReturn(anyPair);
-    when(myHeuristic2.findResponsibleUser(any())).thenReturn(anyPair2);
+ //   when(myHeuristic.findResponsibleUser(any())).thenReturn(anyPair);
+  //  when(myHeuristic2.findResponsibleUser(any())).thenReturn(anyPair2);
 
-    Pair<User, String> responsible = myUserFinder.findResponsibleUser(myProblemInfo);
-
-    Assert.assertNotNull(responsible);
-    Assert.assertEquals(responsible.second, "Description 1");
+  //  Pair<User, String> responsible = myUserFinder.findResponsibleUser(myProblemInfo);
+      Assert.fail();
+//    Assert.assertNotNull(responsible);
+ //   Assert.assertEquals(responsible.second, "Description 1");
   }
 }

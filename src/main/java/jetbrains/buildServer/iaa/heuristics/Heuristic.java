@@ -16,11 +16,9 @@
 
 package jetbrains.buildServer.iaa.heuristics;
 
-import com.intellij.openapi.util.Pair;
+import jetbrains.buildServer.iaa.FailedBuildContext;
 import jetbrains.buildServer.iaa.ProblemInfo;
-import jetbrains.buildServer.users.User;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Presents heuristic that try to detect which person is probably responsible.
@@ -42,9 +40,7 @@ public interface Heuristic {
 
   /**
    * Try to detect which person is probably responsible.
-   * @param problemInfo {@link ProblemInfo} object which presents known information about the problem.
-   * @return probable responsible user data with a short description why the algorithm selected particular user.
+   * @param failedBuildContext {@link FailedBuildContext} object which presents known information about the problem.
    */
-  @Nullable
-  Pair<User, String> findResponsibleUser(@NotNull ProblemInfo problemInfo);
+  void findResponsibleUser(@NotNull FailedBuildContext failedBuildContext);
 }

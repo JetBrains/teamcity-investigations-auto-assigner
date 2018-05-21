@@ -28,7 +28,7 @@ import static org.mockito.Mockito.when;
 public class InvestigationsManagerTest extends BaseTestCase {
 
   private InvestigationsManager myInvestigationsManager;
-  private SProject myProject;
+  private SProject mySProject;
   private SProject myProject2;
 
   private BuildProblemImpl myBuildProblem;
@@ -46,14 +46,14 @@ public class InvestigationsManagerTest extends BaseTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myProject = Mockito.mock(SProject.class);
+    mySProject = Mockito.mock(SProject.class);
     myProject2 = Mockito.mock(SProject.class);
     mySBuild = Mockito.mock(SBuild.class);
     myUser = Mockito.mock(User.class);
     myTestProblemInfo = Mockito.mock(TestProblemInfo.class);
     SProject parentProject = Mockito.mock(SProject.class);
-    when(myProject.getParentProject()).thenReturn(parentProject);
-    when(myProject.getProjectId()).thenReturn("Project ID");
+    when(mySProject.getParentProject()).thenReturn(parentProject);
+    when(mySProject.getProjectId()).thenReturn("Project ID");
     when(myProject2.getProjectId()).thenReturn("Project ID 2");
     when(parentProject.getProjectId()).thenReturn("Parent Project ID");
     when(mySBuild.getQueuedDate()).thenReturn(new Date(2000000));
@@ -81,25 +81,25 @@ public class InvestigationsManagerTest extends BaseTestCase {
     when(mySTest.getProjectId()).thenReturn("123");
     when(myTestProblemInfo.getSTest()).thenReturn(mySTest);
     when(myTestProblemInfo.getSBuild()).thenReturn(mySBuild);
-    when(myTestProblemInfo.getSProject()).thenReturn(myProject);
+    when(myTestProblemInfo.getSProject()).thenReturn(mySProject);
 
     myInvestigationsManager = new InvestigationsManager(auditLogProvider, responsibilityFacade);
   }
 
   public void Test_BuildIsUnderInvestigationInSameProject() {
     when(myBuildProblemResponsibilityEntry.getState()).thenReturn(ResponsibilityEntry.State.TAKEN);
-    when(myBuildProblemResponsibilityEntry.getProject()).thenReturn(myProject);
+    when(myBuildProblemResponsibilityEntry.getProject()).thenReturn(mySProject);
 
-    Assertions.assertThat(myInvestigationsManager.checkUnderInvestigation(myProject, mySBuild, myBuildProblem))
+    Assertions.assertThat(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, myBuildProblem))
               .isTrue();
   }
 
   public void Test_BuildProblemIsUnderInvestigationParentProject() {
     when(myBuildProblemResponsibilityEntry.getState()).thenReturn(ResponsibilityEntry.State.TAKEN);
-    SProject parentProject = myProject.getParentProject();
+    SProject parentProject = mySProject.getParentProject();
     when(myBuildProblemResponsibilityEntry.getProject()).thenReturn(parentProject);
 
-    Assertions.assertThat(myInvestigationsManager.checkUnderInvestigation(myProject, mySBuild, myBuildProblem))
+    Assertions.assertThat(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, myBuildProblem))
               .isTrue();
   }
 
@@ -107,68 +107,68 @@ public class InvestigationsManagerTest extends BaseTestCase {
     when(myBuildProblemResponsibilityEntry.getState()).thenReturn(ResponsibilityEntry.State.TAKEN);
     when(myBuildProblemResponsibilityEntry.getProject()).thenReturn(myProject2);
 
-    Assertions.assertThat(myInvestigationsManager.checkUnderInvestigation(myProject, mySBuild, myBuildProblem))
+    Assertions.assertThat(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, myBuildProblem))
               .isFalse();
   }
 
   public void Test_BuildProblemAlreadyFixed() {
     when(myBuildProblemResponsibilityEntry.getState()).thenReturn(ResponsibilityEntry.State.FIXED);
-    when(myBuildProblemResponsibilityEntry.getProject()).thenReturn(myProject);
+    when(myBuildProblemResponsibilityEntry.getProject()).thenReturn(mySProject);
     when(myBuildProblemResponsibilityEntry.getTimestamp()).thenReturn(new Date(3000000));
     when(mySBuild.getQueuedDate()).thenReturn(new Date(2000000));
 
-    Assertions.assertThat(myInvestigationsManager.checkUnderInvestigation(myProject, mySBuild, myBuildProblem))
+    Assertions.assertThat(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, myBuildProblem))
               .isTrue();
   }
 
   public void Test_BuildProblemBeforeWasFixed() {
     when(myBuildProblemResponsibilityEntry.getState()).thenReturn(ResponsibilityEntry.State.FIXED);
-    when(myBuildProblemResponsibilityEntry.getProject()).thenReturn(myProject);
+    when(myBuildProblemResponsibilityEntry.getProject()).thenReturn(mySProject);
     when(myBuildProblemResponsibilityEntry.getTimestamp()).thenReturn(new Date(1000000));
     when(mySBuild.getQueuedDate()).thenReturn(new Date(2000000));
 
-    Assertions.assertThat(myInvestigationsManager.checkUnderInvestigation(myProject, mySBuild, myBuildProblem))
+    Assertions.assertThat(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, myBuildProblem))
               .isFalse();
   }
 
   public void Test_BuildProblemNotUnderInvestigation() {
     when(myBuildProblem.getAllResponsibilities()).thenReturn(Collections.emptyList());
 
-    Assertions.assertThat(myInvestigationsManager.checkUnderInvestigation(myProject, mySBuild, myBuildProblem))
+    Assertions.assertThat(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, myBuildProblem))
               .isFalse();
   }
 
   public void Test_TestIsUnderInvestigationParentProject() {
     when(myResponsibilityEntry.getState()).thenReturn(ResponsibilityEntry.State.TAKEN);
-    SProject parentProject = myProject.getParentProject();
+    SProject parentProject = mySProject.getParentProject();
     when(myResponsibilityEntry.getProject()).thenReturn(parentProject);
 
-    Assertions.assertThat(myInvestigationsManager.checkUnderInvestigation(myProject, mySBuild, mySTest)).isTrue();
+    Assertions.assertThat(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, mySTest)).isTrue();
   }
 
   public void Test_TestIsUnderInvestigationOtherProject() {
     when(myResponsibilityEntry.getState()).thenReturn(ResponsibilityEntry.State.TAKEN);
     when(myResponsibilityEntry.getProject()).thenReturn(myProject2);
 
-    Assertions.assertThat(myInvestigationsManager.checkUnderInvestigation(myProject, mySBuild, mySTest)).isFalse();
+    Assertions.assertThat(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, mySTest)).isFalse();
   }
 
   public void Test_TestAlreadyFixed() {
     when(myResponsibilityEntry.getState()).thenReturn(ResponsibilityEntry.State.FIXED);
-    when(myResponsibilityEntry.getProject()).thenReturn(myProject);
+    when(myResponsibilityEntry.getProject()).thenReturn(mySProject);
     when(myResponsibilityEntry.getTimestamp()).thenReturn(new Date(3000000));
     when(mySBuild.getQueuedDate()).thenReturn(new Date(2000000));
 
-    Assertions.assertThat(myInvestigationsManager.checkUnderInvestigation(myProject, mySBuild, mySTest)).isTrue();
+    Assertions.assertThat(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, mySTest)).isTrue();
   }
 
   public void Test_TestBeforeWasAlreadyFixed() {
     when(myResponsibilityEntry.getState()).thenReturn(ResponsibilityEntry.State.FIXED);
-    when(myResponsibilityEntry.getProject()).thenReturn(myProject);
+    when(myResponsibilityEntry.getProject()).thenReturn(mySProject);
     when(myResponsibilityEntry.getTimestamp()).thenReturn(new Date(1000000));
     when(mySBuild.getQueuedDate()).thenReturn(new Date(2000000));
 
-    Assertions.assertThat(myInvestigationsManager.checkUnderInvestigation(myProject, mySBuild, mySTest)).isFalse();
+    Assertions.assertThat(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, mySTest)).isFalse();
   }
 
   public void Test_TestNotUnderInvestigation() {
@@ -176,48 +176,48 @@ public class InvestigationsManagerTest extends BaseTestCase {
     when(mySTestRun.getTest()).thenReturn(sTest);
     when(sTest.getAllResponsibilities()).thenReturn(Collections.emptyList());
 
-    Assertions.assertThat(myInvestigationsManager.checkUnderInvestigation(myProject, mySBuild, sTest)).isFalse();
+    Assertions.assertThat(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, sTest)).isFalse();
   }
 
   public void Test_BuildProblemFindPreviousResponsible_FixedBeforeQueued() {
     when(myBuildProblemResponsibilityEntry.getState()).thenReturn(ResponsibilityEntry.State.FIXED);
     when(myBuildProblemResponsibilityEntry.getResponsibleUser()).thenReturn(myUser);
-    when(myBuildProblemResponsibilityEntry.getProject()).thenReturn(myProject);
+    when(myBuildProblemResponsibilityEntry.getProject()).thenReturn(mySProject);
     when(myBuildProblemResponsibilityEntry.getTimestamp()).thenReturn(new Date(2000000));
     when(mySBuild.getQueuedDate()).thenReturn(new Date(3000000));
 
-    Assertions.assertThat(myInvestigationsManager.findPreviousResponsible(myProject, mySBuild, myBuildProblem))
+    Assertions.assertThat(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, myBuildProblem))
               .isEqualTo(
                 myUser);
   }
 
   public void Test_BuildProblemFindPreviousResponsible_FixedAfterQueued() {
     when(myBuildProblemResponsibilityEntry.getState()).thenReturn(ResponsibilityEntry.State.FIXED);
-    when(myBuildProblemResponsibilityEntry.getProject()).thenReturn(myProject);
+    when(myBuildProblemResponsibilityEntry.getProject()).thenReturn(mySProject);
     when(myBuildProblemResponsibilityEntry.getTimestamp()).thenReturn(new Date(3000000));
     when(mySBuild.getQueuedDate()).thenReturn(new Date(2000000));
 
-    Assertions.assertThat(myInvestigationsManager.findPreviousResponsible(myProject, mySBuild, myBuildProblem))
+    Assertions.assertThat(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, myBuildProblem))
               .isNull();
   }
 
   public void Test_TestProblemFindPreviousResponsible_FixedBeforeQueued() {
     when(myResponsibilityEntry.getState()).thenReturn(ResponsibilityEntry.State.FIXED);
     when(myResponsibilityEntry.getResponsibleUser()).thenReturn(myUser);
-    when(myResponsibilityEntry.getProject()).thenReturn(myProject);
+    when(myResponsibilityEntry.getProject()).thenReturn(mySProject);
     when(myResponsibilityEntry.getTimestamp()).thenReturn(new Date(2000000));
     when(mySBuild.getQueuedDate()).thenReturn(new Date(3000000));
 
-    Assertions.assertThat(myInvestigationsManager.findPreviousResponsible(myTestProblemInfo)).isEqualTo(
+    Assertions.assertThat(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, mySTest)).isEqualTo(
       myUser);
   }
 
   public void Test_TestProblemFindPreviousResponsible_FixedAfterQueued() {
     when(myResponsibilityEntry.getState()).thenReturn(ResponsibilityEntry.State.FIXED);
-    when(myResponsibilityEntry.getProject()).thenReturn(myProject);
+    when(myResponsibilityEntry.getProject()).thenReturn(mySProject);
     when(myResponsibilityEntry.getTimestamp()).thenReturn(new Date(3000000));
     when(mySBuild.getQueuedDate()).thenReturn(new Date(2000000));
 
-    Assertions.assertThat(myInvestigationsManager.findPreviousResponsible(myTestProblemInfo)).isNull();
+    Assertions.assertThat(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, mySTest)).isNull();
   }
 }

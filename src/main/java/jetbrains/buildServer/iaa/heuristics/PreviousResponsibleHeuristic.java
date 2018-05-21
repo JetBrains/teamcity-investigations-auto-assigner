@@ -16,19 +16,18 @@
 
 package jetbrains.buildServer.iaa.heuristics;
 
-import com.intellij.openapi.util.Pair;
-import jetbrains.buildServer.iaa.BuildProblemInfo;
-import jetbrains.buildServer.iaa.ProblemInfo;
-import jetbrains.buildServer.iaa.TestProblemInfo;
+import java.util.HashMap;
+import jetbrains.buildServer.iaa.FailedBuildContext;
+import jetbrains.buildServer.iaa.Responsibility;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.iaa.utils.InvestigationsManager;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STest;
-import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
+import jetbrains.buildServer.serverSide.STestRun;
+import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.users.User;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class PreviousResponsibleHeuristic implements Heuristic {
 
@@ -50,30 +49,36 @@ public class PreviousResponsibleHeuristic implements Heuristic {
     return "Assign an investigation to a user if the user was responsible previous time.";
   }
 
-  @Nullable
-  @Override
-  public Pair<User, String> findResponsibleUser(@NotNull ProblemInfo problemInfo) {
-    User responsibleUser = null;
-    String description = null;
-    SProject sProject = problemInfo.getSProject();
-    SBuild sBuild = problemInfo.getSBuild();
-    if (problemInfo instanceof TestProblemInfo) {
-      STest sTest = ((TestProblemInfo)problemInfo).getSTest();
-      responsibleUser = myInvestigationsManager.findPreviousResponsible((TestProblemInfo)problemInfo);
-      description = String.format("%s you were responsible for the test: `%s` in build `%s` previous time",
-                                  Constants.REASON_PREFIX, sTest.getName(), sBuild.getFullName());
-    } else if (problemInfo instanceof BuildProblemInfo) {
-      BuildProblemImpl buildProblem = ((BuildProblemInfo)problemInfo).getBuildProblem();
-      responsibleUser = myInvestigationsManager.findPreviousResponsible(sProject, sBuild, buildProblem);
+  public void findResponsibleUser(@NotNull FailedBuildContext failedBuildContext) {
+    SBuild sBuild = failedBuildContext.sBuild;
+    assert sBuild.getBuildType() != null;
+
+    SProject sProject = sBuild.getBuildType().getProject();
+    Iterable<STestRun> sTestRuns = failedBuildContext.sTestRuns;
+    HashMap<Long, User> testId2Responsible = myInvestigationsManager.findInAudit(sTestRuns, sProject);
+
+    for (STestRun sTestRun : failedBuildContext.sTestRuns) {
+      STest sTest = sTestRun.getTest();
+
+      User responsibleUser = myInvestigationsManager.findPreviousResponsible(sProject, sBuild, sTest);
+      if (responsibleUser == null) {
+        responsibleUser = testId2Responsible.get(sTest.getTestNameId());
+      }
+
+      String description = String.format("%s you were responsible for the test: `%s` in build `%s` previous time",
+                                         Constants.REASON_PREFIX, sTest.getName(), sBuild.getFullName());
+
+      failedBuildContext.addResponsibility(sTestRun, new Responsibility(responsibleUser, description));
+    }
+
+    for (BuildProblem buildProblem : failedBuildContext.buildProblems) {
+      User responsibleUser = myInvestigationsManager.findPreviousResponsible(sProject, sBuild, buildProblem);
       String buildProblemType = buildProblem.getBuildProblemData().getType();
-      description = String.format("%s you were responsible for the build problem: `%s` in build `%s` previous time",
-                                  Constants.REASON_PREFIX, buildProblemType, sBuild.getFullName());
-    }
+      String description =
+        String.format("%s you were responsible for the build problem: `%s` in build `%s` previous time",
+                      Constants.REASON_PREFIX, buildProblemType, sBuild.getFullName());
 
-    if (responsibleUser == null) {
-      return null;
+      failedBuildContext.addResponsibility(buildProblem, new Responsibility(responsibleUser, description));
     }
-
-    return Pair.create(responsibleUser, description);
   }
 }

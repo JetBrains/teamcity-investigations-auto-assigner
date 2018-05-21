@@ -17,17 +17,15 @@
 package jetbrains.buildServer.iaa.heuristics;
 
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Pair;
 import java.util.Collection;
-import jetbrains.buildServer.iaa.ProblemInfo;
+import jetbrains.buildServer.iaa.FailedBuildContext;
+import jetbrains.buildServer.iaa.Responsibility;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SBuildFeatureDescriptor;
-import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.users.UserModelEx;
 import jetbrains.buildServer.users.impl.UserEx;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class DefaultUserHeuristic implements Heuristic {
 
@@ -52,25 +50,29 @@ public class DefaultUserHeuristic implements Heuristic {
   }
 
   @Override
-  @Nullable
-  public Pair<User, String> findResponsibleUser(@NotNull ProblemInfo problemInfo) {
-    SBuild build = problemInfo.getSBuild();
+  public void findResponsibleUser(@NotNull FailedBuildContext failedBuildContext) {
+    SBuild build = failedBuildContext.sBuild;
     Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
-    if (descriptors.isEmpty()) return null;
+    if (descriptors.isEmpty()) return;
 
     final SBuildFeatureDescriptor sBuildFeature = (SBuildFeatureDescriptor)descriptors.toArray()[0];
     String defaultResponsible = String.valueOf(sBuildFeature.getParameters().get(Constants.DEFAULT_RESPONSIBLE));
 
-    if (defaultResponsible == null || defaultResponsible.isEmpty()) return null;
+    if (defaultResponsible == null || defaultResponsible.isEmpty()) return;
     UserEx responsibleUser = myUserModel.findUserAccount(null, defaultResponsible);
 
     if (responsibleUser == null) {
       LOGGER.warn(String.format("There is specified default user %s, but there is no hin in user model. Failed build #%s",
-                                defaultResponsible, build.getBuildId()));
-      return null;
+                            defaultResponsible, build.getBuildId()));
+      return;
     }
-    return Pair.create(responsibleUser,
-              Constants.REASON_PREFIX + " you're the default responsible user for the build: " +
-              build.getFullName() + " #" + build.getBuildNumber());
+    Responsibility responsibility = new Responsibility(responsibleUser,
+                                                       Constants.REASON_PREFIX +
+                                                       " you're the default responsible user for the build: " +
+                                                       build.getFullName() + " #" + build.getBuildNumber());
+
+    failedBuildContext.buildProblems
+      .forEach(buildProblem -> failedBuildContext.addResponsibility(buildProblem, responsibility));
+    failedBuildContext.sTestRuns.forEach(testRun -> failedBuildContext.addResponsibility(testRun, responsibility));
   }
 }
