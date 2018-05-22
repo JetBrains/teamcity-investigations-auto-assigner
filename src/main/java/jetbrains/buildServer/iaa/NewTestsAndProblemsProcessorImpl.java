@@ -49,7 +49,7 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
   }
 
   public void processFailedTest(@NotNull FailedBuildContext failedBuildContext) {
-    SBuild sBuild = failedBuildContext.sBuild;
+    SBuild sBuild = failedBuildContext.getSBuild();
     assert sBuild.getBuildType() != null;
 
     final SBuildType buildType = sBuild.getBuildType();

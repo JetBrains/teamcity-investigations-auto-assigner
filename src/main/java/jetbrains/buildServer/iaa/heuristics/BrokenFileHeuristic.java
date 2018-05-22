@@ -59,7 +59,7 @@ public class BrokenFileHeuristic implements Heuristic {
   }
 
   public void findResponsibleUser(@NotNull FailedBuildContext failedBuildContext) {
-    SBuild sBuild = failedBuildContext.sBuild;
+    SBuild sBuild = failedBuildContext.getSBuild();
 
     final BuildPromotion buildPromotion = sBuild.getBuildPromotion();
     if (!(buildPromotion instanceof BuildPromotionEx)) return;

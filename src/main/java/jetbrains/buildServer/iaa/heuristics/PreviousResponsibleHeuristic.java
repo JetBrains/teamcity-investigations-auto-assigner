@@ -50,7 +50,7 @@ public class PreviousResponsibleHeuristic implements Heuristic {
   }
 
   public void findResponsibleUser(@NotNull FailedBuildContext failedBuildContext) {
-    SBuild sBuild = failedBuildContext.sBuild;
+    SBuild sBuild = failedBuildContext.getSBuild();
     assert sBuild.getBuildType() != null;
 
     SProject sProject = sBuild.getBuildType().getProject();

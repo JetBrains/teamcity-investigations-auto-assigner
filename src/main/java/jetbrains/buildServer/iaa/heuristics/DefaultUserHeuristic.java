@@ -51,7 +51,7 @@ public class DefaultUserHeuristic implements Heuristic {
 
   @Override
   public void findResponsibleUser(@NotNull FailedBuildContext failedBuildContext) {
-    SBuild build = failedBuildContext.sBuild;
+    SBuild build = failedBuildContext.getSBuild();
     Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
     if (descriptors.isEmpty()) return;
 

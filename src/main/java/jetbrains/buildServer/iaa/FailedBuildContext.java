@@ -25,7 +25,7 @@ import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.jetbrains.annotations.Nullable;
 
 public class FailedBuildContext {
-  public final SBuild sBuild;
+  private final SBuild sBuild;
   public final Iterable<BuildProblem> buildProblems;
   public final Iterable<STestRun> sTestRuns;
 
@@ -38,6 +38,10 @@ public class FailedBuildContext {
     this.sTestRuns = sTestRuns;
     testRun2Responsibility = new HashMap<>();
     buildProblem2Responsibility = new HashMap<>();
+  }
+
+  public SBuild getSBuild() {
+    return sBuild;
   }
 
   public Iterable<BuildProblem> getBuildProblems() {
