@@ -19,20 +19,43 @@ package jetbrains.buildServer.iaa;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.STestRun;
+import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.jetbrains.annotations.NotNull;
 
 class FailedBuildInfo {
-  private Set<Integer> checkedTests = new HashSet<>();
+
+  private SBuild mySBuild;
+  private Set<Integer> processedTests = new HashSet<>();
+  private Set<Integer> processedBuildProblems = new HashSet<>();
   int processed = 0;
+
+  FailedBuildInfo(final SBuild sBuild) {
+    mySBuild = sBuild;
+  }
+
+  public SBuild getSBuild() {
+    return mySBuild;
+  }
 
   void addProcessedTestRuns(@NotNull Collection<STestRun> tests) {
     for (STestRun testRun : tests) {
-      checkedTests.add(testRun.getTestRunId());
+      processedTests.add(testRun.getTestRunId());
+    }
+  }
+
+  void addProcessedBuildProblems(@NotNull Collection<BuildProblem> buildProblems) {
+    for (BuildProblem buildProblem : buildProblems) {
+      processedBuildProblems.add(buildProblem.getId());
     }
   }
 
   boolean checkNotProcessed(STestRun sTestRun) {
-    return !checkedTests.contains(sTestRun.getTestRunId());
+    return !processedTests.contains(sTestRun.getTestRunId());
+  }
+
+  boolean checkNotProcessed(final BuildProblem buildProblem) {
+    return !processedBuildProblems.contains(buildProblem.getId());
   }
 }

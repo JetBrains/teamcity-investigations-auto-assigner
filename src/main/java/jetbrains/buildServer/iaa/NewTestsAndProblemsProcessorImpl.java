@@ -17,8 +17,9 @@
 package jetbrains.buildServer.iaa;
 
 import com.intellij.openapi.diagnostic.Logger;
-import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import jetbrains.buildServer.iaa.utils.CustomParameters;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityFacade;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntryFactory;
@@ -36,20 +37,23 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
   @NotNull private final BuildProblemResponsibilityFacade myBuildProblemResponsibilityFacade;
   @NotNull private ResponsibleUserFinder myResponsibleUserFinder;
   @NotNull private BuildApplicabilityChecker myBuildApplicabilityChecker;
+  @NotNull private final TestApplicabilityChecker myTestApplicabilityChecker;
 
   private static final Logger LOGGER = Logger.getInstance(NewTestsAndProblemsProcessorImpl.class.getName());
 
   NewTestsAndProblemsProcessorImpl(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade,
                                    @NotNull final BuildProblemResponsibilityFacade buildProblemResponsibilityFacade,
                                    @NotNull final ResponsibleUserFinder responsibleUserFinder,
-                                   @NotNull final BuildApplicabilityChecker buildApplicabilityChecker) {
+                                   @NotNull final BuildApplicabilityChecker buildApplicabilityChecker,
+                                   @NotNull final TestApplicabilityChecker testApplicabilityChecker) {
     myTestNameResponsibilityFacade = testNameResponsibilityFacade;
     myBuildProblemResponsibilityFacade = buildProblemResponsibilityFacade;
     myResponsibleUserFinder = responsibleUserFinder;
     myBuildApplicabilityChecker = buildApplicabilityChecker;
+    myTestApplicabilityChecker = testApplicabilityChecker;
   }
 
-  public void processFailedTest(SBuild sBuild, List<BuildProblem> buildProblems, List<STestRun> sTestRuns) {
+  private void processFailedBuild(SBuild sBuild, List<BuildProblem> buildProblems, List<STestRun> sTestRuns) {
     final SBuildType buildType = sBuild.getBuildType();
     assert buildType != null;
 
@@ -88,29 +92,50 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     }
   }
 
-  public void onBuildProblemOccurred(@NotNull final SBuild build, @NotNull final BuildProblemImpl problem) {
+  @Override
+  public Boolean processBuild(final FailedBuildInfo failedBuildInfo) {
+    SBuild build = failedBuildInfo.getSBuild();
     final SBuildType buildType = build.getBuildType();
-    if (buildType == null) return;
-    final SProject project = buildType.getProject();
+    assert buildType != null;
 
-    if (!myBuildApplicabilityChecker.isApplicable(project, build, problem)) {
-      LOGGER.debug(String.format("Stop processing a failed build #%s as it's applicable", build.getBuildId()));
-      return;
-    }
+    Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(build);
+    boolean shouldDelete = build.isFinished();
+    if (failedBuildInfo.processed >= threshold) return shouldDelete;
 
-    HeuristicResult result =
-      myResponsibleUserFinder.findResponsibleUser(build, Collections.singletonList(problem), Collections.emptyList());
+    List<STestRun> failedTests = requestBrokenTestsWithStats(build);
 
-    Responsibility responsibility = result.getResponsibility(problem);
-    if (responsibility == null) return;
+    List<STestRun> applicableTestRuns = failedTests.stream()
+                                                   .filter(failedBuildInfo::checkNotProcessed)
+                                                   .filter(testRun -> myTestApplicabilityChecker
+                                                     .isApplicable(buildType.getProject(), build, testRun))
+                                                   .limit(threshold - failedBuildInfo.processed)
+                                                   .collect(Collectors.toList());
+    failedBuildInfo.addProcessedTestRuns(failedTests);
+    failedBuildInfo.processed += applicableTestRuns.size();
 
-    myBuildProblemResponsibilityFacade.setBuildProblemResponsibility(
-      problem,
-      project.getProjectId(),
-      new BuildProblemResponsibilityEntryImpl(
-        ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
-        responsibility.getDescription(), ResponsibilityEntry.RemoveMethod.WHEN_FIXED, project, problem.getId()
-      )
-    );
+    assert build instanceof BuildEx;
+    final List<BuildProblem> buildProblems = ((BuildEx)build).getBuildProblems();
+    BuildProblemImpl.fillIsNew(build.getBuildPromotion(), buildProblems);
+
+    List<BuildProblem> applicableBuildProblems = buildProblems.stream()
+                 .filter(failedBuildInfo::checkNotProcessed)
+                 .filter(buildProblem -> myBuildApplicabilityChecker
+                   .isApplicable(buildType.getProject(), build, buildProblem))
+                 .limit(threshold - failedBuildInfo.processed)
+                 .collect(Collectors.toList());
+
+    failedBuildInfo.addProcessedBuildProblems(buildProblems);
+    failedBuildInfo.processed += buildProblems.size();
+
+    processFailedBuild(build, applicableBuildProblems, applicableTestRuns);
+    return shouldDelete;
+  }
+
+  private List<STestRun> requestBrokenTestsWithStats(final SBuild build) {
+    BuildStatisticsOptions options = new BuildStatisticsOptions(
+      BuildStatisticsOptions.FIRST_FAILED_IN_BUILD | BuildStatisticsOptions.FIXED_IN_BUILD, -1);
+    BuildStatistics stats = build.getBuildStatistics(options);
+
+    return stats.getFailedTests();
   }
 }

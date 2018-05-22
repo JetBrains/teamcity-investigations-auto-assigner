@@ -16,40 +16,30 @@
 
 package jetbrains.buildServer.iaa;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.iaa.common.Constants;
-import jetbrains.buildServer.iaa.utils.CustomParameters;
 import jetbrains.buildServer.serverSide.*;
-import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
-import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.serverSide.stat.BuildTestsListener;
 import jetbrains.buildServer.util.executors.ExecutorsFactory;
 import org.jetbrains.annotations.NotNull;
 
 public class NewTestsAndProblemsDispatcher {
   @NotNull private final NewTestsAndProblemsProcessor myProcessor;
-  @NotNull private final BuildsManager myBuildsManager;
-  @NotNull private final TestApplicabilityChecker myTestApplicabilityChecker;
   // Map isn't synchronized because we work with it from synchronized method
-  @NotNull private final FailedBuildManager myFailedBuildManager;
+  @NotNull private final ConcurrentHashMap<Long, FailedBuildInfo> myFailedBuilds;
   @NotNull private final ScheduledExecutorService myDaemon;
 
   public NewTestsAndProblemsDispatcher(@NotNull final BuildTestsEventDispatcher buildTestsEventDispatcher,
                                        @NotNull final BuildServerListenerEventDispatcher buildServerListenerEventDispatcher,
-                                       @NotNull final NewTestsAndProblemsProcessor processor,
-                                       @NotNull final BuildsManager buildsManager,
-                                       @NotNull final TestApplicabilityChecker testApplicabilityChecker) {
+                                       @NotNull final NewTestsAndProblemsProcessor processor) {
     myProcessor = processor;
-    myBuildsManager = buildsManager;
-    myTestApplicabilityChecker = testApplicabilityChecker;
-    myFailedBuildManager = new FailedBuildManager();
+    myFailedBuilds = new ConcurrentHashMap<>();
     myDaemon = ExecutorsFactory.newFixedScheduledDaemonExecutor("Investigator-Auto-Assigner-", 1);
     myDaemon.scheduleWithFixedDelay(this::processBrokenBuildsOneThread, 2, 2, TimeUnit.MINUTES);
 
@@ -60,7 +50,7 @@ public class NewTestsAndProblemsDispatcher {
 
       public void testFailed(@NotNull SRunningBuild build, @NotNull List<Long> testNameIds) {
         if (shouldIgnore(build)) return;
-        myFailedBuildManager.addFailedBuild(build);
+        myFailedBuilds.putIfAbsent(build.getBuildId(), new FailedBuildInfo(build));
       }
 
 
@@ -75,12 +65,7 @@ public class NewTestsAndProblemsDispatcher {
                                        @NotNull List<BuildProblemData> before,
                                        @NotNull List<BuildProblemData> after) {
         if (shouldIgnore(sBuild) || !(sBuild instanceof BuildEx)) return;
-
-        final List<BuildProblemData> newProblems = new ArrayList<>(after);
-        newProblems.removeAll(before);
-        for (BuildProblemData newProblem : newProblems) {
-          onBuildProblemOccurred((BuildEx)sBuild, newProblem);
-        }
+        myFailedBuilds.putIfAbsent(sBuild.getBuildId(), new FailedBuildInfo(sBuild));
       }
 
       @Override
@@ -91,61 +76,13 @@ public class NewTestsAndProblemsDispatcher {
   }
 
   private void processBrokenBuildsOneThread() {
-    for (Long buildId : myFailedBuildManager.getBuilds()) {
-      SBuild build = myBuildsManager.findBuildInstanceById(buildId);
-      if (build == null) continue;
-      processBuildOneThread(build);
-    }
-  }
-
-  private void processBuildOneThread(final SBuild build) {
-    Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(build);
-    final SBuildType buildType = build.getBuildType();
-    if (buildType == null) return;
-    FailedBuildInfo buildInfo = myFailedBuildManager.getFailedBuildInfo(build);
-    if (buildInfo.processed >= threshold) return;
-
-    boolean shouldDelete = build.isFinished();
-    List<STestRun> failedTests = requestBrokenTestsWithStats(build);
-
-    List<STestRun> applicableTestRuns = failedTests.stream()
-                                                   .filter(buildInfo::checkNotProcessed)
-                                                   .filter(testRun -> myTestApplicabilityChecker
-                                                     .isApplicable(buildType.getProject(), build, testRun))
-                                                   .limit(threshold - buildInfo.processed)
-                                                   .collect(Collectors.toList());
-    buildInfo.processed += applicableTestRuns.size();
-
-    myProcessor.processFailedTest(build, Collections.emptyList(), applicableTestRuns);
-
-    if (shouldDelete) {
-      myFailedBuildManager.removeBuild(build);
-    } else {
-      buildInfo.addProcessedTestRuns(failedTests);
-    }
-  }
-
-  private List<STestRun> requestBrokenTestsWithStats(final SBuild build) {
-    BuildStatisticsOptions options = new BuildStatisticsOptions(
-      BuildStatisticsOptions.FIRST_FAILED_IN_BUILD | BuildStatisticsOptions.FIXED_IN_BUILD, -1);
-    BuildStatistics stats = build.getBuildStatistics(options);
-
-    return stats.getFailedTests();
-  }
-
-  private void onBuildProblemOccurred(@NotNull final BuildEx build, @NotNull final BuildProblemData problem) {
-    myDaemon.submit(() -> {
-      final List<BuildProblem> buildProblems = build.getBuildProblems();
-      BuildProblemImpl.fillIsNew(build.getBuildPromotion(), buildProblems);
-      for (BuildProblem buildProblem : buildProblems) {
-        if (buildProblem.getBuildProblemData().equals(problem)) {
-          if (buildProblem instanceof BuildProblemImpl) {
-            myProcessor.onBuildProblemOccurred(build, (BuildProblemImpl)buildProblem);
-          }
-          break;
-        }
+    for (Map.Entry<Long, FailedBuildInfo> entry : myFailedBuilds.entrySet()) {
+      FailedBuildInfo failedBuildInfo = entry.getValue();
+      Boolean shouldRemove = myProcessor.processBuild(failedBuildInfo);
+      if (shouldRemove) {
+        myFailedBuilds.remove(entry.getKey());
       }
-    });
+    }
   }
 
   private static boolean shouldIgnore(@NotNull SBuild build) {

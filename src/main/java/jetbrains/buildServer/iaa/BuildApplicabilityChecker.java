@@ -23,6 +23,7 @@ import jetbrains.buildServer.iaa.utils.InvestigationsManager;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
+import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.jetbrains.annotations.NotNull;
 
 public class BuildApplicabilityChecker {
@@ -37,15 +38,19 @@ public class BuildApplicabilityChecker {
 
   boolean isApplicable(@NotNull final SProject project,
                        @NotNull final SBuild sBuild,
-                       @NotNull final BuildProblemImpl problem) {
+                       @NotNull final BuildProblem problem) {
     return (!problem.isMuted() &&
             isNew(problem) &&
             supportedTypes.contains(problem.getBuildProblemData().getType()) &&
             !myInvestigationsManager.checkUnderInvestigation(project, sBuild, problem));
   }
 
-  private static boolean isNew(@NotNull final BuildProblemImpl problem) {
-    final Boolean isNew = problem.isNew();
-    return isNew != null && isNew;
+  private static boolean isNew(@NotNull final BuildProblem problem) {
+    if (problem instanceof BuildProblemImpl) {
+      final Boolean isNew = ((BuildProblemImpl)problem).isNew();
+      return isNew != null && isNew;
+    }
+
+    return true;
   }
 }
