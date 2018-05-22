@@ -40,17 +40,21 @@ public class HeuristicResult {
   }
 
   @Nullable
-  Responsibility getResponsibility(final STestRun sTestRun) {
+  public Responsibility getResponsibility(final STestRun sTestRun) {
     return testRun2Responsibility.get(sTestRun.getTestRunId());
   }
 
   @Nullable
-  Responsibility getResponsibility(final BuildProblem buildProblem) {
+  public Responsibility getResponsibility(final BuildProblem buildProblem) {
     return buildProblem2Responsibility.get(buildProblem.getId());
   }
 
   void merge(final HeuristicResult heuristicResult) {
-    this.testRun2Responsibility.putAll(heuristicResult.testRun2Responsibility);
-    this.buildProblem2Responsibility.putAll(heuristicResult.buildProblem2Responsibility);
+    testRun2Responsibility.putAll(heuristicResult.testRun2Responsibility);
+    buildProblem2Responsibility.putAll(heuristicResult.buildProblem2Responsibility);
+  }
+
+  public boolean isEmpty() {
+    return testRun2Responsibility.isEmpty() && buildProblem2Responsibility.isEmpty();
   }
 }

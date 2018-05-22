@@ -75,18 +75,21 @@ public class BrokenFileHeuristic implements Heuristic {
     for (STestRun sTestRun : failedBuildContext.getTestRuns()) {
       String problemText = myProblemTextExtractor.getBuildProblemText(sTestRun);
       Responsibility responsibility = findResponsibleUser(vcsChanges, sBuild, problemText);
-      result.addResponsibility(sTestRun, responsibility);
+      if (responsibility != null)
+        result.addResponsibility(sTestRun, responsibility);
     }
 
     for (BuildProblem buildProblem : failedBuildContext.getBuildProblems()) {
       String problemText = myProblemTextExtractor.getBuildProblemText(buildProblem, sBuild);
       Responsibility responsibility = findResponsibleUser(vcsChanges, sBuild, problemText);
-      result.addResponsibility(buildProblem, responsibility);
+      if (responsibility != null)
+        result.addResponsibility(buildProblem, responsibility);
     }
 
     return result;
   }
 
+  @Nullable
   private Responsibility findResponsibleUser(List<SVcsModification> vcsChanges, SBuild sBuild, String problemText) {
     SUser responsibleUser = null;
     String brokenFile = null;
@@ -95,12 +98,12 @@ public class BrokenFileHeuristic implements Heuristic {
       if (foundBrokenFile == null) continue;
 
       final Collection<SUser> changeCommitters = vcsChange.getCommitters();
-      if (changeCommitters.size() != 1) continue;
+      if (changeCommitters.size() != 1) return null;
 
       final SUser foundResponsibleUser = changeCommitters.iterator().next();
       if (responsibleUser != null && !responsibleUser.equals(foundResponsibleUser)) {
         LOGGER.debug("There are more then one committers since last build for failed build #" + sBuild.getBuildId());
-        continue;
+        return null;
       }
 
       responsibleUser = foundResponsibleUser;

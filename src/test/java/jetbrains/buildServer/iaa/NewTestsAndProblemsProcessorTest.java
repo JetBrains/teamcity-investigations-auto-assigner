@@ -16,7 +16,7 @@
 
 package jetbrains.buildServer.iaa;
 
-import com.intellij.openapi.util.Pair;
+import java.util.Collections;
 import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityFacade;
@@ -26,14 +26,11 @@ import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import jetbrains.buildServer.serverSide.problems.BuildProblemInfo;
 import jetbrains.buildServer.tests.TestName;
 import jetbrains.buildServer.users.SUser;
-import jetbrains.buildServer.users.User;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 @Test
@@ -48,7 +45,6 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
   private STestRun mySTestRun;
   private SBuildType mySBuildType;
   private BuildProblemImpl myBuildProblem;
-  private TestProblemInfo myTestProblemInfo;
 
   @BeforeMethod
   @Override
@@ -60,20 +56,19 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
     myBuildApplicabilityChecker = Mockito.mock(BuildApplicabilityChecker.class);
     myProcessor =
       new NewTestsAndProblemsProcessorImpl(myTestNameResponsibilityFacade, myBuildProblemResponsibilityFacade,
-                                           myResponsibleUserFinder,
-                                           myBuildApplicabilityChecker);
+                                           myResponsibleUserFinder, myBuildApplicabilityChecker);
 
+    final HeuristicResult heuristicsResult = new HeuristicResult();
+    when(myResponsibleUserFinder.findResponsibleUser(any(), anyList(), anyList())).thenReturn(heuristicsResult);
     mySRunningBuild = Mockito.mock(SRunningBuild.class);
     mySBuild = Mockito.mock(SBuild.class);
     myBuildProblem = Mockito.mock(BuildProblemImpl.class);
     BuildProblemData buildProblemData = Mockito.mock(BuildProblemData.class);
     mySTestRun = Mockito.mock(STestRun.class);
     mySBuildType = Mockito.mock(SBuildType.class);
-    myTestProblemInfo = Mockito.mock(TestProblemInfo.class);
     SProject sProject = Mockito.mock(SProject.class);
     final STest STest = Mockito.mock(jetbrains.buildServer.serverSide.STest.class);
     TestName testName = Mockito.mock(TestName.class);
-    SUser sUser = Mockito.mock(SUser.class);
 
     when(mySRunningBuild.getBuildType()).thenReturn(mySBuildType);
     when(mySBuild.getBuildType()).thenReturn(mySBuildType);
@@ -84,7 +79,6 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
     when(STest.getName()).thenReturn(testName);
     when(myBuildApplicabilityChecker.isApplicable(any(), any(), any())).thenReturn(true);
     when(testName.getAsString()).thenReturn("Test Name as String");
-    Pair<User, String> anyPair = new Pair<>(sUser, "Failed description");
     //when(myResponsibleUserFinder.findResponsibleUser(any()));
     when(myBuildProblem.getBuildProblemData()).thenReturn(buildProblemData);
     when(buildProblemData.getType()).thenReturn("1234");
@@ -93,23 +87,34 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
   public void Test_OnTestFailed_BuildTypeIsNull() {
     when(mySRunningBuild.getBuildType()).thenReturn(null);
 
-    //myProcessor.processFailedTest(mySRunningBuild, mySTestRun, myTestProblemInfo);
+    myProcessor.processFailedTest(mySBuild,
+                                  Collections.singletonList(myBuildProblem),
+                                  Collections.singletonList(mySTestRun));
 
     Mockito.verify(mySTestRun, Mockito.never()).getTest();
   }
 
   public void Test_OnTestFailed_BuildTypeNotNull() {
+    SUser sUser = Mockito.mock(SUser.class);
     when(mySRunningBuild.getBuildType()).thenReturn(mySBuildType);
+    HeuristicResult heuristicResult = new HeuristicResult();
+    when(myResponsibleUserFinder.findResponsibleUser(any(), anyList(), anyList())).thenReturn(heuristicResult);
+    heuristicResult.addResponsibility(mySTestRun, new Responsibility(sUser, "some text"));
 
-   // myProcessor.processFailedTest(mySRunningBuild, mySTestRun, myTestProblemInfo);
+    myProcessor.processFailedTest(mySBuild,
+                                  Collections.singletonList(myBuildProblem),
+                                  Collections.singletonList(mySTestRun));
 
     Mockito.verify(mySTestRun, Mockito.atLeastOnce()).getTest();
   }
 
   public void Test_OnTestFailed_ResponsibleUserNotFound() {
-   // when(myResponsibleUserFinder.findResponsibleUser(any())).thenReturn(null);
+    HeuristicResult emptyHeuristicResult = new HeuristicResult();
+    when(myResponsibleUserFinder.findResponsibleUser(any(), anyList(), anyList())).thenReturn(emptyHeuristicResult);
 
-   // myProcessor.processFailedTest(mySRunningBuild, mySTestRun, myTestProblemInfo);
+    myProcessor.processFailedTest(mySBuild,
+                                  Collections.singletonList(myBuildProblem),
+                                  Collections.singletonList(mySTestRun));
 
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.never())
            .setTestNameResponsibility(any(TestName.class), anyString(), any());
@@ -117,10 +122,13 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
 
   public void Test_OnTestFailed_ResponsibleUserFound() {
     SUser sUser = Mockito.mock(SUser.class);
-    Pair<User, String> anyPair = new Pair<>(sUser, "Failed description");
-    //when(myResponsibleUserFinder.findResponsibleUser(any())).thenReturn(anyPair);
+    HeuristicResult heuristicResult = new HeuristicResult();
+    heuristicResult.addResponsibility(mySTestRun, new Responsibility(sUser, "Failed description"));
+    when(myResponsibleUserFinder.findResponsibleUser(any(), anyList(), anyList())).thenReturn(heuristicResult);
 
-    //myProcessor.processFailedTest(mySRunningBuild, mySTestRun, myTestProblemInfo);
+    myProcessor.processFailedTest(mySBuild,
+                                  Collections.singletonList(myBuildProblem),
+                                  Collections.singletonList(mySTestRun));
 
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.atLeastOnce())
            .setTestNameResponsibility(any(TestName.class), any(), any());
@@ -159,7 +167,8 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
   }
 
   public void Test_BuildProblemOccurred_ResponsibleUserNotFound() {
-  //  when(myResponsibleUserFinder.findResponsibleUser(any())).thenReturn(null);
+    HeuristicResult emptyHeuristicResult = new HeuristicResult();
+    when(myResponsibleUserFinder.findResponsibleUser(any(), anyList(), anyList())).thenReturn(emptyHeuristicResult);
 
     myProcessor.onBuildProblemOccurred(mySBuild, myBuildProblem);
 
@@ -169,8 +178,9 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
 
   public void Test_BuildProblemOccurred_ResponsibleUserFound() {
     SUser sUser = Mockito.mock(SUser.class);
-    Pair<User, String> anyPair = new Pair<>(sUser, "Failed description");
-  //  when(myResponsibleUserFinder.findResponsibleUser(any())).thenReturn(anyPair);
+    HeuristicResult heuristicResult = new HeuristicResult();
+    heuristicResult.addResponsibility(myBuildProblem, new Responsibility(sUser, "Failed description"));
+    when(myResponsibleUserFinder.findResponsibleUser(any(), anyList(), anyList())).thenReturn(heuristicResult);
 
     myProcessor.onBuildProblemOccurred(mySBuild, myBuildProblem);
 

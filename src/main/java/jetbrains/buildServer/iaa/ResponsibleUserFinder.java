@@ -47,9 +47,11 @@ public class ResponsibleUserFinder {
         .filter(buildProblem -> heuristicResult.getResponsibility(buildProblem) == null)
         .collect(Collectors.toList());
 
-      FailedBuildContext buildContext = new FailedBuildContext(sBuild, actualBuildProblems, actualSTestRuns);
+      if (!actualSTestRuns.isEmpty() || !actualBuildProblems.isEmpty()) {
+        FailedBuildContext buildContext = new FailedBuildContext(sBuild, actualBuildProblems, actualSTestRuns);
 
-      heuristicResult.merge(heuristic.findResponsibleUser(buildContext));
+        heuristicResult.merge(heuristic.findResponsibleUser(buildContext));
+      }
     }
 
     return heuristicResult;

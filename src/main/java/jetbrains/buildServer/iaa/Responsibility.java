@@ -27,7 +27,7 @@ public class Responsibility {
     myDescription = description;
   }
 
-  User getUser() {
+  public User getUser() {
     return myUser;
   }
 

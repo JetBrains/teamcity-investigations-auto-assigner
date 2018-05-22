@@ -3,7 +3,6 @@ package jetbrains.buildServer.iaa.utils;
 import java.util.Collections;
 import java.util.Date;
 import jetbrains.buildServer.BaseTestCase;
-import jetbrains.buildServer.iaa.TestProblemInfo;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityEntry;
@@ -40,7 +39,6 @@ public class InvestigationsManagerTest extends BaseTestCase {
   private TestNameResponsibilityEntry myResponsibilityEntry;
   private SBuild mySBuild;
   private User myUser;
-  private TestProblemInfo myTestProblemInfo;
 
   @BeforeMethod
   @Override
@@ -50,7 +48,6 @@ public class InvestigationsManagerTest extends BaseTestCase {
     myProject2 = Mockito.mock(SProject.class);
     mySBuild = Mockito.mock(SBuild.class);
     myUser = Mockito.mock(User.class);
-    myTestProblemInfo = Mockito.mock(TestProblemInfo.class);
     SProject parentProject = Mockito.mock(SProject.class);
     when(mySProject.getParentProject()).thenReturn(parentProject);
     when(mySProject.getProjectId()).thenReturn("Project ID");
@@ -79,9 +76,6 @@ public class InvestigationsManagerTest extends BaseTestCase {
     when(mySTestRun.getTest()).thenReturn(mySTest);
     when(mySTest.getAllResponsibilities()).thenReturn(Collections.singletonList(myResponsibilityEntry));
     when(mySTest.getProjectId()).thenReturn("123");
-    when(myTestProblemInfo.getSTest()).thenReturn(mySTest);
-    when(myTestProblemInfo.getSBuild()).thenReturn(mySBuild);
-    when(myTestProblemInfo.getSProject()).thenReturn(mySProject);
 
     myInvestigationsManager = new InvestigationsManager(auditLogProvider, responsibilityFacade);
   }

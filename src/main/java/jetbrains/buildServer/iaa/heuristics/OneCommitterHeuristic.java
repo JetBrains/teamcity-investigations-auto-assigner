@@ -51,11 +51,13 @@ public class OneCommitterHeuristic implements Heuristic {
     final Set<SUser> committers = build.getCommitters(selectPrevBuildPolicy).getUsers();
     if (committers.isEmpty()) {
       LOGGER.debug("There are no committers since last build for failed build #" + build.getBuildId());
+      return result;
     }
 
     if (committers.size() != 1) {
       LOGGER.debug(String.format("There are more then one committers (total: %d) since last build for failed build #%s",
                                  committers.size(), build.getBuildId()));
+      return result;
     }
 
 

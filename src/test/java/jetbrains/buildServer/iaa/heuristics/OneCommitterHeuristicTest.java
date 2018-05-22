@@ -16,14 +16,14 @@
 
 package jetbrains.buildServer.iaa.heuristics;
 
-import com.intellij.openapi.util.Pair;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import jetbrains.buildServer.BaseTestCase;
-import jetbrains.buildServer.iaa.ProblemInfo;
+import jetbrains.buildServer.iaa.FailedBuildContext;
+import jetbrains.buildServer.iaa.HeuristicResult;
 import jetbrains.buildServer.serverSide.SBuild;
-import jetbrains.buildServer.serverSide.SProject;
+import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.users.SUser;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.users.UserSet;
@@ -42,41 +42,46 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
   private UserSet myUserSetMock;
   private User myFirstUser;
   private SUser mySecondUser;
-  private ProblemInfo myProblemInfo;
+  private STestRun mySTestRun;
+  private FailedBuildContext myFailedBuildContext;
 
   @BeforeMethod
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     myHeuristic = new OneCommitterHeuristic();
-    final SBuild sBuildMock = Mockito.mock(SBuild.class);
-    final SProject sProjectMock = Mockito.mock(SProject.class);
+    final SBuild sBuild = Mockito.mock(SBuild.class);
     myUserSetMock = Mockito.mock(UserSet.class);
     myFirstUser = Mockito.mock(User.class);
     mySecondUser = Mockito.mock(SUser.class);
-    when(sBuildMock.getCommitters(SelectPrevBuildPolicy.SINCE_LAST_BUILD)).thenReturn(myUserSetMock);
-    myProblemInfo = new ProblemInfo(sBuildMock, sProjectMock, "problem text");
+    when(sBuild.getCommitters(SelectPrevBuildPolicy.SINCE_LAST_BUILD)).thenReturn(myUserSetMock);
+    mySTestRun = Mockito.mock(STestRun.class);
+    myFailedBuildContext =
+      new FailedBuildContext(sBuild, Collections.emptyList(), Collections.singletonList(mySTestRun));
   }
 
   public void TestWithOneResponsible() {
-    //when(myUserSetMock.getUsers()).thenReturn(new HashSet<>(Collections.singletonList(myFirstUser)));
-    //Pair<User, String> responsible = myHeuristic.findResponsibleUser(myProblemInfo);
-    //Assert.assertNotNull(responsible);
-    //Assert.assertEquals(responsible.first, myFirstUser);
-    Assert.fail();
+    when(myUserSetMock.getUsers()).thenReturn(new HashSet<>(Collections.singletonList(myFirstUser)));
+    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myFailedBuildContext);
+
+    Assert.assertFalse(heuristicResult.isEmpty());
+    Assert.assertNotNull(heuristicResult.getResponsibility(mySTestRun));
+    Assert.assertEquals(heuristicResult.getResponsibility(mySTestRun).getUser(), myFirstUser);
   }
 
   public void TestWithoutResponsible() {
-    //when(myUserSetMock.getUsers()).thenReturn(new HashSet<User>());
-    //Pair<User, String> responsible = myHeuristic.findResponsibleUser(myProblemInfo);
-    //Assert.assertNull(responsible);
-    Assert.fail();
+    when(myUserSetMock.getUsers()).thenReturn(new HashSet<User>());
+
+    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myFailedBuildContext);
+
+    Assert.assertTrue(heuristicResult.isEmpty());
   }
 
   public void TestWithManyResponsible() {
-    //when(myUserSetMock.getUsers()).thenReturn(new HashSet<>(Arrays.asList(myFirstUser, mySecondUser)));
-    //Pair<User, String> responsible = myHeuristic.findResponsibleUser(myProblemInfo);
-    Assert.fail();
-    //Assert.assertNull(responsible);
+    when(myUserSetMock.getUsers()).thenReturn(new HashSet<>(Arrays.asList(myFirstUser, mySecondUser)));
+
+    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myFailedBuildContext);
+
+    Assert.assertTrue(heuristicResult.isEmpty());
   }
 }

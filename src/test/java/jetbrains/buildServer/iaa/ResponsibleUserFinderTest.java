@@ -16,14 +16,13 @@
 
 package jetbrains.buildServer.iaa;
 
-import com.intellij.openapi.util.Pair;
 import java.util.Arrays;
+import java.util.Collections;
 import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.iaa.heuristics.Heuristic;
 import jetbrains.buildServer.serverSide.SBuild;
-import jetbrains.buildServer.serverSide.SProject;
+import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.users.SUser;
-import jetbrains.buildServer.users.User;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -38,7 +37,8 @@ public class ResponsibleUserFinderTest extends BaseTestCase {
   private ResponsibleUserFinder myUserFinder;
   private Heuristic myHeuristic;
   private Heuristic myHeuristic2;
-  private ProblemInfo myProblemInfo;
+  private SBuild mySBuild;
+  private STestRun mySTestRun;
 
   @BeforeMethod
   @Override
@@ -46,48 +46,55 @@ public class ResponsibleUserFinderTest extends BaseTestCase {
     super.setUp();
     myHeuristic = Mockito.mock(Heuristic.class);
     myHeuristic2 = Mockito.mock(Heuristic.class);
-    final SBuild SBuild = Mockito.mock(jetbrains.buildServer.serverSide.SBuild.class);
-    final SProject sProject = Mockito.mock(SProject.class);
-    myProblemInfo = new ProblemInfo(SBuild, sProject, "Problem text");
+    mySBuild = Mockito.mock(SBuild.class);
+    mySTestRun = Mockito.mock(STestRun.class);
     myUserFinder = new ResponsibleUserFinder(Arrays.asList(myHeuristic, myHeuristic2));
+    HeuristicResult heuristicResult1 = new HeuristicResult();
+    HeuristicResult heuristicResult2 = new HeuristicResult();
+    when(myHeuristic.findResponsibleUser(any())).thenReturn(heuristicResult1);
+    when(myHeuristic2.findResponsibleUser(any())).thenReturn(heuristicResult2);
   }
 
   public void Test_FindResponsibleUser_ResponsibleNotFound() {
-   // when(myHeuristic.findResponsibleUser(any())).thenReturn(null);
-  //  when(myHeuristic2.findResponsibleUser(any())).thenReturn(null);
-    //Pair<User, String> responsible = myUserFinder.findResponsibleUser(myProblemInfo);
-    Assert.fail();
-    //Assert.assertNull(responsible);
+    HeuristicResult result =
+      myUserFinder.findResponsibleUser(mySBuild, Collections.emptyList(), Collections.singletonList(mySTestRun));
+
+    Assert.assertTrue(result.isEmpty());
   }
 
   public void Test_FindResponsibleUser_CheckSecondIfNotFoundInFirst() {
-  //  when(myHeuristic.findResponsibleUser(any())).thenReturn(null);
+    HeuristicResult emptyHeuristicResult = new HeuristicResult();
+    when(myHeuristic.findResponsibleUser(any())).thenReturn(emptyHeuristicResult);
 
-  //  myUserFinder.findResponsibleUser(myProblemInfo);
+    myUserFinder.findResponsibleUser(mySBuild, Collections.emptyList(), Collections.singletonList(mySTestRun));
 
     Mockito.verify(myHeuristic2, Mockito.atLeastOnce()).findResponsibleUser(any());
   }
 
   public void Test_FindResponsibleUser_NotCallSecondIfFoundInFirst() {
     SUser sUser = Mockito.mock(SUser.class);
-    Pair<User, String> anyPair = new Pair<>(sUser, "Failed description");
-   // when(myHeuristic.findResponsibleUser(any())).thenReturn(anyPair);
+    HeuristicResult heuristicResult = new HeuristicResult();
+    heuristicResult.addResponsibility(mySTestRun, new Responsibility(sUser,"Failed description"));
+    when(myHeuristic.findResponsibleUser(any())).thenReturn(heuristicResult);
 
-  //  myUserFinder.findResponsibleUser(myProblemInfo);
+    myUserFinder.findResponsibleUser(mySBuild, Collections.emptyList(), Collections.singletonList(mySTestRun));
 
     Mockito.verify(myHeuristic2, Mockito.never()).findResponsibleUser(any());
   }
 
   public void Test_FindResponsibleUser_TakeFirstFound() {
     SUser sUser = Mockito.mock(SUser.class);
-    Pair<User, String> anyPair = new Pair<>(sUser, "Description 1");
-    Pair<User, String> anyPair2 = new Pair<>(sUser, "Description 2");
- //   when(myHeuristic.findResponsibleUser(any())).thenReturn(anyPair);
-  //  when(myHeuristic2.findResponsibleUser(any())).thenReturn(anyPair2);
+    HeuristicResult heuristicResult = new HeuristicResult();
+    HeuristicResult heuristicResult2 = new HeuristicResult();
+    heuristicResult.addResponsibility(mySTestRun, new Responsibility(sUser,"Failed description"));
+    when(myHeuristic.findResponsibleUser(any())).thenReturn(heuristicResult);
+    heuristicResult2.addResponsibility(mySTestRun, new Responsibility(sUser,"Failed description 2"));
+    when(myHeuristic2.findResponsibleUser(any())).thenReturn(heuristicResult2);
 
-  //  Pair<User, String> responsible = myUserFinder.findResponsibleUser(myProblemInfo);
-      Assert.fail();
-//    Assert.assertNotNull(responsible);
- //   Assert.assertEquals(responsible.second, "Description 1");
+    HeuristicResult result =
+      myUserFinder.findResponsibleUser(mySBuild, Collections.emptyList(), Collections.singletonList(mySTestRun));
+    Assert.assertFalse(result.isEmpty());
+    Assert.assertNotNull(result.getResponsibility(mySTestRun));
+    Assert.assertEquals(result.getResponsibility(mySTestRun).getDescription(), "Failed description");
   }
 }

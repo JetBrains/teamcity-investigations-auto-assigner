@@ -64,24 +64,29 @@ public class PreviousResponsibleHeuristic implements Heuristic {
       STest sTest = sTestRun.getTest();
 
       User responsibleUser = myInvestigationsManager.findPreviousResponsible(sProject, sBuild, sTest);
+
       if (responsibleUser == null) {
         responsibleUser = testId2Responsible.get(sTest.getTestNameId());
       }
 
-      String description = String.format("%s you were responsible for the test: `%s` in build `%s` previous time",
-                                         Constants.REASON_PREFIX, sTest.getName(), sBuild.getFullName());
+      if (responsibleUser != null) {
+        String description = String.format("%s you were responsible for the test: `%s` in build `%s` previous time",
+                                           Constants.REASON_PREFIX, sTest.getName(), sBuild.getFullName());
 
-      result.addResponsibility(sTestRun, new Responsibility(responsibleUser, description));
+        result.addResponsibility(sTestRun, new Responsibility(responsibleUser, description));
+      }
     }
 
     for (BuildProblem buildProblem : failedBuildContext.buildProblems) {
       User responsibleUser = myInvestigationsManager.findPreviousResponsible(sProject, sBuild, buildProblem);
-      String buildProblemType = buildProblem.getBuildProblemData().getType();
-      String description =
-        String.format("%s you were responsible for the build problem: `%s` in build `%s` previous time",
-                      Constants.REASON_PREFIX, buildProblemType, sBuild.getFullName());
+      if (responsibleUser != null) {
+        String buildProblemType = buildProblem.getBuildProblemData().getType();
+        String description =
+          String.format("%s you were responsible for the build problem: `%s` in build `%s` previous time",
+                        Constants.REASON_PREFIX, buildProblemType, sBuild.getFullName());
 
-      result.addResponsibility(buildProblem, new Responsibility(responsibleUser, description));
+        result.addResponsibility(buildProblem, new Responsibility(responsibleUser, description));
+      }
     }
 
     return result;

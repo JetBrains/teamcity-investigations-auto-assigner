@@ -25,7 +25,7 @@ public class FailedBuildContext {
   public final Iterable<BuildProblem> buildProblems;
   public final Iterable<STestRun> sTestRuns;
 
-  FailedBuildContext(SBuild sBuild, Iterable<BuildProblem> buildProblems, Iterable<STestRun> sTestRuns) {
+  public FailedBuildContext(SBuild sBuild, Iterable<BuildProblem> buildProblems, Iterable<STestRun> sTestRuns) {
     this.sBuild = sBuild;
     this.buildProblems = buildProblems;
     this.sTestRuns = sTestRuns;
