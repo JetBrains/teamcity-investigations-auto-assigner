@@ -18,6 +18,7 @@ package jetbrains.buildServer.iaa;
 
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.Collections;
+import java.util.List;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityFacade;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntryFactory;
@@ -48,16 +49,14 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     myBuildApplicabilityChecker = buildApplicabilityChecker;
   }
 
-  public void processFailedTest(@NotNull FailedBuildContext failedBuildContext) {
-    SBuild sBuild = failedBuildContext.getSBuild();
-    assert sBuild.getBuildType() != null;
-
+  public void processFailedTest(SBuild sBuild, List<BuildProblem> buildProblems, List<STestRun> sTestRuns) {
     final SBuildType buildType = sBuild.getBuildType();
+    assert buildType != null;
 
+    HeuristicResult heuristicsResult = myResponsibleUserFinder.findResponsibleUser(sBuild, buildProblems, sTestRuns);
 
-    myResponsibleUserFinder.findResponsibleUser(failedBuildContext);
-    for (STestRun sTestRun : failedBuildContext.getTestRuns()) {
-      Responsibility responsibility = failedBuildContext.getResponsibility(sTestRun);
+    for (STestRun sTestRun : sTestRuns) {
+      Responsibility responsibility = heuristicsResult.getResponsibility(sTestRun);
       if (responsibility != null) {
         final STest test = sTestRun.getTest();
         final SProject project = buildType.getProject();
@@ -73,8 +72,8 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
       }
     }
 
-    for (BuildProblem buildProblem : failedBuildContext.getBuildProblems()) {
-      Responsibility responsibility = failedBuildContext.getResponsibility(buildProblem);
+    for (BuildProblem buildProblem : buildProblems) {
+      Responsibility responsibility = heuristicsResult.getResponsibility(buildProblem);
       if (responsibility != null) {
         final SProject project = buildType.getProject();
 
@@ -99,11 +98,10 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
       return;
     }
 
-    FailedBuildContext failedBuildContext =
-      new FailedBuildContext(build, Collections.singletonList(problem), Collections.emptyList());
-    myResponsibleUserFinder.findResponsibleUser(failedBuildContext);
+    HeuristicResult result =
+      myResponsibleUserFinder.findResponsibleUser(build, Collections.singletonList(problem), Collections.emptyList());
 
-    Responsibility responsibility = failedBuildContext.getResponsibility(problem);
+    Responsibility responsibility = result.getResponsibility(problem);
     if (responsibility == null) return;
 
     myBuildProblemResponsibilityFacade.setBuildProblemResponsibility(

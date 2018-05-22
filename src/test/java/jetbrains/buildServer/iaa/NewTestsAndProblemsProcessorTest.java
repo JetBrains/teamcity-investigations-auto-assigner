@@ -32,6 +32,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -146,7 +147,7 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
 
     myProcessor.onBuildProblemOccurred(mySBuild, myBuildProblem);
 
-    Mockito.verify(myResponsibleUserFinder, Mockito.never()).findResponsibleUser(any());
+    Mockito.verify(myResponsibleUserFinder, Mockito.never()).findResponsibleUser(any(), anyList(), anyList());
   }
 
   public void Test_BuildProblemOccurred_ApplicabilitySucceed() {
@@ -154,7 +155,7 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
 
     myProcessor.onBuildProblemOccurred(mySBuild, myBuildProblem);
 
-    Mockito.verify(myResponsibleUserFinder, Mockito.atLeastOnce()).findResponsibleUser(any());
+    Mockito.verify(myResponsibleUserFinder, Mockito.atLeastOnce()).findResponsibleUser(any(), anyList(), anyList());
   }
 
   public void Test_BuildProblemOccurred_ResponsibleUserNotFound() {

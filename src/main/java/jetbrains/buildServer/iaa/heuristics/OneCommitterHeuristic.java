@@ -19,6 +19,7 @@ package jetbrains.buildServer.iaa.heuristics;
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.Set;
 import jetbrains.buildServer.iaa.FailedBuildContext;
+import jetbrains.buildServer.iaa.HeuristicResult;
 import jetbrains.buildServer.iaa.Responsibility;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.serverSide.SBuild;
@@ -42,13 +43,16 @@ public class OneCommitterHeuristic implements Heuristic {
   }
 
   @Override
-  public void findResponsibleUser(@NotNull FailedBuildContext failedBuildContext) {
+  public HeuristicResult findResponsibleUser(@NotNull FailedBuildContext failedBuildContext) {
+    HeuristicResult result = new HeuristicResult();
+
     SBuild build = failedBuildContext.getSBuild();
     final SelectPrevBuildPolicy selectPrevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
     final Set<SUser> committers = build.getCommitters(selectPrevBuildPolicy).getUsers();
     if (committers.isEmpty()) {
       LOGGER.debug("There are no committers since last build for failed build #" + build.getBuildId());
     }
+
     if (committers.size() != 1) {
       LOGGER.debug(String.format("There are more then one committers (total: %d) since last build for failed build #%s",
                                  committers.size(), build.getBuildId()));
@@ -60,9 +64,11 @@ public class OneCommitterHeuristic implements Heuristic {
                                                   "build: %s # %s", Constants.REASON_PREFIX,
                                                   build.getFullName(), build.getBuildNumber()));
 
-    failedBuildContext.sTestRuns.forEach(sTestRun -> failedBuildContext.addResponsibility(sTestRun, responsibility));
+    failedBuildContext.sTestRuns.forEach(sTestRun -> result.addResponsibility(sTestRun, responsibility));
 
     failedBuildContext.buildProblems
-      .forEach(buildProblem -> failedBuildContext.addResponsibility(buildProblem, responsibility));
+      .forEach(buildProblem -> result.addResponsibility(buildProblem, responsibility));
+
+    return result;
   }
 }

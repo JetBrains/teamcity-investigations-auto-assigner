@@ -18,7 +18,11 @@ package jetbrains.buildServer.iaa;
 
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
+import java.util.stream.Collectors;
 import jetbrains.buildServer.iaa.heuristics.Heuristic;
+import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.STestRun;
+import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.jetbrains.annotations.NotNull;
 
 public class ResponsibleUserFinder {
@@ -29,9 +33,25 @@ public class ResponsibleUserFinder {
     myOrderedHeuristics = orderedHeuristics;
   }
 
- void findResponsibleUser(@NotNull FailedBuildContext failedBuildContext) {
-    for (Heuristic heuristic: myOrderedHeuristics) {
-      heuristic.findResponsibleUser(failedBuildContext);
+  HeuristicResult findResponsibleUser(SBuild sBuild, List<BuildProblem> buildProblems, List<STestRun> sTestRuns) {
+    HeuristicResult heuristicResult = new HeuristicResult();
+
+    for (Heuristic heuristic : myOrderedHeuristics) {
+      List<STestRun> actualSTestRuns = sTestRuns
+        .stream()
+        .filter(sTestRun -> heuristicResult.getResponsibility(sTestRun) == null)
+        .collect(Collectors.toList());
+
+      List<BuildProblem> actualBuildProblems = buildProblems
+        .stream()
+        .filter(buildProblem -> heuristicResult.getResponsibility(buildProblem) == null)
+        .collect(Collectors.toList());
+
+      FailedBuildContext buildContext = new FailedBuildContext(sBuild, actualBuildProblems, actualSTestRuns);
+
+      heuristicResult.merge(heuristic.findResponsibleUser(buildContext));
     }
+
+    return heuristicResult;
   }
 }

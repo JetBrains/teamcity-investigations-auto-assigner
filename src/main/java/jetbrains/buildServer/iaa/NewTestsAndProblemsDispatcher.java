@@ -115,8 +115,8 @@ public class NewTestsAndProblemsDispatcher {
                                                    .limit(threshold - buildInfo.processed)
                                                    .collect(Collectors.toList());
     buildInfo.processed += applicableTestRuns.size();
-    FailedBuildContext failedBuildContext = new FailedBuildContext(build, Collections.emptyList(), applicableTestRuns);
-    myProcessor.processFailedTest(failedBuildContext);
+
+    myProcessor.processFailedTest(build, Collections.emptyList(), applicableTestRuns);
 
     if (shouldDelete) {
       myFailedBuildManager.removeBuild(build);
@@ -127,8 +127,7 @@ public class NewTestsAndProblemsDispatcher {
 
   private List<STestRun> requestBrokenTestsWithStats(final SBuild build) {
     BuildStatisticsOptions options = new BuildStatisticsOptions(
-      BuildStatisticsOptions.FIRST_FAILED_IN_BUILD | BuildStatisticsOptions.FIXED_IN_BUILD,
-      -1);
+      BuildStatisticsOptions.FIRST_FAILED_IN_BUILD | BuildStatisticsOptions.FIXED_IN_BUILD, -1);
     BuildStatistics stats = build.getBuildStatistics(options);
 
     return stats.getFailedTests();

@@ -18,6 +18,7 @@ package jetbrains.buildServer.iaa.heuristics;
 
 import java.util.HashMap;
 import jetbrains.buildServer.iaa.FailedBuildContext;
+import jetbrains.buildServer.iaa.HeuristicResult;
 import jetbrains.buildServer.iaa.Responsibility;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.iaa.utils.InvestigationsManager;
@@ -49,7 +50,9 @@ public class PreviousResponsibleHeuristic implements Heuristic {
     return "Assign an investigation to a user if the user was responsible previous time.";
   }
 
-  public void findResponsibleUser(@NotNull FailedBuildContext failedBuildContext) {
+  public HeuristicResult findResponsibleUser(@NotNull FailedBuildContext failedBuildContext) {
+    HeuristicResult result = new HeuristicResult();
+
     SBuild sBuild = failedBuildContext.getSBuild();
     assert sBuild.getBuildType() != null;
 
@@ -68,7 +71,7 @@ public class PreviousResponsibleHeuristic implements Heuristic {
       String description = String.format("%s you were responsible for the test: `%s` in build `%s` previous time",
                                          Constants.REASON_PREFIX, sTest.getName(), sBuild.getFullName());
 
-      failedBuildContext.addResponsibility(sTestRun, new Responsibility(responsibleUser, description));
+      result.addResponsibility(sTestRun, new Responsibility(responsibleUser, description));
     }
 
     for (BuildProblem buildProblem : failedBuildContext.buildProblems) {
@@ -78,7 +81,9 @@ public class PreviousResponsibleHeuristic implements Heuristic {
         String.format("%s you were responsible for the build problem: `%s` in build `%s` previous time",
                       Constants.REASON_PREFIX, buildProblemType, sBuild.getFullName());
 
-      failedBuildContext.addResponsibility(buildProblem, new Responsibility(responsibleUser, description));
+      result.addResponsibility(buildProblem, new Responsibility(responsibleUser, description));
     }
+
+    return result;
   }
 }

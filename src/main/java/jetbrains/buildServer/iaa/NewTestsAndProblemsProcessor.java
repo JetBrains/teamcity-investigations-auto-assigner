@@ -16,12 +16,15 @@
 
 package jetbrains.buildServer.iaa;
 
+import java.util.List;
 import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
+import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.jetbrains.annotations.NotNull;
 
 public interface NewTestsAndProblemsProcessor {
-  void processFailedTest(@NotNull FailedBuildContext failedBuildContext);
+  void processFailedTest(SBuild sBuild, List<BuildProblem> buildProblems, List<STestRun> sTestRuns);
 
   void onBuildProblemOccurred(@NotNull SBuild build, @NotNull BuildProblemImpl problem);
 }

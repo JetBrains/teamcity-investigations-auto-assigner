@@ -21,6 +21,7 @@ import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 import jetbrains.buildServer.iaa.FailedBuildContext;
+import jetbrains.buildServer.iaa.HeuristicResult;
 import jetbrains.buildServer.iaa.Responsibility;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.iaa.utils.ProblemTextExtractor;
@@ -58,11 +59,12 @@ public class BrokenFileHeuristic implements Heuristic {
            "who changed the suspicious file. The suspicious file is the one that probably caused this failure.";
   }
 
-  public void findResponsibleUser(@NotNull FailedBuildContext failedBuildContext) {
+  public HeuristicResult findResponsibleUser(@NotNull FailedBuildContext failedBuildContext) {
+    HeuristicResult result = new HeuristicResult();
     SBuild sBuild = failedBuildContext.getSBuild();
 
     final BuildPromotion buildPromotion = sBuild.getBuildPromotion();
-    if (!(buildPromotion instanceof BuildPromotionEx)) return;
+    if (!(buildPromotion instanceof BuildPromotionEx)) return result;
 
     SelectPrevBuildPolicy prevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
     List<SVcsModification> vcsChanges = ((BuildPromotionEx)buildPromotion).getDetectedChanges(prevBuildPolicy, true)
@@ -73,16 +75,16 @@ public class BrokenFileHeuristic implements Heuristic {
     for (STestRun sTestRun : failedBuildContext.getTestRuns()) {
       String problemText = myProblemTextExtractor.getBuildProblemText(sTestRun);
       Responsibility responsibility = findResponsibleUser(vcsChanges, sBuild, problemText);
-      failedBuildContext.addResponsibility(sTestRun, responsibility);
+      result.addResponsibility(sTestRun, responsibility);
     }
 
     for (BuildProblem buildProblem : failedBuildContext.getBuildProblems()) {
       String problemText = myProblemTextExtractor.getBuildProblemText(buildProblem, sBuild);
       Responsibility responsibility = findResponsibleUser(vcsChanges, sBuild, problemText);
-      failedBuildContext.addResponsibility(buildProblem, responsibility);
+      result.addResponsibility(buildProblem, responsibility);
     }
 
-
+    return result;
   }
 
   private Responsibility findResponsibleUser(List<SVcsModification> vcsChanges, SBuild sBuild, String problemText) {
