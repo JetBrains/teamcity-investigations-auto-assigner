@@ -53,45 +53,6 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     myTestApplicabilityChecker = testApplicabilityChecker;
   }
 
-  private void processFailedBuild(SBuild sBuild, List<BuildProblem> buildProblems, List<STestRun> sTestRuns) {
-    final SBuildType buildType = sBuild.getBuildType();
-    assert buildType != null;
-
-    HeuristicResult heuristicsResult = myResponsibleUserFinder.findResponsibleUser(sBuild, buildProblems, sTestRuns);
-
-    for (STestRun sTestRun : sTestRuns) {
-      Responsibility responsibility = heuristicsResult.getResponsibility(sTestRun);
-      if (responsibility != null) {
-        final STest test = sTestRun.getTest();
-        final SProject project = buildType.getProject();
-        final TestName testName = test.getName();
-
-        myTestNameResponsibilityFacade.setTestNameResponsibility(
-          testName, project.getProjectId(),
-          ResponsibilityEntryFactory.createEntry(
-            testName, test.getTestNameId(), ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null,
-            Dates.now(), responsibility.getDescription(), project, ResponsibilityEntry.RemoveMethod.WHEN_FIXED
-          )
-        );
-      }
-    }
-
-    for (BuildProblem buildProblem : buildProblems) {
-      Responsibility responsibility = heuristicsResult.getResponsibility(buildProblem);
-      if (responsibility != null) {
-        final SProject project = buildType.getProject();
-
-        myBuildProblemResponsibilityFacade.setBuildProblemResponsibility(
-          buildProblem, project.getProjectId(),
-          new BuildProblemResponsibilityEntryImpl(
-            ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
-            responsibility.getDescription(), ResponsibilityEntry.RemoveMethod.WHEN_FIXED, project, buildProblem.getId()
-          )
-        );
-      }
-    }
-  }
-
   @Override
   public Boolean processBuild(final FailedBuildInfo failedBuildInfo) {
     SBuild build = failedBuildInfo.getSBuild();
@@ -118,11 +79,12 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     BuildProblemImpl.fillIsNew(build.getBuildPromotion(), buildProblems);
 
     List<BuildProblem> applicableBuildProblems = buildProblems.stream()
-                 .filter(failedBuildInfo::checkNotProcessed)
-                 .filter(buildProblem -> myBuildApplicabilityChecker
-                   .isApplicable(buildType.getProject(), build, buildProblem))
-                 .limit(threshold - failedBuildInfo.processed)
-                 .collect(Collectors.toList());
+                                                              .filter(failedBuildInfo::checkNotProcessed)
+                                                              .filter(buildProblem -> myBuildApplicabilityChecker
+                                                                .isApplicable(buildType.getProject(), build,
+                                                                              buildProblem))
+                                                              .limit(threshold - failedBuildInfo.processed)
+                                                              .collect(Collectors.toList());
 
     failedBuildInfo.addProcessedBuildProblems(buildProblems);
     failedBuildInfo.processed += buildProblems.size();
@@ -137,5 +99,42 @@ public class NewTestsAndProblemsProcessorImpl implements NewTestsAndProblemsProc
     BuildStatistics stats = build.getBuildStatistics(options);
 
     return stats.getFailedTests();
+  }
+
+  private void processFailedBuild(SBuild sBuild, List<BuildProblem> buildProblems, List<STestRun> sTestRuns) {
+    final SBuildType buildType = sBuild.getBuildType();
+    assert buildType != null;
+    final SProject project = buildType.getProject();
+
+    HeuristicResult heuristicsResult = myResponsibleUserFinder.findResponsibleUser(sBuild, buildProblems, sTestRuns);
+
+    for (STestRun sTestRun : sTestRuns) {
+      Responsibility responsibility = heuristicsResult.getResponsibility(sTestRun);
+      if (responsibility != null) {
+        final STest test = sTestRun.getTest();
+        final TestName testName = test.getName();
+
+        myTestNameResponsibilityFacade.setTestNameResponsibility(
+          testName, project.getProjectId(),
+          ResponsibilityEntryFactory.createEntry(
+            testName, test.getTestNameId(), ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null,
+            Dates.now(), responsibility.getDescription(), project, ResponsibilityEntry.RemoveMethod.WHEN_FIXED
+          )
+        );
+      }
+    }
+
+    for (BuildProblem buildProblem : buildProblems) {
+      Responsibility responsibility = heuristicsResult.getResponsibility(buildProblem);
+      if (responsibility != null) {
+        myBuildProblemResponsibilityFacade.setBuildProblemResponsibility(
+          buildProblem, project.getProjectId(),
+          new BuildProblemResponsibilityEntryImpl(
+            ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
+            responsibility.getDescription(), ResponsibilityEntry.RemoveMethod.WHEN_FIXED, project, buildProblem.getId()
+          )
+        );
+      }
+    }
   }
 }

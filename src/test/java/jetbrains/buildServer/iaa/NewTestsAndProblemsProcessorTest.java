@@ -16,7 +16,6 @@
 
 package jetbrains.buildServer.iaa;
 
-import java.util.Collections;
 import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityFacade;
