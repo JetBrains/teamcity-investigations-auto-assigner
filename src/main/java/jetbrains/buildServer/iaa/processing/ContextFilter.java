@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2014 JetBrains s.r.o.
+ * Copyright 2000-2018 JetBrains s.r.o.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-package jetbrains.buildServer.iaa;
+package jetbrains.buildServer.iaa.processing;
 
-public interface NewTestsAndProblemsProcessor {
-  Boolean processBuild(FailedBuildInfo failedBuildInfo);
+public interface ContextFilter {
+  HeuristicContext apply(HeuristicContext heuristicContext);
 }

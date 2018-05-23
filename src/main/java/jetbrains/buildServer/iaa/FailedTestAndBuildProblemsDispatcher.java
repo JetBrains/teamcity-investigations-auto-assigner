@@ -24,20 +24,22 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.iaa.common.Constants;
+import jetbrains.buildServer.iaa.common.FailedBuildInfo;
+import jetbrains.buildServer.iaa.processing.FailedTestAndBuildProblemsProcessor;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.stat.BuildTestsListener;
 import jetbrains.buildServer.util.executors.ExecutorsFactory;
 import org.jetbrains.annotations.NotNull;
 
-public class NewTestsAndProblemsDispatcher {
-  @NotNull private final NewTestsAndProblemsProcessor myProcessor;
+public class FailedTestAndBuildProblemsDispatcher {
+  @NotNull private final FailedTestAndBuildProblemsProcessor myProcessor;
   // Map isn't synchronized because we work with it from synchronized method
   @NotNull private final ConcurrentHashMap<Long, FailedBuildInfo> myFailedBuilds;
   @NotNull private final ScheduledExecutorService myDaemon;
 
-  public NewTestsAndProblemsDispatcher(@NotNull final BuildTestsEventDispatcher buildTestsEventDispatcher,
-                                       @NotNull final BuildServerListenerEventDispatcher buildServerListenerEventDispatcher,
-                                       @NotNull final NewTestsAndProblemsProcessor processor) {
+  public FailedTestAndBuildProblemsDispatcher(@NotNull final BuildTestsEventDispatcher buildTestsEventDispatcher,
+                                              @NotNull final BuildServerListenerEventDispatcher buildServerListenerEventDispatcher,
+                                              @NotNull final FailedTestAndBuildProblemsProcessor processor) {
     myProcessor = processor;
     myFailedBuilds = new ConcurrentHashMap<>();
     myDaemon = ExecutorsFactory.newFixedScheduledDaemonExecutor("Investigator-Auto-Assigner-", 1);
@@ -49,8 +51,11 @@ public class NewTestsAndProblemsDispatcher {
       }
 
       public void testFailed(@NotNull SRunningBuild build, @NotNull List<Long> testNameIds) {
-        if (shouldIgnore(build)) return;
-        myFailedBuilds.putIfAbsent(build.getBuildId(), new FailedBuildInfo(build));
+        SBuildType buildType = build.getBuildType();
+        if (shouldIgnore(build) || buildType == null) return;
+        SProject sProject = buildType.getProject();
+
+        myFailedBuilds.putIfAbsent(build.getBuildId(), new FailedBuildInfo(build, sProject));
       }
 
 
@@ -64,8 +69,11 @@ public class NewTestsAndProblemsDispatcher {
       public void buildProblemsChanged(@NotNull SBuild sBuild,
                                        @NotNull List<BuildProblemData> before,
                                        @NotNull List<BuildProblemData> after) {
-        if (shouldIgnore(sBuild) || !(sBuild instanceof BuildEx)) return;
-        myFailedBuilds.putIfAbsent(sBuild.getBuildId(), new FailedBuildInfo(sBuild));
+        SBuildType buildType = sBuild.getBuildType();
+        if (shouldIgnore(sBuild) || !(sBuild instanceof BuildEx) || buildType == null) return;
+        SProject sProject = buildType.getProject();
+
+        myFailedBuilds.putIfAbsent(sBuild.getBuildId(), new FailedBuildInfo(sBuild, sProject));
       }
 
       @Override

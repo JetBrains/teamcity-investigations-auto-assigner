@@ -18,6 +18,10 @@ package jetbrains.buildServer.iaa;
 
 import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.BuildProblemData;
+import jetbrains.buildServer.iaa.common.HeuristicResult;
+import jetbrains.buildServer.iaa.common.Responsibility;
+import jetbrains.buildServer.iaa.processing.FailedTestAndBuildProblemsProcessor;
+import jetbrains.buildServer.iaa.processing.ResponsibleUserFinder;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityFacade;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityFacade;
 import jetbrains.buildServer.serverSide.*;
@@ -34,8 +38,8 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 @Test
-public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
-  private NewTestsAndProblemsProcessorImpl myProcessor;
+public class NewTestsAndFailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
+  private FailedTestAndBuildProblemsProcessor myProcessor;
   private TestNameResponsibilityFacade myTestNameResponsibilityFacade;
   private BuildProblemResponsibilityFacade myBuildProblemResponsibilityFacade;
   private ResponsibleUserFinder myResponsibleUserFinder;
@@ -56,11 +60,11 @@ public class NewTestsAndProblemsProcessorTest extends BaseTestCase {
     myResponsibleUserFinder = Mockito.mock(ResponsibleUserFinder.class);
     myBuildApplicabilityChecker = Mockito.mock(BuildApplicabilityChecker.class);
     myTestApplicabilityChecker = Mockito.mock(TestApplicabilityChecker.class);
-    myProcessor = new NewTestsAndProblemsProcessorImpl(myTestNameResponsibilityFacade,
-                                                       myBuildProblemResponsibilityFacade,
-                                                       myResponsibleUserFinder,
-                                                       myBuildApplicabilityChecker,
-                                                       myTestApplicabilityChecker);
+    myProcessor = new FailedTestAndBuildProblemsProcessor(myTestNameResponsibilityFacade,
+                                                          myBuildProblemResponsibilityFacade,
+                                                          myResponsibleUserFinder,
+                                                          myBuildApplicabilityChecker,
+                                                          myTestApplicabilityChecker);
     final HeuristicResult heuristicsResult = new HeuristicResult();
     when(myResponsibleUserFinder.findResponsibleUser(any(), anyList(), anyList())).thenReturn(heuristicsResult);
     mySRunningBuild = Mockito.mock(SRunningBuild.class);

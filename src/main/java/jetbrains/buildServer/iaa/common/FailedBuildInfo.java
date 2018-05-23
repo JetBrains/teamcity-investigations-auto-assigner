@@ -14,48 +14,56 @@
  * limitations under the License.
  */
 
-package jetbrains.buildServer.iaa;
+package jetbrains.buildServer.iaa.common;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.jetbrains.annotations.NotNull;
 
-class FailedBuildInfo {
+public class FailedBuildInfo {
 
   private SBuild mySBuild;
+  private SProject mySProject;
+
   private Set<Integer> processedTests = new HashSet<>();
   private Set<Integer> processedBuildProblems = new HashSet<>();
-  int processed = 0;
+  public int processed = 0;
 
-  FailedBuildInfo(final SBuild sBuild) {
+  public FailedBuildInfo(final SBuild sBuild, final SProject sProject) {
     mySBuild = sBuild;
+    mySProject = sProject;
   }
 
   public SBuild getSBuild() {
     return mySBuild;
   }
 
-  void addProcessedTestRuns(@NotNull Collection<STestRun> tests) {
+  public void addProcessedTestRuns(@NotNull Collection<STestRun> tests) {
     for (STestRun testRun : tests) {
       processedTests.add(testRun.getTestRunId());
     }
   }
 
-  void addProcessedBuildProblems(@NotNull Collection<BuildProblem> buildProblems) {
+  public void addProcessedBuildProblems(@NotNull Collection<BuildProblem> buildProblems) {
     for (BuildProblem buildProblem : buildProblems) {
       processedBuildProblems.add(buildProblem.getId());
     }
   }
 
-  boolean checkNotProcessed(STestRun sTestRun) {
+  public boolean checkNotProcessed(STestRun sTestRun) {
     return !processedTests.contains(sTestRun.getTestRunId());
   }
 
-  boolean checkNotProcessed(final BuildProblem buildProblem) {
+  public boolean checkNotProcessed(final BuildProblem buildProblem) {
     return !processedBuildProblems.contains(buildProblem.getId());
+  }
+
+  public SProject getSProject() {
+    return mySProject;
   }
 }

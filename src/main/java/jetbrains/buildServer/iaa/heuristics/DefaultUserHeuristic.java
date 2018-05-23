@@ -18,10 +18,10 @@ package jetbrains.buildServer.iaa.heuristics;
 
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.Collection;
-import jetbrains.buildServer.iaa.FailedBuildContext;
-import jetbrains.buildServer.iaa.HeuristicResult;
-import jetbrains.buildServer.iaa.Responsibility;
 import jetbrains.buildServer.iaa.common.Constants;
+import jetbrains.buildServer.iaa.common.HeuristicResult;
+import jetbrains.buildServer.iaa.common.Responsibility;
+import jetbrains.buildServer.iaa.processing.HeuristicContext;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SBuildFeatureDescriptor;
 import jetbrains.buildServer.users.UserModelEx;
@@ -51,10 +51,10 @@ public class DefaultUserHeuristic implements Heuristic {
   }
 
   @Override
-  public HeuristicResult findResponsibleUser(@NotNull FailedBuildContext failedBuildContext) {
+  public HeuristicResult findResponsibleUser(@NotNull HeuristicContext heuristicContext) {
     HeuristicResult result = new HeuristicResult();
 
-    SBuild build = failedBuildContext.getSBuild();
+    SBuild build = heuristicContext.getSBuild();
     Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
     if (descriptors.isEmpty()) return result;
 
@@ -73,8 +73,9 @@ public class DefaultUserHeuristic implements Heuristic {
     Responsibility responsibility =
       new Responsibility(responsibleUser, Constants.REASON_PREFIX + " you're the default responsible " +
                                           "user for the build: " + build.getFullName() + " #" + build.getBuildNumber());
-    failedBuildContext.buildProblems.forEach(buildProblem -> result.addResponsibility(buildProblem, responsibility));
-    failedBuildContext.sTestRuns.forEach(testRun -> result.addResponsibility(testRun, responsibility));
+    heuristicContext.getBuildProblems()
+                    .forEach(buildProblem -> result.addResponsibility(buildProblem, responsibility));
+    heuristicContext.getSTestRuns().forEach(testRun -> result.addResponsibility(testRun, responsibility));
 
     return result;
   }

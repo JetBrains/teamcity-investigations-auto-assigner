@@ -19,7 +19,10 @@ package jetbrains.buildServer.iaa;
 import java.util.Arrays;
 import java.util.Collections;
 import jetbrains.buildServer.BaseTestCase;
+import jetbrains.buildServer.iaa.common.HeuristicResult;
+import jetbrains.buildServer.iaa.common.Responsibility;
 import jetbrains.buildServer.iaa.heuristics.Heuristic;
+import jetbrains.buildServer.iaa.processing.ResponsibleUserFinder;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.users.SUser;
@@ -74,7 +77,7 @@ public class ResponsibleUserFinderTest extends BaseTestCase {
   public void Test_FindResponsibleUser_NotCallSecondIfFoundInFirst() {
     SUser sUser = Mockito.mock(SUser.class);
     HeuristicResult heuristicResult = new HeuristicResult();
-    heuristicResult.addResponsibility(mySTestRun, new Responsibility(sUser,"Failed description"));
+    heuristicResult.addResponsibility(mySTestRun, new Responsibility(sUser, "Failed description"));
     when(myHeuristic.findResponsibleUser(any())).thenReturn(heuristicResult);
 
     myUserFinder.findResponsibleUser(mySBuild, Collections.emptyList(), Collections.singletonList(mySTestRun));

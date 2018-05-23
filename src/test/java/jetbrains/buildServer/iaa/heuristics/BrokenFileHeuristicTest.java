@@ -20,8 +20,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import jetbrains.buildServer.BaseTestCase;
-import jetbrains.buildServer.iaa.FailedBuildContext;
-import jetbrains.buildServer.iaa.HeuristicResult;
+import jetbrains.buildServer.iaa.processing.HeuristicContext;
+import jetbrains.buildServer.iaa.common.HeuristicResult;
 import jetbrains.buildServer.iaa.utils.ProblemTextExtractor;
 import jetbrains.buildServer.serverSide.BuildPromotionEx;
 import jetbrains.buildServer.serverSide.ChangeDescriptor;
@@ -50,7 +50,7 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
   private ChangeDescriptor myChangeDescriptor2;
   private SVcsModification myVcsModification;
   private SVcsModification myVcsModification2;
-  private FailedBuildContext myFailedBuildContext;
+  private HeuristicContext myHeuristicContext;
   private STestRun mySTestRun;
   private ProblemTextExtractor myProblemTextExtractor;
 
@@ -64,7 +64,7 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
     myUser = Mockito.mock(SUser.class);
     mySecondUser = Mockito.mock(SUser.class);
     mySTestRun = Mockito.mock(STestRun.class);
-    myFailedBuildContext = new FailedBuildContext(SBuild, Collections.emptyList(), Collections.singletonList(mySTestRun));
+    myHeuristicContext = new HeuristicContext(SBuild, Collections.emptyList(), Collections.singletonList(mySTestRun));
     myBuildPromotion = Mockito.mock(BuildPromotionEx.class);
     when(SBuild.getBuildPromotion()).thenReturn(myBuildPromotion);
     when(myProblemTextExtractor.getBuildProblemText(any())).thenReturn("I contain ./path1/path1/path1/filename");
@@ -100,7 +100,7 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
     when(myBuildPromotion.getDetectedChanges(SelectPrevBuildPolicy.SINCE_LAST_BUILD, true))
       .thenReturn(Collections.emptyList());
 
-    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myFailedBuildContext);
+    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 
     Assert.assertTrue(heuristicResult.isEmpty());
   }
@@ -109,7 +109,7 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
     when(myChangeDescriptor.getRelatedVcsChange()).thenReturn(null);
     when(myChangeDescriptor2.getRelatedVcsChange()).thenReturn(null);
 
-    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myFailedBuildContext);
+    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 
     Assert.assertTrue(heuristicResult.isEmpty());
   }
@@ -117,7 +117,7 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
   public void TestWithDetectedBrokenFileWithoutCommitters() {
     when(myVcsModification.getCommitters()).thenReturn(Collections.emptyList());
 
-    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myFailedBuildContext);
+    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 
     Assert.assertTrue(heuristicResult.isEmpty());
   }
@@ -128,7 +128,7 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
     when(myVcsModification.getCommitters()).thenReturn(Collections.singletonList(myUser));
     when(myVcsModification2.getCommitters()).thenReturn(Collections.emptyList());
 
-    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myFailedBuildContext);
+    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 
     Assert.assertFalse(heuristicResult.isEmpty());
     Assert.assertNotNull(heuristicResult.getResponsibility(mySTestRun));
@@ -139,7 +139,7 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
 
     when(myVcsModification.getCommitters()).thenReturn(Collections.singletonList(myUser));
     when(myVcsModification2.getCommitters()).thenReturn(Collections.singletonList(myUser));
-    heuristicResult = myHeuristic.findResponsibleUser(myFailedBuildContext);
+    heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
     Assert.assertFalse(heuristicResult.isEmpty());
     Assert.assertNotNull(heuristicResult.getResponsibility(mySTestRun));
     Assert.assertEquals(heuristicResult.getResponsibility(mySTestRun).getUser(), myUser);
@@ -150,11 +150,11 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
                                                                        "and ./path4/path4/path4/filename4");
     when(myVcsModification.getCommitters()).thenReturn(Collections.singletonList(myUser));
     when(myVcsModification2.getCommitters()).thenReturn(Collections.singletonList(mySecondUser));
-    HeuristicResult result = myHeuristic.findResponsibleUser(myFailedBuildContext);
+    HeuristicResult result = myHeuristic.findResponsibleUser(myHeuristicContext);
     Assert.assertTrue(result.isEmpty());
 
     when(myVcsModification.getCommitters()).thenReturn(Arrays.asList(myUser, mySecondUser));
-    result = myHeuristic.findResponsibleUser(myFailedBuildContext);
+    result = myHeuristic.findResponsibleUser(myHeuristicContext);
     Assert.assertTrue(result.isEmpty());
   }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package jetbrains.buildServer.iaa;
+package jetbrains.buildServer.iaa.common;
 
 import java.util.HashMap;
 import jetbrains.buildServer.serverSide.STestRun;
@@ -49,7 +49,7 @@ public class HeuristicResult {
     return buildProblem2Responsibility.get(buildProblem.getId());
   }
 
-  void merge(final HeuristicResult heuristicResult) {
+  public void merge(final HeuristicResult heuristicResult) {
     testRun2Responsibility.putAll(heuristicResult.testRun2Responsibility);
     buildProblem2Responsibility.putAll(heuristicResult.buildProblem2Responsibility);
   }

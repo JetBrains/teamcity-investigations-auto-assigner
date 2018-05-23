@@ -16,8 +16,8 @@
 
 package jetbrains.buildServer.iaa.heuristics;
 
-import jetbrains.buildServer.iaa.FailedBuildContext;
-import jetbrains.buildServer.iaa.HeuristicResult;
+import jetbrains.buildServer.iaa.common.HeuristicResult;
+import jetbrains.buildServer.iaa.processing.HeuristicContext;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -40,7 +40,7 @@ public interface Heuristic {
 
   /**
    * Try to detect which person is probably responsible.
-   * @param failedBuildContext {@link FailedBuildContext} object which presents known information about the problem.
+   * @param heuristicContext {@link HeuristicContext} object which presents known information about the problem.
    */
-  HeuristicResult findResponsibleUser(@NotNull FailedBuildContext failedBuildContext);
+  HeuristicResult findResponsibleUser(@NotNull HeuristicContext heuristicContext);
 }

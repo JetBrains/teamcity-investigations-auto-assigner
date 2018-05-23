@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package jetbrains.buildServer.iaa;
+package jetbrains.buildServer.iaa.processing;
 
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
 import java.util.stream.Collectors;
+import jetbrains.buildServer.iaa.common.HeuristicResult;
 import jetbrains.buildServer.iaa.heuristics.Heuristic;
-import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.jetbrains.annotations.NotNull;
@@ -33,22 +33,24 @@ public class ResponsibleUserFinder {
     myOrderedHeuristics = orderedHeuristics;
   }
 
-  HeuristicResult findResponsibleUser(SBuild sBuild, List<BuildProblem> buildProblems, List<STestRun> sTestRuns) {
+  HeuristicResult findResponsibleUser(HeuristicContext heuristicContext) {
     HeuristicResult heuristicResult = new HeuristicResult();
 
     for (Heuristic heuristic : myOrderedHeuristics) {
-      List<STestRun> actualSTestRuns = sTestRuns
-        .stream()
-        .filter(sTestRun -> heuristicResult.getResponsibility(sTestRun) == null)
-        .collect(Collectors.toList());
+      List<STestRun> actualSTestRuns = heuristicContext.getSTestRuns()
+                                                       .stream()
+                                                       .filter(sTestRun -> heuristicResult.getResponsibility(sTestRun) == null)
+                                                       .collect(Collectors.toList());
 
-      List<BuildProblem> actualBuildProblems = buildProblems
-        .stream()
-        .filter(buildProblem -> heuristicResult.getResponsibility(buildProblem) == null)
-        .collect(Collectors.toList());
+      List<BuildProblem> actualBuildProblems = heuristicContext.getBuildProblems()
+                                                               .stream()
+                                                               .filter(buildProblem -> heuristicResult.getResponsibility(buildProblem) == null)
+                                                               .collect(Collectors.toList());
 
       if (!actualSTestRuns.isEmpty() || !actualBuildProblems.isEmpty()) {
-        FailedBuildContext buildContext = new FailedBuildContext(sBuild, actualBuildProblems, actualSTestRuns);
+        HeuristicContext buildContext = new HeuristicContext(heuristicContext.getFailedBuildInfo(),
+                                                             actualBuildProblems,
+                                                             actualSTestRuns);
 
         heuristicResult.merge(heuristic.findResponsibleUser(buildContext));
       }

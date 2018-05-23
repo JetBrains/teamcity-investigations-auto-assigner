@@ -9,18 +9,16 @@
   <!-- declare all beans you like Spring Dependency Injection to create -->
   <!-- see http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html -->
 
-  <bean class="jetbrains.buildServer.iaa.NewTestsAndProblemsDispatcher">
+  <bean class="jetbrains.buildServer.iaa.FailedTestAndBuildProblemsDispatcher">
     <constructor-arg index="0" ref="buildTestsEventDispatcher"/>
   </bean>
 
   <bean class="jetbrains.buildServer.iaa.AutoAssignerBuildFeature"/>
-  <bean class="jetbrains.buildServer.iaa.NewTestsAndProblemsProcessorImpl"/>
+  <bean class="jetbrains.buildServer.iaa.processing.FailedTestAndBuildProblemsProcessor"/>
   <bean class="jetbrains.buildServer.iaa.utils.InvestigationsManager"/>
-  <bean class="jetbrains.buildServer.iaa.BuildApplicabilityChecker"/>
-  <bean class="jetbrains.buildServer.iaa.TestApplicabilityChecker"/>
   <bean class="jetbrains.buildServer.iaa.utils.FlakyTestDetector"/>
   <bean class="jetbrains.buildServer.iaa.utils.ProblemTextExtractor"/>
-  <bean class="jetbrains.buildServer.iaa.ResponsibleUserFinder">
+  <bean class="jetbrains.buildServer.iaa.processing.ResponsibleUserFinder">
     <constructor-arg index="0">
       <list>
         <ref bean="oneCommitterHeuristic"/>

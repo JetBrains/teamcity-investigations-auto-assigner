@@ -20,9 +20,9 @@ import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
-import jetbrains.buildServer.iaa.FailedBuildContext;
-import jetbrains.buildServer.iaa.HeuristicResult;
-import jetbrains.buildServer.iaa.Responsibility;
+import jetbrains.buildServer.iaa.processing.HeuristicContext;
+import jetbrains.buildServer.iaa.common.HeuristicResult;
+import jetbrains.buildServer.iaa.common.Responsibility;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.iaa.utils.ProblemTextExtractor;
 import jetbrains.buildServer.serverSide.*;
@@ -59,9 +59,9 @@ public class BrokenFileHeuristic implements Heuristic {
            "who changed the suspicious file. The suspicious file is the one that probably caused this failure.";
   }
 
-  public HeuristicResult findResponsibleUser(@NotNull FailedBuildContext failedBuildContext) {
+  public HeuristicResult findResponsibleUser(@NotNull HeuristicContext heuristicContext) {
     HeuristicResult result = new HeuristicResult();
-    SBuild sBuild = failedBuildContext.getSBuild();
+    SBuild sBuild = heuristicContext.getSBuild();
 
     final BuildPromotion buildPromotion = sBuild.getBuildPromotion();
     if (!(buildPromotion instanceof BuildPromotionEx)) return result;
@@ -72,14 +72,14 @@ public class BrokenFileHeuristic implements Heuristic {
                                                                           .map(ChangeDescriptor::getRelatedVcsChange)
                                                                           .filter(Objects::nonNull)
                                                                           .collect(Collectors.toList());
-    for (STestRun sTestRun : failedBuildContext.getTestRuns()) {
+    for (STestRun sTestRun : heuristicContext.getSTestRuns()) {
       String problemText = myProblemTextExtractor.getBuildProblemText(sTestRun);
       Responsibility responsibility = findResponsibleUser(vcsChanges, sBuild, problemText);
       if (responsibility != null)
         result.addResponsibility(sTestRun, responsibility);
     }
 
-    for (BuildProblem buildProblem : failedBuildContext.getBuildProblems()) {
+    for (BuildProblem buildProblem : heuristicContext.getBuildProblems()) {
       String problemText = myProblemTextExtractor.getBuildProblemText(buildProblem, sBuild);
       Responsibility responsibility = findResponsibleUser(vcsChanges, sBuild, problemText);
       if (responsibility != null)

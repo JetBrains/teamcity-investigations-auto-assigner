@@ -17,7 +17,6 @@
 package jetbrains.buildServer.iaa.utils;
 
 import javax.management.*;
-import jetbrains.buildServer.iaa.NewTestsAndProblemsProcessor;
 
 import static java.lang.String.format;
 import static java.lang.management.ManagementFactory.getPlatformMBeanServer;
@@ -31,7 +30,7 @@ public class FlakyTestDetector {
    * Whether InstanceNotFoundException has been caught.
    */
   private boolean instanceNotFound = false;
-  private final com.intellij.openapi.diagnostic.Logger LOGGER = com.intellij.openapi.diagnostic.Logger.getInstance(NewTestsAndProblemsProcessor.class.getName());
+  private final com.intellij.openapi.diagnostic.Logger LOGGER = com.intellij.openapi.diagnostic.Logger.getInstance(FlakyTestDetector.class.getName());
 
   /**
    * If Flaky Test Detector plug-in is not installed, returns false

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package jetbrains.buildServer.iaa;
+package jetbrains.buildServer.iaa.common;
 
 import jetbrains.buildServer.users.User;
 
@@ -31,7 +31,7 @@ public class Responsibility {
     return myUser;
   }
 
-  String getDescription() {
+  public String getDescription() {
     return myDescription;
   }
 }

@@ -20,8 +20,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import jetbrains.buildServer.BaseTestCase;
-import jetbrains.buildServer.iaa.FailedBuildContext;
-import jetbrains.buildServer.iaa.HeuristicResult;
+import jetbrains.buildServer.iaa.processing.HeuristicContext;
+import jetbrains.buildServer.iaa.common.HeuristicResult;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.users.SUser;
@@ -43,7 +43,7 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
   private User myFirstUser;
   private SUser mySecondUser;
   private STestRun mySTestRun;
-  private FailedBuildContext myFailedBuildContext;
+  private HeuristicContext myHeuristicContext;
 
   @BeforeMethod
   @Override
@@ -56,13 +56,13 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
     mySecondUser = Mockito.mock(SUser.class);
     when(sBuild.getCommitters(SelectPrevBuildPolicy.SINCE_LAST_BUILD)).thenReturn(myUserSetMock);
     mySTestRun = Mockito.mock(STestRun.class);
-    myFailedBuildContext =
-      new FailedBuildContext(sBuild, Collections.emptyList(), Collections.singletonList(mySTestRun));
+    myHeuristicContext =
+      new HeuristicContext(sBuild, Collections.emptyList(), Collections.singletonList(mySTestRun));
   }
 
   public void TestWithOneResponsible() {
     when(myUserSetMock.getUsers()).thenReturn(new HashSet<>(Collections.singletonList(myFirstUser)));
-    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myFailedBuildContext);
+    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 
     Assert.assertFalse(heuristicResult.isEmpty());
     Assert.assertNotNull(heuristicResult.getResponsibility(mySTestRun));
@@ -72,7 +72,7 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
   public void TestWithoutResponsible() {
     when(myUserSetMock.getUsers()).thenReturn(new HashSet<User>());
 
-    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myFailedBuildContext);
+    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 
     Assert.assertTrue(heuristicResult.isEmpty());
   }
@@ -80,7 +80,7 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
   public void TestWithManyResponsible() {
     when(myUserSetMock.getUsers()).thenReturn(new HashSet<>(Arrays.asList(myFirstUser, mySecondUser)));
 
-    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myFailedBuildContext);
+    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 
     Assert.assertTrue(heuristicResult.isEmpty());
   }

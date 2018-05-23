@@ -19,8 +19,8 @@ package jetbrains.buildServer.iaa.heuristics;
 import java.util.Collections;
 import java.util.HashMap;
 import jetbrains.buildServer.BaseTestCase;
-import jetbrains.buildServer.iaa.FailedBuildContext;
-import jetbrains.buildServer.iaa.HeuristicResult;
+import jetbrains.buildServer.iaa.processing.HeuristicContext;
+import jetbrains.buildServer.iaa.common.HeuristicResult;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SBuildFeatureDescriptor;
@@ -43,7 +43,7 @@ public class DefaultUserHeuristicTest extends BaseTestCase {
   private static final String USER_NAME = "rugpanov";
   private HashMap<String, String> myBuildFeatureParams;
   private STestRun mySTestRun;
-  private FailedBuildContext myFailedBuildContext;
+  private HeuristicContext myHeuristicContext;
 
   @BeforeMethod
   @Override
@@ -55,7 +55,7 @@ public class DefaultUserHeuristicTest extends BaseTestCase {
     mySBuild = Mockito.mock(SBuild.class);
     myUserEx = Mockito.mock(UserEx.class);
     mySTestRun = Mockito.mock(STestRun.class);
-    myFailedBuildContext = new FailedBuildContext(mySBuild, Collections.emptyList(), Collections.singletonList(mySTestRun));
+    myHeuristicContext = new HeuristicContext(mySBuild, Collections.emptyList(), Collections.singletonList(mySTestRun));
 
     myBuildFeatureParams = new HashMap<>();
     when(
@@ -67,18 +67,18 @@ public class DefaultUserHeuristicTest extends BaseTestCase {
   public void TestFeatureIsDisabled() {
     when(mySBuild.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE)).thenReturn(Collections.emptyList());
 
-    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myFailedBuildContext);
+    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 
     Assert.assertTrue(heuristicResult.isEmpty());
   }
 
   public void TestNoResponsibleSpecified() {
     when(mySBuild.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE)).thenReturn(Collections.emptyList());
-    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myFailedBuildContext);
+    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
     Assert.assertTrue(heuristicResult.isEmpty());
 
     myBuildFeatureParams.put(Constants.DEFAULT_RESPONSIBLE, "");
-    heuristicResult = myHeuristic.findResponsibleUser(myFailedBuildContext);
+    heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
     Assert.assertTrue(heuristicResult.isEmpty());
   }
 
@@ -86,7 +86,7 @@ public class DefaultUserHeuristicTest extends BaseTestCase {
     myBuildFeatureParams.put(Constants.DEFAULT_RESPONSIBLE, USER_NAME);
     when(myUserModelEx.findUserAccount(null, USER_NAME)).thenReturn(null);
 
-    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myFailedBuildContext);
+    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 
     Assert.assertTrue(heuristicResult.isEmpty());
   }
@@ -95,7 +95,7 @@ public class DefaultUserHeuristicTest extends BaseTestCase {
     myBuildFeatureParams.put(Constants.DEFAULT_RESPONSIBLE, USER_NAME);
     when(myUserModelEx.findUserAccount(null, USER_NAME)).thenReturn(myUserEx);
 
-    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myFailedBuildContext);
+    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 
     Assert.assertFalse(heuristicResult.isEmpty());
     Assert.assertNotNull(heuristicResult.getResponsibility(mySTestRun));

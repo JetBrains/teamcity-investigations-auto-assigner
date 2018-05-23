@@ -18,10 +18,10 @@ package jetbrains.buildServer.iaa.heuristics;
 
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.Set;
-import jetbrains.buildServer.iaa.FailedBuildContext;
-import jetbrains.buildServer.iaa.HeuristicResult;
-import jetbrains.buildServer.iaa.Responsibility;
 import jetbrains.buildServer.iaa.common.Constants;
+import jetbrains.buildServer.iaa.common.HeuristicResult;
+import jetbrains.buildServer.iaa.common.Responsibility;
+import jetbrains.buildServer.iaa.processing.HeuristicContext;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.users.SUser;
 import jetbrains.buildServer.vcs.SelectPrevBuildPolicy;
@@ -43,10 +43,10 @@ public class OneCommitterHeuristic implements Heuristic {
   }
 
   @Override
-  public HeuristicResult findResponsibleUser(@NotNull FailedBuildContext failedBuildContext) {
+  public HeuristicResult findResponsibleUser(@NotNull HeuristicContext heuristicContext) {
     HeuristicResult result = new HeuristicResult();
 
-    SBuild build = failedBuildContext.getSBuild();
+    SBuild build = heuristicContext.getSBuild();
     final SelectPrevBuildPolicy selectPrevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
     final Set<SUser> committers = build.getCommitters(selectPrevBuildPolicy).getUsers();
     if (committers.isEmpty()) {
@@ -66,10 +66,10 @@ public class OneCommitterHeuristic implements Heuristic {
                                                   "build: %s # %s", Constants.REASON_PREFIX,
                                                   build.getFullName(), build.getBuildNumber()));
 
-    failedBuildContext.sTestRuns.forEach(sTestRun -> result.addResponsibility(sTestRun, responsibility));
+    heuristicContext.getSTestRuns().forEach(sTestRun -> result.addResponsibility(sTestRun, responsibility));
 
-    failedBuildContext.buildProblems
-      .forEach(buildProblem -> result.addResponsibility(buildProblem, responsibility));
+    heuristicContext.getBuildProblems()
+                    .forEach(buildProblem -> result.addResponsibility(buildProblem, responsibility));
 
     return result;
   }

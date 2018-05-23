@@ -17,10 +17,10 @@
 package jetbrains.buildServer.iaa.heuristics;
 
 import java.util.HashMap;
-import jetbrains.buildServer.iaa.FailedBuildContext;
-import jetbrains.buildServer.iaa.HeuristicResult;
-import jetbrains.buildServer.iaa.Responsibility;
 import jetbrains.buildServer.iaa.common.Constants;
+import jetbrains.buildServer.iaa.common.HeuristicResult;
+import jetbrains.buildServer.iaa.common.Responsibility;
+import jetbrains.buildServer.iaa.processing.HeuristicContext;
 import jetbrains.buildServer.iaa.utils.InvestigationsManager;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
@@ -50,17 +50,14 @@ public class PreviousResponsibleHeuristic implements Heuristic {
     return "Assign an investigation to a user if the user was responsible previous time.";
   }
 
-  public HeuristicResult findResponsibleUser(@NotNull FailedBuildContext failedBuildContext) {
+  public HeuristicResult findResponsibleUser(@NotNull HeuristicContext heuristicContext) {
     HeuristicResult result = new HeuristicResult();
+    SBuild sBuild = heuristicContext.getSBuild();
+    SProject sProject = heuristicContext.getSProject();
+    Iterable<STestRun> sTestRuns = heuristicContext.getSTestRuns();
 
-    SBuild sBuild = failedBuildContext.getSBuild();
-    assert sBuild.getBuildType() != null;
-
-    SProject sProject = sBuild.getBuildType().getProject();
-    Iterable<STestRun> sTestRuns = failedBuildContext.sTestRuns;
     HashMap<Long, User> testId2Responsible = myInvestigationsManager.findInAudit(sTestRuns, sProject);
-
-    for (STestRun sTestRun : failedBuildContext.sTestRuns) {
+    for (STestRun sTestRun : heuristicContext.getSTestRuns()) {
       STest sTest = sTestRun.getTest();
 
       User responsibleUser = myInvestigationsManager.findPreviousResponsible(sProject, sBuild, sTest);
@@ -77,7 +74,7 @@ public class PreviousResponsibleHeuristic implements Heuristic {
       }
     }
 
-    for (BuildProblem buildProblem : failedBuildContext.buildProblems) {
+    for (BuildProblem buildProblem : heuristicContext.getBuildProblems()) {
       User responsibleUser = myInvestigationsManager.findPreviousResponsible(sProject, sBuild, buildProblem);
       if (responsibleUser != null) {
         String buildProblemType = buildProblem.getBuildProblemData().getType();
