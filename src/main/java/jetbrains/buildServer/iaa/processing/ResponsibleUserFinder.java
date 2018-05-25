@@ -37,7 +37,7 @@ public class ResponsibleUserFinder {
     HeuristicResult heuristicResult = new HeuristicResult();
 
     for (Heuristic heuristic : myOrderedHeuristics) {
-      List<STestRun> actualSTestRuns = heuristicContext.getSTestRuns()
+      List<STestRun> actualSTestRuns = heuristicContext.getTestRuns()
                                                        .stream()
                                                        .filter(sTestRun -> heuristicResult.getResponsibility(sTestRun) == null)
                                                        .collect(Collectors.toList());

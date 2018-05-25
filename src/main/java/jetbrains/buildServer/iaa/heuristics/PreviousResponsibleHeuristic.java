@@ -52,12 +52,12 @@ public class PreviousResponsibleHeuristic implements Heuristic {
 
   public HeuristicResult findResponsibleUser(@NotNull HeuristicContext heuristicContext) {
     HeuristicResult result = new HeuristicResult();
-    SBuild sBuild = heuristicContext.getSBuild();
-    SProject sProject = heuristicContext.getSProject();
-    Iterable<STestRun> sTestRuns = heuristicContext.getSTestRuns();
+    SBuild sBuild = heuristicContext.getBuild();
+    SProject sProject = heuristicContext.getProject();
+    Iterable<STestRun> sTestRuns = heuristicContext.getTestRuns();
 
     HashMap<Long, User> testId2Responsible = myInvestigationsManager.findInAudit(sTestRuns, sProject);
-    for (STestRun sTestRun : heuristicContext.getSTestRuns()) {
+    for (STestRun sTestRun : heuristicContext.getTestRuns()) {
       STest sTest = sTestRun.getTest();
 
       User responsibleUser = myInvestigationsManager.findPreviousResponsible(sProject, sBuild, sTest);

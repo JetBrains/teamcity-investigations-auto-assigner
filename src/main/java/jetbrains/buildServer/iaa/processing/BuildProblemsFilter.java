@@ -46,8 +46,8 @@ public class BuildProblemsFilter implements ContextFilter {
   @Override
   public HeuristicContext apply(final HeuristicContext heuristicContext) {
     FailedBuildInfo failedBuildInfo = heuristicContext.getFailedBuildInfo();
-    SBuild sBuild = heuristicContext.getSBuild();
-    SProject sProject = heuristicContext.getSProject();
+    SBuild sBuild = heuristicContext.getBuild();
+    SProject sProject = heuristicContext.getProject();
     Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
 
     List<BuildProblem> buildProblems = heuristicContext.getBuildProblems();
@@ -62,7 +62,7 @@ public class BuildProblemsFilter implements ContextFilter {
     failedBuildInfo.addProcessedBuildProblems(heuristicContext.getBuildProblems());
     failedBuildInfo.processed += filteredBuildProblems.size();
 
-    return new HeuristicContext(failedBuildInfo, filteredBuildProblems, heuristicContext.getSTestRuns());
+    return new HeuristicContext(failedBuildInfo, filteredBuildProblems, heuristicContext.getTestRuns());
   }
 
   private boolean isApplicable(@NotNull final SProject project,

@@ -36,7 +36,7 @@ public class FailedBuildInfo {
     mySBuild = sBuild;
   }
 
-  public SBuild getSBuild() {
+  public SBuild getBuild() {
     return mySBuild;
   }
 

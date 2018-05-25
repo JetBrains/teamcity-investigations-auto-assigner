@@ -54,7 +54,7 @@ public class DefaultUserHeuristic implements Heuristic {
   public HeuristicResult findResponsibleUser(@NotNull HeuristicContext heuristicContext) {
     HeuristicResult result = new HeuristicResult();
 
-    SBuild build = heuristicContext.getSBuild();
+    SBuild build = heuristicContext.getBuild();
     Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
     if (descriptors.isEmpty()) return result;
 
@@ -75,7 +75,7 @@ public class DefaultUserHeuristic implements Heuristic {
                                           "user for the build: " + build.getFullName() + " #" + build.getBuildNumber());
     heuristicContext.getBuildProblems()
                     .forEach(buildProblem -> result.addResponsibility(buildProblem, responsibility));
-    heuristicContext.getSTestRuns().forEach(testRun -> result.addResponsibility(testRun, responsibility));
+    heuristicContext.getTestRuns().forEach(testRun -> result.addResponsibility(testRun, responsibility));
 
     return result;
   }

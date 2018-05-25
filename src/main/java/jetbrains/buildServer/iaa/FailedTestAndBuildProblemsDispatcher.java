@@ -84,7 +84,7 @@ public class FailedTestAndBuildProblemsDispatcher {
   private void processBrokenBuildsOneThread() {
     for (Map.Entry<Long, FailedBuildInfo> entry : myFailedBuilds.entrySet()) {
       FailedBuildInfo failedBuildInfo = entry.getValue();
-      if (failedBuildInfo.getSBuild().getBuildType() != null) {
+      if (failedBuildInfo.getBuild().getBuildType() != null) {
         processBrokenBuild(failedBuildInfo, entry.getKey());
       }
     }

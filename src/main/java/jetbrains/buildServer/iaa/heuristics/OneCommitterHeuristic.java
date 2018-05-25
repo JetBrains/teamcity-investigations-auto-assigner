@@ -46,7 +46,7 @@ public class OneCommitterHeuristic implements Heuristic {
   public HeuristicResult findResponsibleUser(@NotNull HeuristicContext heuristicContext) {
     HeuristicResult result = new HeuristicResult();
 
-    SBuild build = heuristicContext.getSBuild();
+    SBuild build = heuristicContext.getBuild();
     final SelectPrevBuildPolicy selectPrevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
     final Set<SUser> committers = build.getCommitters(selectPrevBuildPolicy).getUsers();
     if (committers.isEmpty()) {
@@ -66,7 +66,7 @@ public class OneCommitterHeuristic implements Heuristic {
                                                   "build: %s # %s", Constants.REASON_PREFIX,
                                                   build.getFullName(), build.getBuildNumber()));
 
-    heuristicContext.getSTestRuns().forEach(sTestRun -> result.addResponsibility(sTestRun, responsibility));
+    heuristicContext.getTestRuns().forEach(sTestRun -> result.addResponsibility(sTestRun, responsibility));
 
     heuristicContext.getBuildProblems()
                     .forEach(buildProblem -> result.addResponsibility(buildProblem, responsibility));

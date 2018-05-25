@@ -40,7 +40,7 @@ public class FailedTestAndBuildProblemsProcessor {
   }
 
   public Boolean processBuild(final FailedBuildInfo failedBuildInfo) {
-    SBuild sBuild = failedBuildInfo.getSBuild();
+    SBuild sBuild = failedBuildInfo.getBuild();
     boolean shouldDelete = sBuild.isFinished();
     Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
     if (failedBuildInfo.processed >= threshold) return shouldDelete;

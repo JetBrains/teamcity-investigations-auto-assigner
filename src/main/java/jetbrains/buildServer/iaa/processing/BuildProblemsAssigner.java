@@ -36,7 +36,7 @@ public class BuildProblemsAssigner implements ResponsibilityAssigner {
 
   @Override
   public void apply(HeuristicResult heuristicsResult, HeuristicContext heuristicContext) {
-    SProject sProject = heuristicContext.getSProject();
+    SProject sProject = heuristicContext.getProject();
     Iterable<BuildProblem> buildProblems = heuristicContext.getBuildProblems();
     for (BuildProblem buildProblem : buildProblems) {
       Responsibility responsibility = heuristicsResult.getResponsibility(buildProblem);

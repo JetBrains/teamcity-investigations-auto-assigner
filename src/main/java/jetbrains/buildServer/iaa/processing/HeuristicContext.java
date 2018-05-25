@@ -36,19 +36,19 @@ public final class HeuristicContext {
     mySTestRuns = sTestRuns;
   }
 
-  public SBuild getSBuild() {
-    return myFailedBuildInfo.getSBuild();
+  public SBuild getBuild() {
+    return myFailedBuildInfo.getBuild();
   }
 
-  public SProject getSProject() {
-    return getSBuild().getBuildType().getProject();
+  public SProject getProject() {
+    return getBuild().getBuildType().getProject();
   }
 
   public List<BuildProblem> getBuildProblems() {
     return myBuildProblems;
   }
 
-  public List<STestRun> getSTestRuns() {
+  public List<STestRun> getTestRuns() {
     return mySTestRuns;
   }
 

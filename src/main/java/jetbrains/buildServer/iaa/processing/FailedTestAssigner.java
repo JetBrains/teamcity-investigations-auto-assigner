@@ -37,8 +37,8 @@ public class FailedTestAssigner implements ResponsibilityAssigner {
 
   @Override
   public void apply(final HeuristicResult heuristicsResult, final HeuristicContext heuristicContext) {
-    SProject sProject = heuristicContext.getSProject();
-    Iterable<STestRun> sTestRuns = heuristicContext.getSTestRuns();
+    SProject sProject = heuristicContext.getProject();
+    Iterable<STestRun> sTestRuns = heuristicContext.getTestRuns();
 
     for (STestRun sTestRun : sTestRuns) {
       Responsibility responsibility = heuristicsResult.getResponsibility(sTestRun);

@@ -44,17 +44,17 @@ public class FailedTestFilter implements ContextFilter {
   @Override
   public HeuristicContext apply(final HeuristicContext heuristicContext) {
     FailedBuildInfo failedBuildInfo = heuristicContext.getFailedBuildInfo();
-    SBuild sBuild = heuristicContext.getSBuild();
-    SProject sProject = heuristicContext.getSProject();
+    SBuild sBuild = heuristicContext.getBuild();
+    SProject sProject = heuristicContext.getProject();
     Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
 
-    List<STestRun> filteredTestRuns = heuristicContext.getSTestRuns().stream()
+    List<STestRun> filteredTestRuns = heuristicContext.getTestRuns().stream()
                                                       .filter(failedBuildInfo::checkNotProcessed)
                                                       .filter(testRun -> isApplicable(sProject, sBuild, testRun))
                                                       .limit(threshold - failedBuildInfo.processed)
                                                       .collect(Collectors.toList());
 
-    failedBuildInfo.addProcessedTestRuns(heuristicContext.getSTestRuns());
+    failedBuildInfo.addProcessedTestRuns(heuristicContext.getTestRuns());
     failedBuildInfo.processed += filteredTestRuns.size();
 
     return new HeuristicContext(failedBuildInfo, heuristicContext.getBuildProblems(), filteredTestRuns);
