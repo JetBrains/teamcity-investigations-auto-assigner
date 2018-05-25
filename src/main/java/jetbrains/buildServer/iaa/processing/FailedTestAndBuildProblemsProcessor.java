@@ -25,18 +25,24 @@ import jetbrains.buildServer.serverSide.*;
 import org.jetbrains.annotations.NotNull;
 
 public class FailedTestAndBuildProblemsProcessor {
+  private final FailedTestFilter myFailedTestFilter;
+  private final BuildProblemsFilter myBuildProblemsFilter;
+  private final FailedTestAssigner myFailedTestAssigner;
+  private final BuildProblemsAssigner myBuildProblemsAssigner;
   @NotNull private ResponsibleUserFinder myResponsibleUserFinder;
-  @NotNull private final List<ContextFilter> myContextFilters;
-  @NotNull private final List<ResponsibilityAssigner> myResponsibilityAssigners;
 
   private static final Logger LOGGER = Logger.getInstance(FailedTestAndBuildProblemsProcessor.class.getName());
 
   public FailedTestAndBuildProblemsProcessor(@NotNull final ResponsibleUserFinder responsibleUserFinder,
-                                             @NotNull final List<ContextFilter> contextFilters,
-                                             @NotNull final List<ResponsibilityAssigner> responsibilityAssigners) {
+                                             @NotNull final FailedTestFilter failedTestFilter,
+                                             @NotNull final FailedTestAssigner failedTestAssigner,
+                                             @NotNull final BuildProblemsFilter buildProblemsFilter,
+                                             @NotNull final BuildProblemsAssigner buildProblemsAssigner) {
     myResponsibleUserFinder = responsibleUserFinder;
-    myContextFilters = contextFilters;
-    myResponsibilityAssigners = responsibilityAssigners;
+    myFailedTestFilter = failedTestFilter;
+    myFailedTestAssigner = failedTestAssigner;
+    myBuildProblemsFilter = buildProblemsFilter;
+    myBuildProblemsAssigner = buildProblemsAssigner;
   }
 
   public Boolean processBuild(final FailedBuildInfo failedBuildInfo) {
@@ -50,15 +56,13 @@ public class FailedTestAndBuildProblemsProcessor {
     HeuristicContext heuristicContext =
       new HeuristicContext(failedBuildInfo, ((BuildEx)sBuild).getBuildProblems(), failedTests);
 
-    for (ContextFilter contextFilter: myContextFilters) {
-      heuristicContext = contextFilter.apply(heuristicContext);
-    }
+    heuristicContext = myFailedTestFilter.apply(heuristicContext);
+    heuristicContext = myBuildProblemsFilter.apply(heuristicContext);
 
     HeuristicResult heuristicsResult = myResponsibleUserFinder.findResponsibleUser(heuristicContext);
 
-    for (ResponsibilityAssigner assigner: myResponsibilityAssigners) {
-      assigner.apply(heuristicsResult, heuristicContext);
-    }
+    myFailedTestAssigner.apply(heuristicsResult, heuristicContext);
+    myBuildProblemsAssigner.apply(heuristicsResult, heuristicContext);
 
     return shouldDelete;
   }

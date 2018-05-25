@@ -30,19 +30,18 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 @Component
-public class FailedTestFilter implements ContextFilter {
+class FailedTestFilter {
 
   private final InvestigationsManager myInvestigationsManager;
   private final FlakyTestDetector myFlakyTestDetector;
 
-  public FailedTestFilter(@NotNull FlakyTestDetector flakyTestDetector,
-                          @NotNull final InvestigationsManager investigationsManager) {
+  FailedTestFilter(@NotNull FlakyTestDetector flakyTestDetector,
+                   @NotNull final InvestigationsManager investigationsManager) {
     myFlakyTestDetector = flakyTestDetector;
     myInvestigationsManager = investigationsManager;
   }
 
-  @Override
-  public HeuristicContext apply(final HeuristicContext heuristicContext) {
+  HeuristicContext apply(final HeuristicContext heuristicContext) {
     FailedBuildInfo failedBuildInfo = heuristicContext.getFailedBuildInfo();
     SBuild sBuild = heuristicContext.getBuild();
     SProject sProject = heuristicContext.getProject();

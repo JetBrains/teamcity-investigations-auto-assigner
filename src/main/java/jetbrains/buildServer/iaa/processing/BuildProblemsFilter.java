@@ -20,8 +20,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import jetbrains.buildServer.iaa.common.FailedBuildInfo;
 import jetbrains.buildServer.iaa.common.Constants;
+import jetbrains.buildServer.iaa.common.FailedBuildInfo;
 import jetbrains.buildServer.iaa.utils.CustomParameters;
 import jetbrains.buildServer.iaa.utils.InvestigationsManager;
 import jetbrains.buildServer.serverSide.SBuild;
@@ -32,19 +32,18 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 @Component
-public class BuildProblemsFilter implements ContextFilter {
+class BuildProblemsFilter {
 
   private InvestigationsManager myInvestigationsManager;
   private final Set<String> supportedTypes =
     Collections.unmodifiableSet(Collections.singleton(Constants.TC_COMPILATION_ERROR_TYPE));
 
 
-  public BuildProblemsFilter(@NotNull final InvestigationsManager investigationsManager) {
+  BuildProblemsFilter(@NotNull final InvestigationsManager investigationsManager) {
     myInvestigationsManager = investigationsManager;
   }
 
-  @Override
-  public HeuristicContext apply(final HeuristicContext heuristicContext) {
+  HeuristicContext apply(final HeuristicContext heuristicContext) {
     FailedBuildInfo failedBuildInfo = heuristicContext.getFailedBuildInfo();
     SBuild sBuild = heuristicContext.getBuild();
     SProject sProject = heuristicContext.getProject();

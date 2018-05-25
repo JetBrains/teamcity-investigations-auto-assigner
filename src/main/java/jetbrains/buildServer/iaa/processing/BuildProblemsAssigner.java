@@ -26,16 +26,15 @@ import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.util.Dates;
 import org.jetbrains.annotations.NotNull;
 
-public class BuildProblemsAssigner implements ResponsibilityAssigner {
+class BuildProblemsAssigner {
 
   @NotNull private final BuildProblemResponsibilityFacade myBuildProblemResponsibilityFacade;
 
-  public BuildProblemsAssigner(@NotNull final BuildProblemResponsibilityFacade buildProblemResponsibilityFacade) {
+  BuildProblemsAssigner(@NotNull final BuildProblemResponsibilityFacade buildProblemResponsibilityFacade) {
     myBuildProblemResponsibilityFacade = buildProblemResponsibilityFacade;
   }
 
-  @Override
-  public void apply(HeuristicResult heuristicsResult, HeuristicContext heuristicContext) {
+  void apply(HeuristicResult heuristicsResult, HeuristicContext heuristicContext) {
     SProject sProject = heuristicContext.getProject();
     Iterable<BuildProblem> buildProblems = heuristicContext.getBuildProblems();
     for (BuildProblem buildProblem : buildProblems) {

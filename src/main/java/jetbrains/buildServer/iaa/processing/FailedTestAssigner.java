@@ -28,15 +28,14 @@ import jetbrains.buildServer.tests.TestName;
 import jetbrains.buildServer.util.Dates;
 import org.jetbrains.annotations.NotNull;
 
-public class FailedTestAssigner implements ResponsibilityAssigner {
+class FailedTestAssigner {
   @NotNull private final TestNameResponsibilityFacade myTestNameResponsibilityFacade;
 
-  public FailedTestAssigner(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade) {
+  FailedTestAssigner(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade) {
     myTestNameResponsibilityFacade = testNameResponsibilityFacade;
   }
 
-  @Override
-  public void apply(final HeuristicResult heuristicsResult, final HeuristicContext heuristicContext) {
+  void apply(final HeuristicResult heuristicsResult, final HeuristicContext heuristicContext) {
     SProject sProject = heuristicContext.getProject();
     Iterable<STestRun> sTestRuns = heuristicContext.getTestRuns();
 
