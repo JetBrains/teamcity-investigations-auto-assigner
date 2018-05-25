@@ -53,9 +53,8 @@ public class FailedTestAndBuildProblemsDispatcher {
       public void testFailed(@NotNull SRunningBuild build, @NotNull List<Long> testNameIds) {
         SBuildType buildType = build.getBuildType();
         if (shouldIgnore(build) || buildType == null) return;
-        SProject sProject = buildType.getProject();
 
-        myFailedBuilds.putIfAbsent(build.getBuildId(), new FailedBuildInfo(build, sProject));
+        myFailedBuilds.putIfAbsent(build.getBuildId(), new FailedBuildInfo(build));
       }
 
 
@@ -71,9 +70,8 @@ public class FailedTestAndBuildProblemsDispatcher {
                                        @NotNull List<BuildProblemData> after) {
         SBuildType buildType = sBuild.getBuildType();
         if (shouldIgnore(sBuild) || !(sBuild instanceof BuildEx) || buildType == null) return;
-        SProject sProject = buildType.getProject();
 
-        myFailedBuilds.putIfAbsent(sBuild.getBuildId(), new FailedBuildInfo(sBuild, sProject));
+        myFailedBuilds.putIfAbsent(sBuild.getBuildId(), new FailedBuildInfo(sBuild));
       }
 
       @Override
@@ -86,10 +84,17 @@ public class FailedTestAndBuildProblemsDispatcher {
   private void processBrokenBuildsOneThread() {
     for (Map.Entry<Long, FailedBuildInfo> entry : myFailedBuilds.entrySet()) {
       FailedBuildInfo failedBuildInfo = entry.getValue();
-      Boolean shouldRemove = myProcessor.processBuild(failedBuildInfo);
-      if (shouldRemove) {
-        myFailedBuilds.remove(entry.getKey());
+      if (failedBuildInfo.getSBuild().getBuildType() != null) {
+        processBrokenBuild(failedBuildInfo, entry.getKey());
       }
+    }
+  }
+
+  private void processBrokenBuild(final FailedBuildInfo failedBuildInfo, final Long buildKey) {
+    Boolean shouldRemove = myProcessor.processBuild(failedBuildInfo);
+
+    if (shouldRemove) {
+      myFailedBuilds.remove(buildKey);
     }
   }
 

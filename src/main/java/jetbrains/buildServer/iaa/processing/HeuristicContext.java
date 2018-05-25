@@ -41,7 +41,7 @@ public final class HeuristicContext {
   }
 
   public SProject getSProject() {
-    return myFailedBuildInfo.getSProject();
+    return getSBuild().getBuildType().getProject();
   }
 
   public List<BuildProblem> getBuildProblems() {

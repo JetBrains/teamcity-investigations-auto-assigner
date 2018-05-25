@@ -20,7 +20,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import jetbrains.buildServer.serverSide.SBuild;
-import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.jetbrains.annotations.NotNull;
@@ -28,15 +27,13 @@ import org.jetbrains.annotations.NotNull;
 public class FailedBuildInfo {
 
   private SBuild mySBuild;
-  private SProject mySProject;
 
   private Set<Integer> processedTests = new HashSet<>();
   private Set<Integer> processedBuildProblems = new HashSet<>();
   public int processed = 0;
 
-  public FailedBuildInfo(final SBuild sBuild, final SProject sProject) {
+  public FailedBuildInfo(final SBuild sBuild) {
     mySBuild = sBuild;
-    mySProject = sProject;
   }
 
   public SBuild getSBuild() {
@@ -61,9 +58,5 @@ public class FailedBuildInfo {
 
   public boolean checkNotProcessed(final BuildProblem buildProblem) {
     return !processedBuildProblems.contains(buildProblem.getId());
-  }
-
-  public SProject getSProject() {
-    return mySProject;
   }
 }
