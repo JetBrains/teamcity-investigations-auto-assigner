@@ -19,8 +19,9 @@ package jetbrains.buildServer.iaa.heuristics;
 import java.util.Collections;
 import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.BuildProblemData;
-import jetbrains.buildServer.iaa.processing.HeuristicContext;
 import jetbrains.buildServer.iaa.common.HeuristicResult;
+import jetbrains.buildServer.iaa.common.Responsibility;
+import jetbrains.buildServer.iaa.processing.HeuristicContext;
 import jetbrains.buildServer.iaa.utils.InvestigationsManager;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
@@ -71,9 +72,9 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
     mySTestRun = Mockito.mock(STestRun.class);
     when(mySTestRun.getTest()).thenReturn(mySTest);
     myBuildHeuristicContext =
-      new HeuristicContext(mySBuild, Collections.singletonList(myBuildProblem), Collections.emptyList());
+      new HeuristicContext(mySBuild, mySProject, Collections.singletonList(myBuildProblem), Collections.emptyList());
     myTestHeuristicContext =
-      new HeuristicContext(mySBuild, Collections.emptyList(), Collections.singletonList(mySTestRun));
+      new HeuristicContext(mySBuild, mySProject, Collections.emptyList(), Collections.singletonList(mySTestRun));
   }
 
   public void TestBuildProblemInfo_ResponsibleFound() {
@@ -82,8 +83,9 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
     HeuristicResult result = myHeuristic.findResponsibleUser(myBuildHeuristicContext);
 
     Assert.assertFalse(result.isEmpty());
-    Assert.assertNotNull(result.getResponsibility(myBuildProblem));
-    Assert.assertEquals(result.getResponsibility(myBuildProblem).getUser(), myUser);
+    Responsibility responsibility = result.getResponsibility(mySTestRun);
+    assert responsibility != null;
+    Assert.assertEquals(responsibility.getUser(), myUser);
   }
 
   public void TestBuildProblemInfo_ResponsibleNotFound() {
@@ -101,7 +103,9 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
 
     Assert.assertFalse(result.isEmpty());
     Assert.assertNotNull(result.getResponsibility(mySTestRun));
-    Assert.assertEquals(result.getResponsibility(mySTestRun).getUser(), myUser);
+    Responsibility responsibility = result.getResponsibility(mySTestRun);
+    assert responsibility != null;
+    Assert.assertEquals(responsibility.getUser(), myUser);
   }
 
   public void TestTestProblemInfo_ResponsibleNotFound() {

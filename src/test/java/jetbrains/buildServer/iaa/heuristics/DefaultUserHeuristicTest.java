@@ -19,11 +19,13 @@ package jetbrains.buildServer.iaa.heuristics;
 import java.util.Collections;
 import java.util.HashMap;
 import jetbrains.buildServer.BaseTestCase;
-import jetbrains.buildServer.iaa.processing.HeuristicContext;
-import jetbrains.buildServer.iaa.common.HeuristicResult;
 import jetbrains.buildServer.iaa.common.Constants;
+import jetbrains.buildServer.iaa.common.HeuristicResult;
+import jetbrains.buildServer.iaa.common.Responsibility;
+import jetbrains.buildServer.iaa.processing.HeuristicContext;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SBuildFeatureDescriptor;
+import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.users.UserModelEx;
 import jetbrains.buildServer.users.impl.UserEx;
@@ -53,9 +55,11 @@ public class DefaultUserHeuristicTest extends BaseTestCase {
     myHeuristic = new DefaultUserHeuristic(myUserModelEx);
     final SBuildFeatureDescriptor descriptor = Mockito.mock(SBuildFeatureDescriptor.class);
     mySBuild = Mockito.mock(SBuild.class);
+    SProject sProject = Mockito.mock(SProject.class);
     myUserEx = Mockito.mock(UserEx.class);
     mySTestRun = Mockito.mock(STestRun.class);
-    myHeuristicContext = new HeuristicContext(mySBuild, Collections.emptyList(), Collections.singletonList(mySTestRun));
+    myHeuristicContext =
+      new HeuristicContext(mySBuild, sProject, Collections.emptyList(), Collections.singletonList(mySTestRun));
 
     myBuildFeatureParams = new HashMap<>();
     when(
@@ -99,6 +103,9 @@ public class DefaultUserHeuristicTest extends BaseTestCase {
 
     Assert.assertFalse(heuristicResult.isEmpty());
     Assert.assertNotNull(heuristicResult.getResponsibility(mySTestRun));
-    Assert.assertEquals(heuristicResult.getResponsibility(mySTestRun).getUser(), myUserEx);
+
+    Responsibility responsibility = heuristicResult.getResponsibility(mySTestRun);
+    assert responsibility != null;
+    Assert.assertEquals(responsibility.getUser(), myUserEx);
   }
 }

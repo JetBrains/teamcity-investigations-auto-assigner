@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-package jetbrains.buildServer.iaa;
+package jetbrains.buildServer.iaa.processing;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import jetbrains.buildServer.BaseTestCase;
+import jetbrains.buildServer.iaa.common.FailedBuildInfo;
 import jetbrains.buildServer.iaa.utils.InvestigationsManager;
 import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
+import jetbrains.buildServer.serverSide.BuildPromotion;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
+import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -34,15 +39,17 @@ import org.testng.annotations.Test;
 import static org.mockito.Mockito.when;
 
 @Test
-public class BuildApplicabilityCheckerTest extends BaseTestCase {
+public class BuildProblemsFilterTest extends BaseTestCase {
 
   private SProject mySProject;
   private BuildProblemResponsibilityEntry myResponsibilityEntry;
-  private BuildApplicabilityChecker myApplicabilityChecker;
+  private BuildProblemsFilter myBuildProblemsFilter;
   private BuildProblemImpl myBuildProblem;
   private InvestigationsManager myInvestigationsManager;
   private SBuild mySBuild;
   private BuildProblemData myBuildProblemData;
+  private FailedBuildInfo myFailedBuildInfo;
+  private List<BuildProblem> myBuildProblemWrapper;
 
   @BeforeMethod
   @Override
@@ -51,6 +58,7 @@ public class BuildApplicabilityCheckerTest extends BaseTestCase {
     myBuildProblem = Mockito.mock(BuildProblemImpl.class);
     mySProject = Mockito.mock(SProject.class);
     mySBuild = Mockito.mock(SBuild.class);
+    BuildPromotion buildPromotion = Mockito.mock(BuildPromotion.class);
     SProject parentProject = Mockito.mock(SProject.class);
     final SProject project2 = Mockito.mock(SProject.class);
     myResponsibilityEntry = Mockito.mock(BuildProblemResponsibilityEntry.class);
@@ -58,6 +66,7 @@ public class BuildApplicabilityCheckerTest extends BaseTestCase {
     BuildProblemResponsibilityEntry responsibilityEntry2 = Mockito.mock(BuildProblemResponsibilityEntry.class);
     myInvestigationsManager = Mockito.mock(InvestigationsManager.class);
 
+    when(mySBuild.getBuildPromotion()).thenReturn(buildPromotion);
     when(mySProject.getProjectId()).thenReturn("Project ID");
     when(project2.getProjectId()).thenReturn("Project ID 2");
     when(parentProject.getProjectId()).thenReturn("Parent Project ID");
@@ -72,72 +81,75 @@ public class BuildApplicabilityCheckerTest extends BaseTestCase {
       .thenReturn(Arrays.asList(myResponsibilityEntry, responsibilityEntry2));
     when(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, myBuildProblem)).thenReturn(false);
     when(myInvestigationsManager.checkUnderInvestigation(project2, mySBuild, myBuildProblem)).thenReturn(false);
-    myApplicabilityChecker = new BuildApplicabilityChecker(myInvestigationsManager);
+    myBuildProblemsFilter = new BuildProblemsFilter(myInvestigationsManager);
+
+    myBuildProblemWrapper = Collections.singletonList(myBuildProblem);
+    myFailedBuildInfo = new FailedBuildInfo(mySBuild, mySProject);
   }
 
   public void Test_BuildProblemIsMuted() {
     when(myBuildProblem.isMuted()).thenReturn(true);
 
-    boolean isApplicable = myApplicabilityChecker.isApplicable(mySProject, mySBuild, myBuildProblem);
+    List<BuildProblem> applicableBuildProblems = myBuildProblemsFilter.apply(myFailedBuildInfo, myBuildProblemWrapper);
 
-    Assert.assertFalse(isApplicable);
+    Assert.assertEquals(applicableBuildProblems.size(), 0);
   }
 
   public void Test_BuildProblemIsNotMuted() {
     when(myBuildProblem.isMuted()).thenReturn(false);
 
-    boolean isApplicable = myApplicabilityChecker.isApplicable(mySProject, mySBuild, myBuildProblem);
+    List<BuildProblem> applicableBuildProblems = myBuildProblemsFilter.apply(myFailedBuildInfo, myBuildProblemWrapper);
 
-    Assert.assertTrue(isApplicable);
+    Assert.assertEquals(applicableBuildProblems.size(), 1);
   }
 
   public void Test_BuildProblemNotNew() {
     when(myBuildProblem.isNew()).thenReturn(false);
 
-    boolean isApplicable = myApplicabilityChecker.isApplicable(mySProject, mySBuild, myBuildProblem);
+    List<BuildProblem> applicableBuildProblems = myBuildProblemsFilter.apply(myFailedBuildInfo, myBuildProblemWrapper);
 
-    Assert.assertFalse(isApplicable);
+    Assert.assertEquals(applicableBuildProblems.size(), 0);
   }
 
   public void Test_BuildProblemIsNew() {
     when(myBuildProblem.isNew()).thenReturn(true);
 
-    boolean isApplicable = myApplicabilityChecker.isApplicable(mySProject, mySBuild, myBuildProblem);
+    List<BuildProblem> applicableBuildProblems = myBuildProblemsFilter.apply(myFailedBuildInfo, myBuildProblemWrapper);
 
-    Assert.assertTrue(isApplicable);
+    Assert.assertEquals(applicableBuildProblems.size(), 1);
   }
 
   public void Test_BuildProblemIsUnderInvestigation() {
     when(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, myBuildProblem)).thenReturn(true);
     when(myResponsibilityEntry.getProject()).thenReturn(mySProject);
 
-    boolean isApplicable = myApplicabilityChecker.isApplicable(mySProject, mySBuild, myBuildProblem);
+    List<BuildProblem> applicableBuildProblems = myBuildProblemsFilter.apply(myFailedBuildInfo, myBuildProblemWrapper);
 
-    Assert.assertFalse(isApplicable);
+    Assert.assertEquals(applicableBuildProblems.size(), 0);
   }
 
   public void Test_BuildProblemNotUnderInvestigation() {
     when(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, myBuildProblem)).thenReturn(false);
     when(myResponsibilityEntry.getProject()).thenReturn(mySProject);
 
-    boolean isApplicable = myApplicabilityChecker.isApplicable(mySProject, mySBuild, myBuildProblem);
+    List<BuildProblem> applicableBuildProblems = myBuildProblemsFilter.apply(myFailedBuildInfo, myBuildProblemWrapper);
 
-    Assert.assertTrue(isApplicable);
+    Assert.assertEquals(applicableBuildProblems.size(), 1);
   }
 
   public void Test_BuildProblemHasIncompatibleType() {
     when(myBuildProblemData.getType()).thenReturn("Incompatible Type");
 
-    boolean isApplicable = myApplicabilityChecker.isApplicable(mySProject, mySBuild, myBuildProblem);
+    List<BuildProblem> applicableBuildProblems = myBuildProblemsFilter.apply(myFailedBuildInfo, myBuildProblemWrapper);
 
-    Assert.assertFalse(isApplicable);
+    Assert.assertEquals(applicableBuildProblems.size(), 0);
   }
 
   public void Test_BuildProblemHasCompatibleType() {
     when(myBuildProblemData.getType()).thenReturn(Constants.TC_COMPILATION_ERROR_TYPE);
 
-    boolean isApplicable = myApplicabilityChecker.isApplicable(mySProject, mySBuild, myBuildProblem);
+    List<BuildProblem> applicableBuildProblems = myBuildProblemsFilter.apply(myFailedBuildInfo, myBuildProblemWrapper);
 
-    Assert.assertTrue(isApplicable);
+    Assert.assertEquals(applicableBuildProblems.size(), 1);
   }
 }

@@ -29,7 +29,7 @@ public final class HeuristicContext {
   private final List<STestRun> mySTestRuns;
   private final SBuild mySBuild;
 
-  HeuristicContext(SBuild sBuild,
+  public HeuristicContext(SBuild sBuild,
                    SProject sProject,
                    List<BuildProblem> buildProblems,
                    List<STestRun> sTestRuns) {

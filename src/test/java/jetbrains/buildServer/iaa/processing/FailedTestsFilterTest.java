@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package jetbrains.buildServer.iaa;
+package jetbrains.buildServer.iaa.processing;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import jetbrains.buildServer.BaseTestCase;
+import jetbrains.buildServer.iaa.common.FailedBuildInfo;
 import jetbrains.buildServer.iaa.utils.FlakyTestDetector;
 import jetbrains.buildServer.iaa.utils.InvestigationsManager;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
@@ -35,9 +38,9 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 @Test
-public class TestApplicabilityCheckerTest extends BaseTestCase {
+public class FailedTestsFilterTest extends BaseTestCase {
 
-  private TestApplicabilityChecker myTestApplicabilityChecker;
+  private FailedTestFilter myFailedTestFilter;
   private SProject mySProject;
   private SBuild mySBuild;
   private STestRun mySTestRun;
@@ -45,6 +48,8 @@ public class TestApplicabilityCheckerTest extends BaseTestCase {
   private FlakyTestDetector myFlakyTestDetector;
   private InvestigationsManager myInvestigationsManager;
   private STest mySTest;
+  private FailedBuildInfo myFailedBuildInfo;
+  private List<STestRun> myTestsWrapper;
 
   @BeforeMethod
   @Override
@@ -74,88 +79,91 @@ public class TestApplicabilityCheckerTest extends BaseTestCase {
     when(myTestNameResponsibilityEntry.getState()).thenReturn(ResponsibilityEntry.State.NONE);
     when(responsibilityEntry2.getState()).thenReturn(ResponsibilityEntry.State.NONE);
     when(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, mySTest)).thenReturn(false);
-    myTestApplicabilityChecker = new TestApplicabilityChecker(myFlakyTestDetector, myInvestigationsManager);
+
+    myTestsWrapper = Collections.singletonList(mySTestRun);
+    myFailedBuildInfo = new FailedBuildInfo(mySBuild, mySProject);
+    myFailedTestFilter = new FailedTestFilter(myFlakyTestDetector, myInvestigationsManager);
+
   }
 
   public void Test_TestRunIsMuted() {
     when(mySTestRun.isMuted()).thenReturn(true);
 
-    boolean isApplicable = myTestApplicabilityChecker.isApplicable(mySProject, mySBuild, mySTestRun);
+    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, myTestsWrapper);
 
-    Assert.assertFalse(isApplicable);
+    Assert.assertEquals(applicableTestRuns.size(), 0);
   }
 
   public void Test_TestRunIsNotMuted() {
     when(mySTestRun.isMuted()).thenReturn(false);
 
-    boolean isApplicable = myTestApplicabilityChecker.isApplicable(mySProject, mySBuild, mySTestRun);
+    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, myTestsWrapper);
 
-    Assert.assertTrue(isApplicable);
+    Assert.assertEquals(applicableTestRuns.size(), 1);
   }
 
   public void Test_TestRunIsFixed() {
     when(mySTestRun.isFixed()).thenReturn(true);
 
-    boolean isApplicable = myTestApplicabilityChecker.isApplicable(mySProject, mySBuild, mySTestRun);
-
-    Assert.assertFalse(isApplicable);
+    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, myTestsWrapper);
+    Assert.assertEquals(applicableTestRuns.size(), 0);
   }
 
   public void Test_TestRunIsNotFixed() {
     when(mySTestRun.isFixed()).thenReturn(false);
 
-    boolean isApplicable = myTestApplicabilityChecker.isApplicable(mySProject, mySBuild, mySTestRun);
+    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, myTestsWrapper);
 
-    Assert.assertTrue(isApplicable);
+    Assert.assertEquals(applicableTestRuns.size(), 1);
   }
 
   public void Test_TestRunNotNewFailure() {
     when(mySTestRun.isNewFailure()).thenReturn(false);
 
-    boolean isApplicable = myTestApplicabilityChecker.isApplicable(mySProject, mySBuild, mySTestRun);
+    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, myTestsWrapper);
 
-    Assert.assertFalse(isApplicable);
+    Assert.assertEquals(applicableTestRuns.size(), 0);
   }
 
   public void Test_TestRunIsNewFailure() {
     when(mySTestRun.isNewFailure()).thenReturn(true);
 
-    boolean isApplicable = myTestApplicabilityChecker.isApplicable(mySProject, mySBuild, mySTestRun);
+    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, myTestsWrapper);
 
-    Assert.assertTrue(isApplicable);
+    Assert.assertEquals(applicableTestRuns.size(), 1);
   }
 
   public void Test_BuildProblemIsUnderInvestigation() {
     when(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, mySTest)).thenReturn(true);
     when(myTestNameResponsibilityEntry.getProject()).thenReturn(mySProject);
 
-    boolean isApplicable = myTestApplicabilityChecker.isApplicable(mySProject, mySBuild, mySTestRun);
+    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, myTestsWrapper);
 
-    Assert.assertFalse(isApplicable);
+    Assert.assertEquals(applicableTestRuns.size(), 0);
   }
 
   public void Test_BuildProblemNotUnderInvestigation() {
     when(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, mySTest)).thenReturn(false);
     when(myTestNameResponsibilityEntry.getProject()).thenReturn(mySProject);
 
-    boolean isApplicable = myTestApplicabilityChecker.isApplicable(mySProject, mySBuild, mySTestRun);
+    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, myTestsWrapper);
 
-    Assert.assertTrue(isApplicable);
+    Assert.assertEquals(applicableTestRuns.size(), 1);
   }
 
   public void Test_TestIsFlaky() {
     when(myFlakyTestDetector.isFlaky(anyLong())).thenReturn(true);
 
-    boolean isApplicable = myTestApplicabilityChecker.isApplicable(mySProject, mySBuild, mySTestRun);
+    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, myTestsWrapper);
 
-    Assert.assertFalse(isApplicable);
+    Assert.assertEquals(applicableTestRuns.size(), 0);
   }
 
   public void Test_TestNotFlaky() {
     when(myFlakyTestDetector.isFlaky(anyLong())).thenReturn(false);
 
-    boolean isApplicable = myTestApplicabilityChecker.isApplicable(mySProject, mySBuild, mySTestRun);
+    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, myTestsWrapper);
 
-    Assert.assertTrue(isApplicable);
+    Assert.assertEquals(applicableTestRuns.size(), 1);
   }
 }

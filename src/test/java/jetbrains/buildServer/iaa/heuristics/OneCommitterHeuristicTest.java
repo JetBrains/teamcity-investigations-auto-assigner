@@ -20,9 +20,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import jetbrains.buildServer.BaseTestCase;
-import jetbrains.buildServer.iaa.processing.HeuristicContext;
 import jetbrains.buildServer.iaa.common.HeuristicResult;
+import jetbrains.buildServer.iaa.processing.HeuristicContext;
 import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.users.SUser;
 import jetbrains.buildServer.users.User;
@@ -51,13 +52,15 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
     super.setUp();
     myHeuristic = new OneCommitterHeuristic();
     final SBuild sBuild = Mockito.mock(SBuild.class);
+    final SProject sProject = Mockito.mock(SProject.class);
+
     myUserSetMock = Mockito.mock(UserSet.class);
     myFirstUser = Mockito.mock(User.class);
     mySecondUser = Mockito.mock(SUser.class);
     when(sBuild.getCommitters(SelectPrevBuildPolicy.SINCE_LAST_BUILD)).thenReturn(myUserSetMock);
     mySTestRun = Mockito.mock(STestRun.class);
     myHeuristicContext =
-      new HeuristicContext(sBuild, Collections.emptyList(), Collections.singletonList(mySTestRun));
+      new HeuristicContext(sBuild, sProject, Collections.emptyList(), Collections.singletonList(mySTestRun));
   }
 
   public void TestWithOneResponsible() {
