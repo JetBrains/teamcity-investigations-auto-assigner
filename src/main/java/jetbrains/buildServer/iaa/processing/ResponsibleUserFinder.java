@@ -48,7 +48,8 @@ public class ResponsibleUserFinder {
                                                                .collect(Collectors.toList());
 
       if (!actualSTestRuns.isEmpty() || !actualBuildProblems.isEmpty()) {
-        HeuristicContext buildContext = new HeuristicContext(heuristicContext.getFailedBuildInfo(),
+        HeuristicContext buildContext = new HeuristicContext(heuristicContext.getBuild(),
+                                                             heuristicContext.getProject(),
                                                              actualBuildProblems,
                                                              actualSTestRuns);
 

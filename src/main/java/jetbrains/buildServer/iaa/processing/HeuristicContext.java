@@ -17,31 +17,36 @@
 package jetbrains.buildServer.iaa.processing;
 
 import java.util.List;
-import jetbrains.buildServer.iaa.common.FailedBuildInfo;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
+import org.jetbrains.annotations.NotNull;
 
 public final class HeuristicContext {
+  private final SProject mySProject;
   private final List<BuildProblem> myBuildProblems;
   private final List<STestRun> mySTestRuns;
-  private final FailedBuildInfo myFailedBuildInfo;
+  private final SBuild mySBuild;
 
-  HeuristicContext(FailedBuildInfo failedBuildInfo,
+  HeuristicContext(SBuild sBuild,
+                   SProject sProject,
                    List<BuildProblem> buildProblems,
                    List<STestRun> sTestRuns) {
-    myFailedBuildInfo = failedBuildInfo;
+    mySBuild = sBuild;
+    mySProject = sProject;
     myBuildProblems = buildProblems;
     mySTestRuns = sTestRuns;
   }
 
+  @NotNull
   public SBuild getBuild() {
-    return myFailedBuildInfo.getBuild();
+    return mySBuild;
   }
 
+  @NotNull
   public SProject getProject() {
-    return getBuild().getBuildType().getProject();
+    return mySProject;
   }
 
   public List<BuildProblem> getBuildProblems() {
@@ -50,10 +55,6 @@ public final class HeuristicContext {
 
   public List<STestRun> getTestRuns() {
     return mySTestRuns;
-  }
-
-  FailedBuildInfo getFailedBuildInfo() {
-    return myFailedBuildInfo;
   }
 }
 

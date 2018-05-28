@@ -63,7 +63,7 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
     final SBuild SBuild = Mockito.mock(jetbrains.buildServer.serverSide.SBuild.class);
     myUser = Mockito.mock(SUser.class);
     mySecondUser = Mockito.mock(SUser.class);
-    mySTestRun = Mockito.mock(STestRun.class);
+    mySTestRun = Mockito.mock(STestRun.class);;
     myHeuristicContext = new HeuristicContext(SBuild, Collections.emptyList(), Collections.singletonList(mySTestRun));
     myBuildPromotion = Mockito.mock(BuildPromotionEx.class);
     when(SBuild.getBuildPromotion()).thenReturn(myBuildPromotion);

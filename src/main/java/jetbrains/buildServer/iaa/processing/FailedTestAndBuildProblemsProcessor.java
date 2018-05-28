@@ -22,6 +22,7 @@ import jetbrains.buildServer.iaa.common.FailedBuildInfo;
 import jetbrains.buildServer.iaa.common.HeuristicResult;
 import jetbrains.buildServer.iaa.utils.CustomParameters;
 import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.jetbrains.annotations.NotNull;
 
 public class FailedTestAndBuildProblemsProcessor {
@@ -47,17 +48,19 @@ public class FailedTestAndBuildProblemsProcessor {
 
   public Boolean processBuild(final FailedBuildInfo failedBuildInfo) {
     SBuild sBuild = failedBuildInfo.getBuild();
+    SProject sProject = failedBuildInfo.getProject();
     boolean shouldDelete = sBuild.isFinished();
     Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
     if (failedBuildInfo.processed >= threshold) return shouldDelete;
 
-    List<STestRun> failedTests = requestBrokenTestsWithStats(sBuild);
+    List<BuildProblem> allBuildProblems = ((BuildEx)sBuild).getBuildProblems();
+    List<STestRun> allFailedTests = requestBrokenTestsWithStats(sBuild);
+
+    List<BuildProblem> applicableBuildProblems = myBuildProblemsFilter.apply(failedBuildInfo, allBuildProblems);
+    List<STestRun> applicableFailedTests = myFailedTestFilter.apply(failedBuildInfo, allFailedTests);
 
     HeuristicContext heuristicContext =
-      new HeuristicContext(failedBuildInfo, ((BuildEx)sBuild).getBuildProblems(), failedTests);
-
-    heuristicContext = myFailedTestFilter.apply(heuristicContext);
-    heuristicContext = myBuildProblemsFilter.apply(heuristicContext);
+      new HeuristicContext(sBuild, sProject, applicableBuildProblems, applicableFailedTests);
 
     HeuristicResult heuristicsResult = myResponsibleUserFinder.findResponsibleUser(heuristicContext);
 

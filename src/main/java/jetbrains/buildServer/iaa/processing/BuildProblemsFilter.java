@@ -43,13 +43,11 @@ class BuildProblemsFilter {
     myInvestigationsManager = investigationsManager;
   }
 
-  HeuristicContext apply(final HeuristicContext heuristicContext) {
-    FailedBuildInfo failedBuildInfo = heuristicContext.getFailedBuildInfo();
-    SBuild sBuild = heuristicContext.getBuild();
-    SProject sProject = heuristicContext.getProject();
+  List<BuildProblem> apply(final FailedBuildInfo failedBuildInfo, List<BuildProblem> buildProblems) {
+    SBuild sBuild = failedBuildInfo.getBuild();
+    SProject sProject = failedBuildInfo.getProject();
     Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
 
-    List<BuildProblem> buildProblems = heuristicContext.getBuildProblems();
     BuildProblemImpl.fillIsNew(sBuild.getBuildPromotion(), buildProblems);
 
     List<BuildProblem> filteredBuildProblems = buildProblems.stream()
@@ -58,10 +56,10 @@ class BuildProblemsFilter {
                                                             .limit(threshold - failedBuildInfo.processed)
                                                             .collect(Collectors.toList());
 
-    failedBuildInfo.addProcessedBuildProblems(heuristicContext.getBuildProblems());
+    failedBuildInfo.addProcessedBuildProblems(buildProblems);
     failedBuildInfo.processed += filteredBuildProblems.size();
 
-    return new HeuristicContext(failedBuildInfo, filteredBuildProblems, heuristicContext.getTestRuns());
+    return filteredBuildProblems;
   }
 
   private boolean isApplicable(@NotNull final SProject project,

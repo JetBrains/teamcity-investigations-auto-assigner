@@ -41,22 +41,21 @@ class FailedTestFilter {
     myInvestigationsManager = investigationsManager;
   }
 
-  HeuristicContext apply(final HeuristicContext heuristicContext) {
-    FailedBuildInfo failedBuildInfo = heuristicContext.getFailedBuildInfo();
-    SBuild sBuild = heuristicContext.getBuild();
-    SProject sProject = heuristicContext.getProject();
+  List<STestRun> apply(final FailedBuildInfo failedBuildInfo, List<STestRun> testRuns) {
+    SBuild sBuild = failedBuildInfo.getBuild();
+    SProject sProject = failedBuildInfo.getProject();
     Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
 
-    List<STestRun> filteredTestRuns = heuristicContext.getTestRuns().stream()
-                                                      .filter(failedBuildInfo::checkNotProcessed)
-                                                      .filter(testRun -> isApplicable(sProject, sBuild, testRun))
-                                                      .limit(threshold - failedBuildInfo.processed)
-                                                      .collect(Collectors.toList());
+    List<STestRun> filteredTestRuns = testRuns.stream()
+                                              .filter(failedBuildInfo::checkNotProcessed)
+                                              .filter(testRun -> isApplicable(sProject, sBuild, testRun))
+                                              .limit(threshold - failedBuildInfo.processed)
+                                              .collect(Collectors.toList());
 
-    failedBuildInfo.addProcessedTestRuns(heuristicContext.getTestRuns());
+    failedBuildInfo.addProcessedTestRuns(testRuns);
     failedBuildInfo.processed += filteredTestRuns.size();
 
-    return new HeuristicContext(failedBuildInfo, heuristicContext.getBuildProblems(), filteredTestRuns);
+    return filteredTestRuns;
   }
 
   private boolean isApplicable(@NotNull final SProject project,

@@ -53,8 +53,9 @@ public class FailedTestAndBuildProblemsDispatcher {
       public void testFailed(@NotNull SRunningBuild build, @NotNull List<Long> testNameIds) {
         SBuildType buildType = build.getBuildType();
         if (shouldIgnore(build) || buildType == null) return;
+        SProject project = buildType.getProject();
 
-        myFailedBuilds.putIfAbsent(build.getBuildId(), new FailedBuildInfo(build));
+        myFailedBuilds.putIfAbsent(build.getBuildId(), new FailedBuildInfo(build, project));
       }
 
 
@@ -70,8 +71,9 @@ public class FailedTestAndBuildProblemsDispatcher {
                                        @NotNull List<BuildProblemData> after) {
         SBuildType buildType = sBuild.getBuildType();
         if (shouldIgnore(sBuild) || !(sBuild instanceof BuildEx) || buildType == null) return;
+        SProject project = buildType.getProject();
 
-        myFailedBuilds.putIfAbsent(sBuild.getBuildId(), new FailedBuildInfo(sBuild));
+        myFailedBuilds.putIfAbsent(sBuild.getBuildId(), new FailedBuildInfo(sBuild, project));
       }
 
       @Override
@@ -84,9 +86,7 @@ public class FailedTestAndBuildProblemsDispatcher {
   private void processBrokenBuildsOneThread() {
     for (Map.Entry<Long, FailedBuildInfo> entry : myFailedBuilds.entrySet()) {
       FailedBuildInfo failedBuildInfo = entry.getValue();
-      if (failedBuildInfo.getBuild().getBuildType() != null) {
-        processBrokenBuild(failedBuildInfo, entry.getKey());
-      }
+      processBrokenBuild(failedBuildInfo, entry.getKey());
     }
   }
 
