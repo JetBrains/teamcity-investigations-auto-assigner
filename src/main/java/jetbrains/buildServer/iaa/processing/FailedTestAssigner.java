@@ -36,7 +36,7 @@ class FailedTestAssigner {
     myTestNameResponsibilityFacade = testNameResponsibilityFacade;
   }
 
-  void apply(final HeuristicResult heuristicsResult, final SProject sProject, final List<STestRun> sTestRuns) {
+  void assign(final HeuristicResult heuristicsResult, final SProject sProject, final List<STestRun> sTestRuns) {
     for (STestRun sTestRun : sTestRuns) {
       Responsibility responsibility = heuristicsResult.getResponsibility(sTestRun);
       if (responsibility != null) {

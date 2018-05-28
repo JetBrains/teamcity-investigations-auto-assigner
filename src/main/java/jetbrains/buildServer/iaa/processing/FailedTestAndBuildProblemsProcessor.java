@@ -62,8 +62,8 @@ public class FailedTestAndBuildProblemsProcessor {
     HeuristicResult heuristicsResult =
       myResponsibleUserFinder.findResponsibleUser(sBuild, sProject, applicableBuildProblems, applicableFailedTests);
 
-    myFailedTestAssigner.apply(heuristicsResult, sProject, applicableFailedTests);
-    myBuildProblemsAssigner.apply(heuristicsResult, sProject, applicableBuildProblems);
+    myFailedTestAssigner.assign(heuristicsResult, sProject, applicableFailedTests);
+    myBuildProblemsAssigner.assign(heuristicsResult, sProject, applicableBuildProblems);
 
     return shouldDelete;
   }

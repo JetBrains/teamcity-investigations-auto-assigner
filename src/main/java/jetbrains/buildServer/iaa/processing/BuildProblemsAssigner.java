@@ -35,7 +35,7 @@ class BuildProblemsAssigner {
     myBuildProblemResponsibilityFacade = buildProblemResponsibilityFacade;
   }
 
-  void apply(final HeuristicResult heuristicsResult, final SProject sProject, final List<BuildProblem> buildProblems) {
+  void assign(final HeuristicResult heuristicsResult, final SProject sProject, final List<BuildProblem> buildProblems) {
     for (BuildProblem buildProblem : buildProblems) {
       Responsibility responsibility = heuristicsResult.getResponsibility(buildProblem);
 
