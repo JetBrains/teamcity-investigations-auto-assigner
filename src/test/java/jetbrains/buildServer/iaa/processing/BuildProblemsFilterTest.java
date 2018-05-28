@@ -84,13 +84,14 @@ public class BuildProblemsFilterTest extends BaseTestCase {
     myBuildProblemsFilter = new BuildProblemsFilter(myInvestigationsManager);
 
     myBuildProblemWrapper = Collections.singletonList(myBuildProblem);
-    myFailedBuildInfo = new FailedBuildInfo(mySBuild, mySProject);
+    myFailedBuildInfo = new FailedBuildInfo(mySBuild);
   }
 
   public void Test_BuildProblemIsMuted() {
     when(myBuildProblem.isMuted()).thenReturn(true);
 
-    List<BuildProblem> applicableBuildProblems = myBuildProblemsFilter.apply(myFailedBuildInfo, myBuildProblemWrapper);
+    List<BuildProblem> applicableBuildProblems =
+      myBuildProblemsFilter.apply(myFailedBuildInfo, mySProject, myBuildProblemWrapper);
 
     Assert.assertEquals(applicableBuildProblems.size(), 0);
   }
@@ -98,7 +99,8 @@ public class BuildProblemsFilterTest extends BaseTestCase {
   public void Test_BuildProblemIsNotMuted() {
     when(myBuildProblem.isMuted()).thenReturn(false);
 
-    List<BuildProblem> applicableBuildProblems = myBuildProblemsFilter.apply(myFailedBuildInfo, myBuildProblemWrapper);
+    List<BuildProblem> applicableBuildProblems =
+      myBuildProblemsFilter.apply(myFailedBuildInfo, mySProject, myBuildProblemWrapper);
 
     Assert.assertEquals(applicableBuildProblems.size(), 1);
   }
@@ -106,7 +108,8 @@ public class BuildProblemsFilterTest extends BaseTestCase {
   public void Test_BuildProblemNotNew() {
     when(myBuildProblem.isNew()).thenReturn(false);
 
-    List<BuildProblem> applicableBuildProblems = myBuildProblemsFilter.apply(myFailedBuildInfo, myBuildProblemWrapper);
+    List<BuildProblem> applicableBuildProblems =
+      myBuildProblemsFilter.apply(myFailedBuildInfo, mySProject, myBuildProblemWrapper);
 
     Assert.assertEquals(applicableBuildProblems.size(), 0);
   }
@@ -114,7 +117,8 @@ public class BuildProblemsFilterTest extends BaseTestCase {
   public void Test_BuildProblemIsNew() {
     when(myBuildProblem.isNew()).thenReturn(true);
 
-    List<BuildProblem> applicableBuildProblems = myBuildProblemsFilter.apply(myFailedBuildInfo, myBuildProblemWrapper);
+    List<BuildProblem> applicableBuildProblems =
+      myBuildProblemsFilter.apply(myFailedBuildInfo, mySProject, myBuildProblemWrapper);
 
     Assert.assertEquals(applicableBuildProblems.size(), 1);
   }
@@ -123,7 +127,8 @@ public class BuildProblemsFilterTest extends BaseTestCase {
     when(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, myBuildProblem)).thenReturn(true);
     when(myResponsibilityEntry.getProject()).thenReturn(mySProject);
 
-    List<BuildProblem> applicableBuildProblems = myBuildProblemsFilter.apply(myFailedBuildInfo, myBuildProblemWrapper);
+    List<BuildProblem> applicableBuildProblems =
+      myBuildProblemsFilter.apply(myFailedBuildInfo, mySProject, myBuildProblemWrapper);
 
     Assert.assertEquals(applicableBuildProblems.size(), 0);
   }
@@ -132,7 +137,8 @@ public class BuildProblemsFilterTest extends BaseTestCase {
     when(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, myBuildProblem)).thenReturn(false);
     when(myResponsibilityEntry.getProject()).thenReturn(mySProject);
 
-    List<BuildProblem> applicableBuildProblems = myBuildProblemsFilter.apply(myFailedBuildInfo, myBuildProblemWrapper);
+    List<BuildProblem> applicableBuildProblems =
+      myBuildProblemsFilter.apply(myFailedBuildInfo, mySProject, myBuildProblemWrapper);
 
     Assert.assertEquals(applicableBuildProblems.size(), 1);
   }
@@ -140,7 +146,8 @@ public class BuildProblemsFilterTest extends BaseTestCase {
   public void Test_BuildProblemHasIncompatibleType() {
     when(myBuildProblemData.getType()).thenReturn("Incompatible Type");
 
-    List<BuildProblem> applicableBuildProblems = myBuildProblemsFilter.apply(myFailedBuildInfo, myBuildProblemWrapper);
+    List<BuildProblem> applicableBuildProblems =
+      myBuildProblemsFilter.apply(myFailedBuildInfo, mySProject, myBuildProblemWrapper);
 
     Assert.assertEquals(applicableBuildProblems.size(), 0);
   }
@@ -148,7 +155,8 @@ public class BuildProblemsFilterTest extends BaseTestCase {
   public void Test_BuildProblemHasCompatibleType() {
     when(myBuildProblemData.getType()).thenReturn(Constants.TC_COMPILATION_ERROR_TYPE);
 
-    List<BuildProblem> applicableBuildProblems = myBuildProblemsFilter.apply(myFailedBuildInfo, myBuildProblemWrapper);
+    List<BuildProblem> applicableBuildProblems =
+      myBuildProblemsFilter.apply(myFailedBuildInfo, mySProject, myBuildProblemWrapper);
 
     Assert.assertEquals(applicableBuildProblems.size(), 1);
   }

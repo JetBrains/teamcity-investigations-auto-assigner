@@ -53,7 +53,7 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
     super.setUp();
     myInvestigationsManager = Mockito.mock(InvestigationsManager.class);
     mySBuild = Mockito.mock(SBuild.class);
-    final SBuildType SBuildType = Mockito.mock(jetbrains.buildServer.serverSide.SBuildType.class);
+    final SBuildType sBuildType = Mockito.mock(jetbrains.buildServer.serverSide.SBuildType.class);
     mySProject = Mockito.mock(SProject.class);
     myBuildProblem = Mockito.mock(BuildProblem.class);
     final BuildProblemData buildProblemData = Mockito.mock(BuildProblemData.class);
@@ -65,8 +65,8 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
     when(buildProblemData.getType()).thenReturn("Type");
     when(mySBuild.getFullName()).thenReturn("Full SBuild Name");
     when(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, myBuildProblem)).thenReturn(myUser);
-    when(mySBuild.getBuildType()).thenReturn(SBuildType);
-    when(SBuildType.getProject()).thenReturn(mySProject);
+    when(mySBuild.getBuildType()).thenReturn(sBuildType);
+    when(sBuildType.getProject()).thenReturn(mySProject);
     when(mySTest.getTestNameId()).thenReturn(12982318457L);
     when(mySTest.getProjectId()).thenReturn("2134124");
     mySTestRun = Mockito.mock(STestRun.class);
@@ -83,7 +83,7 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
     HeuristicResult result = myHeuristic.findResponsibleUser(myBuildHeuristicContext);
 
     Assert.assertFalse(result.isEmpty());
-    Responsibility responsibility = result.getResponsibility(mySTestRun);
+    Responsibility responsibility = result.getResponsibility(myBuildProblem);
     assert responsibility != null;
     Assert.assertEquals(responsibility.getUser(), myUser);
   }

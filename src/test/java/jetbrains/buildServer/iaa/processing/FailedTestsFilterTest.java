@@ -81,7 +81,7 @@ public class FailedTestsFilterTest extends BaseTestCase {
     when(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, mySTest)).thenReturn(false);
 
     myTestsWrapper = Collections.singletonList(mySTestRun);
-    myFailedBuildInfo = new FailedBuildInfo(mySBuild, mySProject);
+    myFailedBuildInfo = new FailedBuildInfo(mySBuild);
     myFailedTestFilter = new FailedTestFilter(myFlakyTestDetector, myInvestigationsManager);
 
   }
@@ -89,7 +89,7 @@ public class FailedTestsFilterTest extends BaseTestCase {
   public void Test_TestRunIsMuted() {
     when(mySTestRun.isMuted()).thenReturn(true);
 
-    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, myTestsWrapper);
+    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, mySProject, myTestsWrapper);
 
     Assert.assertEquals(applicableTestRuns.size(), 0);
   }
@@ -97,7 +97,7 @@ public class FailedTestsFilterTest extends BaseTestCase {
   public void Test_TestRunIsNotMuted() {
     when(mySTestRun.isMuted()).thenReturn(false);
 
-    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, myTestsWrapper);
+    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, mySProject, myTestsWrapper);
 
     Assert.assertEquals(applicableTestRuns.size(), 1);
   }
@@ -105,14 +105,15 @@ public class FailedTestsFilterTest extends BaseTestCase {
   public void Test_TestRunIsFixed() {
     when(mySTestRun.isFixed()).thenReturn(true);
 
-    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, myTestsWrapper);
+    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, mySProject, myTestsWrapper);
+
     Assert.assertEquals(applicableTestRuns.size(), 0);
   }
 
   public void Test_TestRunIsNotFixed() {
     when(mySTestRun.isFixed()).thenReturn(false);
 
-    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, myTestsWrapper);
+    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, mySProject, myTestsWrapper);
 
     Assert.assertEquals(applicableTestRuns.size(), 1);
   }
@@ -120,7 +121,7 @@ public class FailedTestsFilterTest extends BaseTestCase {
   public void Test_TestRunNotNewFailure() {
     when(mySTestRun.isNewFailure()).thenReturn(false);
 
-    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, myTestsWrapper);
+    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, mySProject, myTestsWrapper);
 
     Assert.assertEquals(applicableTestRuns.size(), 0);
   }
@@ -128,7 +129,7 @@ public class FailedTestsFilterTest extends BaseTestCase {
   public void Test_TestRunIsNewFailure() {
     when(mySTestRun.isNewFailure()).thenReturn(true);
 
-    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, myTestsWrapper);
+    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, mySProject, myTestsWrapper);
 
     Assert.assertEquals(applicableTestRuns.size(), 1);
   }
@@ -137,7 +138,7 @@ public class FailedTestsFilterTest extends BaseTestCase {
     when(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, mySTest)).thenReturn(true);
     when(myTestNameResponsibilityEntry.getProject()).thenReturn(mySProject);
 
-    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, myTestsWrapper);
+    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, mySProject, myTestsWrapper);
 
     Assert.assertEquals(applicableTestRuns.size(), 0);
   }
@@ -146,7 +147,7 @@ public class FailedTestsFilterTest extends BaseTestCase {
     when(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, mySTest)).thenReturn(false);
     when(myTestNameResponsibilityEntry.getProject()).thenReturn(mySProject);
 
-    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, myTestsWrapper);
+    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, mySProject, myTestsWrapper);
 
     Assert.assertEquals(applicableTestRuns.size(), 1);
   }
@@ -154,7 +155,7 @@ public class FailedTestsFilterTest extends BaseTestCase {
   public void Test_TestIsFlaky() {
     when(myFlakyTestDetector.isFlaky(anyLong())).thenReturn(true);
 
-    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, myTestsWrapper);
+    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, mySProject, myTestsWrapper);
 
     Assert.assertEquals(applicableTestRuns.size(), 0);
   }
@@ -162,7 +163,7 @@ public class FailedTestsFilterTest extends BaseTestCase {
   public void Test_TestNotFlaky() {
     when(myFlakyTestDetector.isFlaky(anyLong())).thenReturn(false);
 
-    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, myTestsWrapper);
+    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, mySProject, myTestsWrapper);
 
     Assert.assertEquals(applicableTestRuns.size(), 1);
   }

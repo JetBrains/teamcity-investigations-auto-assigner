@@ -43,9 +43,10 @@ class BuildProblemsFilter {
     myInvestigationsManager = investigationsManager;
   }
 
-  List<BuildProblem> apply(final FailedBuildInfo failedBuildInfo, List<BuildProblem> buildProblems) {
+  List<BuildProblem> apply(final FailedBuildInfo failedBuildInfo,
+                           final SProject sProject,
+                           final List<BuildProblem> buildProblems) {
     SBuild sBuild = failedBuildInfo.getBuild();
-    SProject sProject = failedBuildInfo.getProject();
     Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
 
     BuildProblemImpl.fillIsNew(sBuild.getBuildPromotion(), buildProblems);

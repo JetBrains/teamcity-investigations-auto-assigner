@@ -41,9 +41,8 @@ class FailedTestFilter {
     myInvestigationsManager = investigationsManager;
   }
 
-  List<STestRun> apply(final FailedBuildInfo failedBuildInfo, List<STestRun> testRuns) {
+  List<STestRun> apply(final FailedBuildInfo failedBuildInfo, final SProject sProject, final List<STestRun> testRuns) {
     SBuild sBuild = failedBuildInfo.getBuild();
-    SProject sProject = failedBuildInfo.getProject();
     Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
 
     List<STestRun> filteredTestRuns = testRuns.stream()

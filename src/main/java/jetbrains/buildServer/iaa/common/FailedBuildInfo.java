@@ -20,33 +20,25 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import jetbrains.buildServer.serverSide.SBuild;
-import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.jetbrains.annotations.NotNull;
 
 public class FailedBuildInfo {
 
-  private final SProject mySProject;
   private final SBuild mySBuild;
 
   private Set<Integer> processedTests = new HashSet<>();
   private Set<Integer> processedBuildProblems = new HashSet<>();
   public int processed = 0;
 
-  public FailedBuildInfo(final SBuild sBuild, final SProject sProject) {
+  public FailedBuildInfo(final SBuild sBuild) {
     mySBuild = sBuild;
-    mySProject = sProject;
   }
 
   @NotNull
   public SBuild getBuild() {
     return mySBuild;
-  }
-
-  @NotNull
-  public SProject getProject() {
-    return mySProject;
   }
 
   public void addProcessedTestRuns(@NotNull Collection<STestRun> tests) {

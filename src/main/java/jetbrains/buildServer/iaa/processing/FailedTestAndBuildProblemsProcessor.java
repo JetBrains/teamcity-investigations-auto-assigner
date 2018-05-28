@@ -48,7 +48,11 @@ public class FailedTestAndBuildProblemsProcessor {
 
   public Boolean processBuild(final FailedBuildInfo failedBuildInfo) {
     SBuild sBuild = failedBuildInfo.getBuild();
-    SProject sProject = failedBuildInfo.getProject();
+    if (sBuild.getBuildType() == null) {
+      return true;
+    }
+
+    SProject sProject = sBuild.getBuildType().getProject();
     boolean shouldDelete = sBuild.isFinished();
     Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
     if (failedBuildInfo.processed >= threshold) return shouldDelete;
@@ -56,8 +60,8 @@ public class FailedTestAndBuildProblemsProcessor {
     List<BuildProblem> allBuildProblems = ((BuildEx)sBuild).getBuildProblems();
     List<STestRun> allFailedTests = requestBrokenTestsWithStats(sBuild);
 
-    List<BuildProblem> applicableBuildProblems = myBuildProblemsFilter.apply(failedBuildInfo, allBuildProblems);
-    List<STestRun> applicableFailedTests = myFailedTestFilter.apply(failedBuildInfo, allFailedTests);
+    List<BuildProblem> applicableBuildProblems = myBuildProblemsFilter.apply(failedBuildInfo, sProject, allBuildProblems);
+    List<STestRun> applicableFailedTests = myFailedTestFilter.apply(failedBuildInfo, sProject, allFailedTests);
 
     HeuristicResult heuristicsResult =
       myResponsibleUserFinder.findResponsibleUser(sBuild, sProject, applicableBuildProblems, applicableFailedTests);
