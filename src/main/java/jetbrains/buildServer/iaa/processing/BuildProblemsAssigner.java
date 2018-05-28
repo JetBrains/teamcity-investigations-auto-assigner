@@ -16,6 +16,7 @@
 
 package jetbrains.buildServer.iaa.processing;
 
+import java.util.List;
 import jetbrains.buildServer.iaa.common.HeuristicResult;
 import jetbrains.buildServer.iaa.common.Responsibility;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityFacade;
@@ -34,9 +35,7 @@ class BuildProblemsAssigner {
     myBuildProblemResponsibilityFacade = buildProblemResponsibilityFacade;
   }
 
-  void apply(HeuristicResult heuristicsResult, HeuristicContext heuristicContext) {
-    SProject sProject = heuristicContext.getProject();
-    Iterable<BuildProblem> buildProblems = heuristicContext.getBuildProblems();
+  void apply(final HeuristicResult heuristicsResult, final SProject sProject, final List<BuildProblem> buildProblems) {
     for (BuildProblem buildProblem : buildProblems) {
       Responsibility responsibility = heuristicsResult.getResponsibility(buildProblem);
 

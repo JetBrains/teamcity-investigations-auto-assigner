@@ -16,6 +16,7 @@
 
 package jetbrains.buildServer.iaa.processing;
 
+import java.util.List;
 import jetbrains.buildServer.iaa.common.HeuristicResult;
 import jetbrains.buildServer.iaa.common.Responsibility;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
@@ -35,10 +36,7 @@ class FailedTestAssigner {
     myTestNameResponsibilityFacade = testNameResponsibilityFacade;
   }
 
-  void apply(final HeuristicResult heuristicsResult, final HeuristicContext heuristicContext) {
-    SProject sProject = heuristicContext.getProject();
-    Iterable<STestRun> sTestRuns = heuristicContext.getTestRuns();
-
+  void apply(final HeuristicResult heuristicsResult, final SProject sProject, final List<STestRun> sTestRuns) {
     for (STestRun sTestRun : sTestRuns) {
       Responsibility responsibility = heuristicsResult.getResponsibility(sTestRun);
       if (responsibility != null) {

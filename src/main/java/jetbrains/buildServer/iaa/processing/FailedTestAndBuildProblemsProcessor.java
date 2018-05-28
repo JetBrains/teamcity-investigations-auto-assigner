@@ -59,13 +59,11 @@ public class FailedTestAndBuildProblemsProcessor {
     List<BuildProblem> applicableBuildProblems = myBuildProblemsFilter.apply(failedBuildInfo, allBuildProblems);
     List<STestRun> applicableFailedTests = myFailedTestFilter.apply(failedBuildInfo, allFailedTests);
 
-    HeuristicContext heuristicContext =
-      new HeuristicContext(sBuild, sProject, applicableBuildProblems, applicableFailedTests);
+    HeuristicResult heuristicsResult =
+      myResponsibleUserFinder.findResponsibleUser(sBuild, sProject, applicableBuildProblems, applicableFailedTests);
 
-    HeuristicResult heuristicsResult = myResponsibleUserFinder.findResponsibleUser(heuristicContext);
-
-    myFailedTestAssigner.apply(heuristicsResult, heuristicContext);
-    myBuildProblemsAssigner.apply(heuristicsResult, heuristicContext);
+    myFailedTestAssigner.apply(heuristicsResult, sProject, applicableFailedTests);
+    myBuildProblemsAssigner.apply(heuristicsResult, sProject, applicableBuildProblems);
 
     return shouldDelete;
   }
