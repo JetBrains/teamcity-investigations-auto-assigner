@@ -49,8 +49,10 @@ public class FailedTestAndBuildProblemsProcessor {
   public Boolean processBuild(final FailedBuildInfo failedBuildInfo) {
     SBuild sBuild = failedBuildInfo.getBuild();
     if (sBuild.getBuildType() == null) {
+      LOGGER.warn("Build #" + sBuild.getBuildId() + " doesn't have a build type.");
       return true;
     }
+    LOGGER.debug("Start processing build #" + sBuild.getBuildId() + ".");
 
     SProject sProject = sBuild.getBuildType().getProject();
     boolean shouldDelete = sBuild.isFinished();
@@ -62,6 +64,9 @@ public class FailedTestAndBuildProblemsProcessor {
 
     List<BuildProblem> applicableBuildProblems = myBuildProblemsFilter.apply(failedBuildInfo, sProject, allBuildProblems);
     List<STestRun> applicableFailedTests = myFailedTestFilter.apply(failedBuildInfo, sProject, allFailedTests);
+
+    LOGGER.debug("Build #" + sBuild.getBuildId() + ": found " + applicableBuildProblems.size()  +
+                 " applicable build problems and " + applicableFailedTests.size() + " failed tests.");
 
     HeuristicResult heuristicsResult =
       myResponsibleUserFinder.findResponsibleUser(sBuild, sProject, applicableBuildProblems, applicableFailedTests);

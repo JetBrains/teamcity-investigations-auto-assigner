@@ -16,6 +16,7 @@
 
 package jetbrains.buildServer.iaa.processing;
 
+import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
 import jetbrains.buildServer.iaa.common.HeuristicResult;
 import jetbrains.buildServer.iaa.common.Responsibility;
@@ -29,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 class BuildProblemsAssigner {
 
+  private static final Logger LOGGER = Logger.getInstance(BuildProblemsAssigner.class.getName());
   @NotNull private final BuildProblemResponsibilityFacade myBuildProblemResponsibilityFacade;
 
   BuildProblemsAssigner(@NotNull final BuildProblemResponsibilityFacade buildProblemResponsibilityFacade) {
@@ -40,6 +42,10 @@ class BuildProblemsAssigner {
       Responsibility responsibility = heuristicsResult.getResponsibility(buildProblem);
 
       if (responsibility != null) {
+        LOGGER.info("Found responsible for " + sProject.getProjectId() + "#" +
+                    buildProblem.getBuildProblemDescription()  + ":: user: " + responsibility.getUser().getUsername() +
+                    " because of \"" + responsibility.getDescription() + "\"");
+
         myBuildProblemResponsibilityFacade.setBuildProblemResponsibility(
           buildProblem, sProject.getProjectId(),
           new BuildProblemResponsibilityEntryImpl(

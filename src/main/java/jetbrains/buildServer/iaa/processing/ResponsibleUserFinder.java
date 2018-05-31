@@ -16,7 +16,6 @@
 
 package jetbrains.buildServer.iaa.processing;
 
-import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
 import java.util.stream.Collectors;
 import jetbrains.buildServer.iaa.common.HeuristicResult;
@@ -28,7 +27,6 @@ import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.jetbrains.annotations.NotNull;
 
 public class ResponsibleUserFinder {
-  private static final Logger LOGGER = Logger.getInstance(ResponsibleUserFinder.class.getName());
   private List<Heuristic> myOrderedHeuristics;
 
   ResponsibleUserFinder(@NotNull final List<Heuristic> orderedHeuristics) {

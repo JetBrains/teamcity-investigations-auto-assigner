@@ -16,6 +16,7 @@
 
 package jetbrains.buildServer.iaa;
 
+import com.intellij.openapi.diagnostic.Logger;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,9 @@ import jetbrains.buildServer.util.executors.ExecutorsFactory;
 import org.jetbrains.annotations.NotNull;
 
 public class FailedTestAndBuildProblemsDispatcher {
+
+  private static final Logger LOGGER = Logger.getInstance(FailedTestAndBuildProblemsDispatcher.class.getName());
+
   @NotNull private final FailedTestAndBuildProblemsProcessor myProcessor;
   // Map isn't synchronized because we work with it from synchronized method
   @NotNull private final ConcurrentHashMap<Long, FailedBuildInfo> myFailedBuilds;
@@ -92,7 +96,9 @@ public class FailedTestAndBuildProblemsDispatcher {
     Boolean shouldRemove = myProcessor.processBuild(failedBuildInfo);
 
     if (shouldRemove) {
+      long buildId = failedBuildInfo.getBuild().getBuildId();
       myFailedBuilds.remove(buildKey);
+      LOGGER.debug("Build #" + buildId + " removed from processing.");
     }
   }
 

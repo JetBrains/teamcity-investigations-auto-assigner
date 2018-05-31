@@ -16,6 +16,7 @@
 
 package jetbrains.buildServer.iaa.processing;
 
+import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
 import jetbrains.buildServer.iaa.common.HeuristicResult;
 import jetbrains.buildServer.iaa.common.Responsibility;
@@ -31,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 class FailedTestAssigner {
   @NotNull private final TestNameResponsibilityFacade myTestNameResponsibilityFacade;
+  private static final Logger LOGGER = Logger.getInstance(FailedTestAssigner.class.getName());
 
   FailedTestAssigner(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade) {
     myTestNameResponsibilityFacade = testNameResponsibilityFacade;
@@ -39,9 +41,13 @@ class FailedTestAssigner {
   void assign(final HeuristicResult heuristicsResult, final SProject sProject, final List<STestRun> sTestRuns) {
     for (STestRun sTestRun : sTestRuns) {
       Responsibility responsibility = heuristicsResult.getResponsibility(sTestRun);
+
       if (responsibility != null) {
         final STest test = sTestRun.getTest();
         final TestName testName = test.getName();
+
+        LOGGER.info("Found responsible for " + sProject.getProjectId() + "#" + testName  + ":: user: " +
+                    responsibility.getUser().getUsername() + " because of \"" + responsibility.getDescription() + "\"");
 
         myTestNameResponsibilityFacade.setTestNameResponsibility(
           testName, sProject.getProjectId(),

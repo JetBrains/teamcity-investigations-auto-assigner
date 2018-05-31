@@ -92,7 +92,7 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
     when(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, myBuildProblem)).thenReturn(null);
 
     HeuristicResult result = myHeuristic.findResponsibleUser(myBuildHeuristicContext);
-
+//
     Assert.assertTrue(result.isEmpty());
   }
 
