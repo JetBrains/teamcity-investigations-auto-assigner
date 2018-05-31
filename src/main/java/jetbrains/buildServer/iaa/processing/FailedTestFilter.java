@@ -16,6 +16,7 @@
 
 package jetbrains.buildServer.iaa.processing;
 
+import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
 import java.util.stream.Collectors;
 import jetbrains.buildServer.iaa.common.FailedBuildInfo;
@@ -32,6 +33,7 @@ import org.springframework.stereotype.Component;
 @Component
 class FailedTestFilter {
 
+  private static final Logger LOGGER = Logger.getInstance(FailedTestFilter.class.getName());
   private final InvestigationsManager myInvestigationsManager;
   private final FlakyTestDetector myFlakyTestDetector;
 
@@ -62,10 +64,15 @@ class FailedTestFilter {
                                @NotNull final STestRun testRun) {
     final STest test = testRun.getTest();
 
-    return !testRun.isMuted() &&
-           !testRun.isFixed() &&
-           testRun.isNewFailure() &&
-           !myInvestigationsManager.checkUnderInvestigation(project, sBuild, test) &&
-           !myFlakyTestDetector.isFlaky(test.getTestNameId());
+    boolean result = !testRun.isMuted() &&
+                     !testRun.isFixed() &&
+                     testRun.isNewFailure() &&
+                     !myInvestigationsManager.checkUnderInvestigation(project, sBuild, test) &&
+                     !myFlakyTestDetector.isFlaky(test.getTestNameId());
+
+    LOGGER.debug("Test " + sBuild.getBuildId() + ":" + testRun.getTest().getName() + " is " +
+                 (result ? "" : "not") + " applicable.");
+
+    return result;
   }
 }

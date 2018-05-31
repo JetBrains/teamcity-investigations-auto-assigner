@@ -16,6 +16,7 @@
 
 package jetbrains.buildServer.iaa.processing;
 
+import com.intellij.openapi.diagnostic.Logger;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -34,6 +35,7 @@ import org.springframework.stereotype.Component;
 @Component
 class BuildProblemsFilter {
 
+  private static final Logger LOGGER = Logger.getInstance(BuildProblemsFilter.class.getName());
   private InvestigationsManager myInvestigationsManager;
   private final Set<String> supportedTypes =
     Collections.unmodifiableSet(Collections.singleton(Constants.TC_COMPILATION_ERROR_TYPE));
@@ -66,10 +68,14 @@ class BuildProblemsFilter {
   private boolean isApplicable(@NotNull final SProject project,
                                @NotNull final SBuild sBuild,
                                @NotNull final BuildProblem problem) {
-    return (!problem.isMuted() &&
-            isNew(problem) &&
-            supportedTypes.contains(problem.getBuildProblemData().getType()) &&
-            !myInvestigationsManager.checkUnderInvestigation(project, sBuild, problem));
+    boolean result = (!problem.isMuted() &&
+                      isNew(problem) &&
+                      supportedTypes.contains(problem.getBuildProblemData().getType()) &&
+                      !myInvestigationsManager.checkUnderInvestigation(project, sBuild, problem));
+
+    LOGGER.debug("Build problem " + sBuild.getBuildId() + ":" + problem.getTypeDescription() + " is " +
+                 (result ? "" : "not") + " applicable.");
+    return result;
   }
 
   private static boolean isNew(@NotNull final BuildProblem problem) {

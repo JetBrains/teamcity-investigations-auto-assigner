@@ -26,13 +26,14 @@ import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.jetbrains.annotations.NotNull;
 
 public class FailedTestAndBuildProblemsProcessor {
+
+  private static final Logger LOGGER = Logger.getInstance(FailedTestAndBuildProblemsProcessor.class.getName());
   private final FailedTestFilter myFailedTestFilter;
   private final BuildProblemsFilter myBuildProblemsFilter;
   private final FailedTestAssigner myFailedTestAssigner;
   private final BuildProblemsAssigner myBuildProblemsAssigner;
   @NotNull private ResponsibleUserFinder myResponsibleUserFinder;
 
-  private static final Logger LOGGER = Logger.getInstance(FailedTestAndBuildProblemsProcessor.class.getName());
 
   public FailedTestAndBuildProblemsProcessor(@NotNull final ResponsibleUserFinder responsibleUserFinder,
                                              @NotNull final FailedTestFilter failedTestFilter,
@@ -57,16 +58,23 @@ public class FailedTestAndBuildProblemsProcessor {
     SProject sProject = sBuild.getBuildType().getProject();
     boolean shouldDelete = sBuild.isFinished();
     Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
-    if (failedBuildInfo.processed >= threshold) return shouldDelete;
+    if (failedBuildInfo.processed >= threshold) {
+      LOGGER.debug("Stop processing build #" + sBuild.getBuildId() + " as the threshold was exceeded.");
+      return shouldDelete;
+    }
 
     List<BuildProblem> allBuildProblems = ((BuildEx)sBuild).getBuildProblems();
     List<STestRun> allFailedTests = requestBrokenTestsWithStats(sBuild);
 
-    List<BuildProblem> applicableBuildProblems = myBuildProblemsFilter.apply(failedBuildInfo, sProject, allBuildProblems);
+    LOGGER.debug("Build #" + sBuild.getBuildId() + ": has " + allBuildProblems.size() +
+                 " build problems and " + allBuildProblems.size() + " failed tests.");
+
+    List<BuildProblem> applicableBuildProblems =
+      myBuildProblemsFilter.apply(failedBuildInfo, sProject, allBuildProblems);
     List<STestRun> applicableFailedTests = myFailedTestFilter.apply(failedBuildInfo, sProject, allFailedTests);
 
-    LOGGER.debug("Build #" + sBuild.getBuildId() + ": found " + applicableBuildProblems.size()  +
-                 " applicable build problems and " + applicableFailedTests.size() + " failed tests.");
+    LOGGER.debug("Build #" + sBuild.getBuildId() + ": found " + applicableBuildProblems.size() +
+                 " applicable build problems and " + applicableFailedTests.size() + " applicable failed tests.");
 
     HeuristicResult heuristicsResult =
       myResponsibleUserFinder.findResponsibleUser(sBuild, sProject, applicableBuildProblems, applicableFailedTests);

@@ -56,7 +56,10 @@ public class FailedTestAndBuildProblemsDispatcher {
 
       public void testFailed(@NotNull SRunningBuild build, @NotNull List<Long> testNameIds) {
         SBuildType buildType = build.getBuildType();
-        if (shouldIgnore(build) || buildType == null) return;
+        if (shouldIgnore(build) || buildType == null) {
+          LOGGER.debug("Dispatcher decides that build #" + build.getBuildId() + " should be ignored.");
+          return;
+        }
 
         myFailedBuilds.putIfAbsent(build.getBuildId(), new FailedBuildInfo(build));
       }
@@ -73,7 +76,10 @@ public class FailedTestAndBuildProblemsDispatcher {
                                        @NotNull List<BuildProblemData> before,
                                        @NotNull List<BuildProblemData> after) {
         SBuildType buildType = sBuild.getBuildType();
-        if (shouldIgnore(sBuild) || !(sBuild instanceof BuildEx) || buildType == null) return;
+        if (shouldIgnore(sBuild) || !(sBuild instanceof BuildEx) || buildType == null) {
+          LOGGER.debug("Dispatcher decides that build #" + sBuild.getBuildId() + " should be ignored.");
+          return;
+        }
 
         myFailedBuilds.putIfAbsent(sBuild.getBuildId(), new FailedBuildInfo(sBuild));
       }
