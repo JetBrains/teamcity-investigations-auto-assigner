@@ -17,6 +17,7 @@
 package jetbrains.buildServer.iaa.utils;
 
 import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.util.StringUtil;
 import org.jetbrains.annotations.Nullable;
 
 public class CustomParameters {
@@ -29,11 +30,8 @@ public class CustomParameters {
     if (value == null) {
       return DEFAULT_TEST_COUNT_THRESHOLD;
     }
-    try {
-      Integer parsedValue = Integer.parseInt(value);
-      return parsedValue >= 0 ? parsedValue : Integer.MAX_VALUE;
-    } catch (NumberFormatException e) {
-      return DEFAULT_TEST_COUNT_THRESHOLD;
-    }
+
+    int parsedValue = StringUtil.parseInt(value, DEFAULT_TEST_COUNT_THRESHOLD);
+    return parsedValue >= 0 ? parsedValue : Integer.MAX_VALUE;
   }
 }

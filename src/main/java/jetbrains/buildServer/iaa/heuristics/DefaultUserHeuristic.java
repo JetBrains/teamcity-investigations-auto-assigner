@@ -17,17 +17,16 @@
 package jetbrains.buildServer.iaa.heuristics;
 
 import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.util.Pair;
 import java.util.Collection;
-import jetbrains.buildServer.iaa.ProblemInfo;
 import jetbrains.buildServer.iaa.common.Constants;
+import jetbrains.buildServer.iaa.common.HeuristicResult;
+import jetbrains.buildServer.iaa.common.Responsibility;
+import jetbrains.buildServer.iaa.processing.HeuristicContext;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SBuildFeatureDescriptor;
-import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.users.UserModelEx;
 import jetbrains.buildServer.users.impl.UserEx;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class DefaultUserHeuristic implements Heuristic {
 
@@ -52,25 +51,32 @@ public class DefaultUserHeuristic implements Heuristic {
   }
 
   @Override
-  @Nullable
-  public Pair<User, String> findResponsibleUser(@NotNull ProblemInfo problemInfo) {
-    SBuild build = problemInfo.getSBuild();
+  public HeuristicResult findResponsibleUser(@NotNull HeuristicContext heuristicContext) {
+    HeuristicResult result = new HeuristicResult();
+
+    SBuild build = heuristicContext.getBuild();
     Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
-    if (descriptors.isEmpty()) return null;
+    if (descriptors.isEmpty()) return result;
 
     final SBuildFeatureDescriptor sBuildFeature = (SBuildFeatureDescriptor)descriptors.toArray()[0];
     String defaultResponsible = String.valueOf(sBuildFeature.getParameters().get(Constants.DEFAULT_RESPONSIBLE));
 
-    if (defaultResponsible == null || defaultResponsible.isEmpty()) return null;
+    if (defaultResponsible == null || defaultResponsible.isEmpty()) return result;
     UserEx responsibleUser = myUserModel.findUserAccount(null, defaultResponsible);
 
     if (responsibleUser == null) {
-      LOGGER.warn(String.format("There is specified default user %s, but there is no hin in user model. Failed build #%s",
-                                defaultResponsible, build.getBuildId()));
-      return null;
+      LOGGER.warn(String.format("There is specified default user %s, but the user is not in a user model. " +
+                                "Failed build #%s", defaultResponsible, build.getBuildId()));
+      return result;
     }
-    return Pair.create(responsibleUser,
-              Constants.REASON_PREFIX + " you're the default responsible user for the build: " +
-              build.getFullName() + " #" + build.getBuildNumber());
+
+    Responsibility responsibility =
+      new Responsibility(responsibleUser, Constants.REASON_PREFIX + " you're the default responsible " +
+                                          "user for the build: " + build.getFullName() + " #" + build.getBuildNumber());
+    heuristicContext.getBuildProblems()
+                    .forEach(buildProblem -> result.addResponsibility(buildProblem, responsibility));
+    heuristicContext.getTestRuns().forEach(testRun -> result.addResponsibility(testRun, responsibility));
+
+    return result;
   }
 }

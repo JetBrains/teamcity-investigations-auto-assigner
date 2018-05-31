@@ -16,13 +16,16 @@
 
 package jetbrains.buildServer.iaa.utils;
 
+import java.util.*;
 import jetbrains.buildServer.BuildProject;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
+import jetbrains.buildServer.responsibility.ResponsibilityFacadeEx;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityEntry;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STest;
+import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.serverSide.audit.*;
 import jetbrains.buildServer.serverSide.impl.audit.filters.ActionTypesFilter;
 import jetbrains.buildServer.serverSide.impl.audit.filters.BuildProblemAuditId;
@@ -35,10 +38,13 @@ import org.jetbrains.annotations.Nullable;
 
 public class InvestigationsManager {
 
-  @NotNull private final AuditLogProvider auditLogProvider;
+  @NotNull private final AuditLogProvider myAuditLogProvider;
+  @NotNull private final ResponsibilityFacadeEx myResponsibilityFacade;
 
-  InvestigationsManager(@NotNull final AuditLogProvider auditLogProvider) {
-    this.auditLogProvider = auditLogProvider;
+  InvestigationsManager(@NotNull final AuditLogProvider auditLogProvider,
+                        @NotNull final ResponsibilityFacadeEx responsibilityFacade) {
+    this.myAuditLogProvider = auditLogProvider;
+    myResponsibilityFacade = responsibilityFacade;
   }
 
   public boolean checkUnderInvestigation(@NotNull final SProject project,
@@ -69,16 +75,15 @@ public class InvestigationsManager {
   }
 
   private boolean belongSameProjectOrParent(@NotNull final BuildProject parent, @NotNull final BuildProject project) {
-    if (parent.getProjectId().equals(project.getProjectId())) return true;
-    final BuildProject parentProject = project.getParentProject();
-    return parentProject != null && belongSameProjectOrParent(parent, parentProject);
+    List<String> projectIds = collectProjectHierarchyIds(project);
+    return projectIds.contains(parent.getProjectId());
   }
 
   @Nullable
   public User findPreviousResponsible(@NotNull final SProject project,
                                       @NotNull final SBuild sBuild,
                                       @NotNull final BuildProblem problem) {
-    User responsible = this.findInCache(project, sBuild, problem);
+    User responsible = this.findAmongEntries(project, sBuild, problem.getAllResponsibilities());
     if (responsible == null) {
       responsible = this.findInAudit(problem);
     }
@@ -86,21 +91,8 @@ public class InvestigationsManager {
   }
 
   @Nullable
-  private User findInCache(final SProject project, final SBuild sBuild, final BuildProblem problem) {
-    for (BuildProblemResponsibilityEntry entry : problem.getAllResponsibilities()) {
-      final ResponsibilityEntry.State state = entry.getState();
-      if (state.isFixed() &&
-          !createdBeforeBuildQueued(entry, sBuild) &&
-          belongSameProjectOrParent(entry.getProject(), project)) {
-        return entry.getResponsibleUser();
-      }
-    }
-    return null;
-  }
-
-  @Nullable
   private User findInAudit(final BuildProblem buildProblem) {
-    AuditLogBuilder builder = auditLogProvider.getBuilder();
+    AuditLogBuilder builder = myAuditLogProvider.getBuilder();
     builder.setObjectId(BuildProblemAuditId.fromBuildProblem(buildProblem).asString());
     builder.addFilter(new ActionTypesFilter(ActionType.BUILD_PROBLEM_MARK_AS_FIXED));
     builder.addFilter(new ObjectTypeFilter(ObjectType.BUILD_PROBLEM));
@@ -119,45 +111,67 @@ public class InvestigationsManager {
   }
 
   @Nullable
-  public User findPreviousResponsible(@NotNull final SProject project,
+  public User findPreviousResponsible(@NotNull final SProject sProject,
                                       @NotNull final SBuild sBuild,
-                                      @NotNull final STest test) {
-    User responsible = this.findInCache(project, sBuild, test);
-    if (responsible == null) {
-      responsible = this.findInAudit(test);
-    }
-    return responsible;
+                                      @NotNull final STest sTest) {
+    return this.findAmongEntries(sProject, sBuild, sTest.getAllResponsibilities());
   }
 
-  private User findInCache(final SProject project, final SBuild sBuild, final STest test) {
-    for (TestNameResponsibilityEntry entry : test.getAllResponsibilities()) {
+  @Nullable
+  private User findAmongEntries(final SProject project,
+                                final SBuild sBuild,
+                                List<? extends ResponsibilityEntry> responsibilityEntries) {
+    for (ResponsibilityEntry entry : responsibilityEntries) {
+      BuildProject entryProject = myResponsibilityFacade.getProject(entry);
       final ResponsibilityEntry.State state = entry.getState();
       if (state.isFixed() &&
           !createdBeforeBuildQueued(entry, sBuild) &&
-          belongSameProjectOrParent(entry.getProject(), project)) {
+          entryProject != null &&
+          belongSameProjectOrParent(entryProject, project)) {
         return entry.getResponsibleUser();
       }
     }
     return null;
   }
 
-  @Nullable
-  private User findInAudit(final STest sTest) {
-    AuditLogBuilder builder = auditLogProvider.getBuilder();
-    builder.setObjectId(TestId.createOn(sTest).asString());
-    builder.addFilter(new ActionTypesFilter(ActionType.TEST_MARK_AS_FIXED));
-    builder.addFilter(new ObjectTypeFilter(ObjectType.TEST));
-    AuditLogAction lastAction = builder.findLastAction();
-    if (lastAction == null) {
-      return null;
-    }
-
-    for (ObjectWrapper obj : lastAction.getObjects()) {
-      Object user = obj.getObject();
-      if (user instanceof User) {
-        return (User)user;
+  @NotNull
+  public HashMap<Long, User> findInAudit(@NotNull final Iterable<STestRun> sTestRuns, @NotNull SProject project) {
+    AuditLogBuilder builder = myAuditLogProvider.getBuilder();
+    builder.setActionTypes(ActionType.TEST_MARK_AS_FIXED, ActionType.TEST_INVESTIGATION_ASSIGN);
+    List<String> projectIds = collectProjectHierarchyIds(project);
+    Set<String> objectIds = new HashSet<>();
+    for (STestRun testRun : sTestRuns) {
+      for (String projectId : projectIds) {
+        objectIds.add(TestId.createOn(testRun.getTest().getTestNameId(), projectId).asString());
       }
     }
-    return null;
+    builder.addFilter(new ObjectIdsFilter(objectIds));
+    List<AuditLogAction> lastActions = builder.getLogActions(-1);
+    HashMap<Long, User> result = new HashMap<>();
+    for (AuditLogAction action : lastActions) {
+      for (ObjectWrapper obj : action.getObjects()) {
+        Object user = obj.getObject();
+        if (!(user instanceof User)) {
+          continue;
+        }
+
+        TestId testId = TestId.fromString(action.getObjectId());
+        if (testId != null) {
+          result.putIfAbsent(testId.getTestNameId(), (User)user);
+          break;
+        }
+      }
+    }
+    return result;
+  }
+
+  @NotNull
+  private List<String> collectProjectHierarchyIds(@NotNull BuildProject project) {
+    List<String> result = new ArrayList<>();
+    do {
+      result.add(project.getProjectId());
+      project = project.getParentProject();
+    } while (project != null);
+    return result;
   }
 }

@@ -16,14 +16,15 @@
 
 package jetbrains.buildServer.iaa.heuristics;
 
-import com.intellij.openapi.util.Pair;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import jetbrains.buildServer.BaseTestCase;
-import jetbrains.buildServer.iaa.ProblemInfo;
+import jetbrains.buildServer.iaa.common.HeuristicResult;
+import jetbrains.buildServer.iaa.processing.HeuristicContext;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
+import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.users.SUser;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.users.UserSet;
@@ -38,42 +39,52 @@ import static org.mockito.Mockito.when;
 @Test
 public class OneCommitterHeuristicTest extends BaseTestCase {
 
-  private OneCommitterHeuristic heuristic;
-  private UserSet userSetMock;
-  private User firstUser;
-  private SUser secondUser;
-  private ProblemInfo problemInfo;
+  private OneCommitterHeuristic myHeuristic;
+  private UserSet myUserSetMock;
+  private User myFirstUser;
+  private SUser mySecondUser;
+  private STestRun mySTestRun;
+  private HeuristicContext myHeuristicContext;
 
   @BeforeMethod
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    heuristic = new OneCommitterHeuristic();
-    final SBuild sBuildMock = Mockito.mock(SBuild.class);
-    final SProject sProjectMock = Mockito.mock(SProject.class);
-    userSetMock = Mockito.mock(UserSet.class);
-    firstUser = Mockito.mock(User.class);
-    secondUser = Mockito.mock(SUser.class);
-    when(sBuildMock.getCommitters(SelectPrevBuildPolicy.SINCE_LAST_BUILD)).thenReturn(userSetMock);
-    problemInfo = new ProblemInfo(sBuildMock, sProjectMock, "problem text");
+    myHeuristic = new OneCommitterHeuristic();
+    final SBuild sBuild = Mockito.mock(SBuild.class);
+    final SProject sProject = Mockito.mock(SProject.class);
+
+    myUserSetMock = Mockito.mock(UserSet.class);
+    myFirstUser = Mockito.mock(User.class);
+    mySecondUser = Mockito.mock(SUser.class);
+    when(sBuild.getCommitters(SelectPrevBuildPolicy.SINCE_LAST_BUILD)).thenReturn(myUserSetMock);
+    mySTestRun = Mockito.mock(STestRun.class);
+    myHeuristicContext =
+      new HeuristicContext(sBuild, sProject, Collections.emptyList(), Collections.singletonList(mySTestRun));
   }
 
   public void TestWithOneResponsible() {
-    when(userSetMock.getUsers()).thenReturn(new HashSet<>(Collections.singletonList(firstUser)));
-    Pair<User, String> responsible = heuristic.findResponsibleUser(problemInfo);
-    Assert.assertNotNull(responsible);
-    Assert.assertEquals(responsible.first, firstUser);
+    when(myUserSetMock.getUsers()).thenReturn(new HashSet<>(Collections.singletonList(myFirstUser)));
+    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
+
+    Assert.assertFalse(heuristicResult.isEmpty());
+    Assert.assertNotNull(heuristicResult.getResponsibility(mySTestRun));
+    Assert.assertEquals(heuristicResult.getResponsibility(mySTestRun).getUser(), myFirstUser);
   }
 
   public void TestWithoutResponsible() {
-    when(userSetMock.getUsers()).thenReturn(new HashSet<User>());
-    Pair<User, String> responsible = heuristic.findResponsibleUser(problemInfo);
-    Assert.assertNull(responsible);
+    when(myUserSetMock.getUsers()).thenReturn(new HashSet<User>());
+
+    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
+
+    Assert.assertTrue(heuristicResult.isEmpty());
   }
 
   public void TestWithManyResponsible() {
-    when(userSetMock.getUsers()).thenReturn(new HashSet<>(Arrays.asList(firstUser, secondUser)));
-    Pair<User, String> responsible = heuristic.findResponsibleUser(problemInfo);
-    Assert.assertNull(responsible);
+    when(myUserSetMock.getUsers()).thenReturn(new HashSet<>(Arrays.asList(myFirstUser, mySecondUser)));
+
+    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
+
+    Assert.assertTrue(heuristicResult.isEmpty());
   }
 }

@@ -14,27 +14,22 @@
  * limitations under the License.
  */
 
-package jetbrains.buildServer.iaa;
+package jetbrains.buildServer.iaa.utils;
 
-import jetbrains.buildServer.serverSide.SBuild;
-import jetbrains.buildServer.serverSide.SProject;
-import jetbrains.buildServer.serverSide.STest;
+import java.util.Set;
+import jetbrains.buildServer.serverSide.audit.AuditLogAction;
+import jetbrains.buildServer.serverSide.audit.AuditLogFilter;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class TestProblemInfo extends ProblemInfo {
-  @NotNull private final STest mySTest;
+class ObjectIdsFilter implements AuditLogFilter {
+  @NotNull
+  private final Set<String> myObjectIds;
 
-  TestProblemInfo(@NotNull final STest test,
-                  @NotNull final SBuild sBuild,
-                  @NotNull final SProject project,
-                  @Nullable final String problemText) {
-    super(sBuild, project, problemText);
-    mySTest = test;
+  ObjectIdsFilter(@NotNull Set<String> objectIds) {
+    this.myObjectIds = objectIds;
   }
 
-  @NotNull
-  public STest getSTest() {
-    return mySTest;
+  public boolean accept(@NotNull AuditLogAction action) {
+    return this.myObjectIds.contains(action.getObjectId());
   }
 }
