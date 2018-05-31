@@ -12,6 +12,7 @@ The plugin adds a [build feature](https://confluence.jetbrains.com/display/TCDL/
 
 * If a user is the only committer to the build, the user is responsible.
 * If a user is the only one who changed the files, whose names appear in the test or build problem error text, the user is responsible.
+* If a user was responsible for this problem previous time, the user is responsible.
 * If a user is set as the default responsible user, the user is responsible.
 
 ## Status
