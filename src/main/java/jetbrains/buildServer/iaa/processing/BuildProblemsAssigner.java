@@ -42,7 +42,7 @@ class BuildProblemsAssigner {
       Responsibility responsibility = heuristicsResult.getResponsibility(buildProblem);
 
       if (responsibility != null) {
-        LOGGER.info("Found responsible for " + sProject.getProjectId() + "#" +
+        LOGGER.info("Found responsible for " + sProject.describe(false) + "#" +
                     buildProblem.getBuildProblemDescription()  + ":: user: " + responsibility.getUser().getUsername() +
                     " because of \"" + responsibility.getDescription() + "\"");
 

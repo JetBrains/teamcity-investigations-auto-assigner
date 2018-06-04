@@ -46,7 +46,7 @@ class FailedTestAssigner {
         final STest test = sTestRun.getTest();
         final TestName testName = test.getName();
 
-        LOGGER.info("Found responsible for " + sProject.getProjectId() + "#" + testName  + ":: user: " +
+        LOGGER.info("Found responsible for " + sProject.describe(false) + "#" + testName  + ":: user: " +
                     responsibility.getUser().getUsername() + " because of \"" + responsibility.getDescription() + "\"");
 
         myTestNameResponsibilityFacade.setTestNameResponsibility(
