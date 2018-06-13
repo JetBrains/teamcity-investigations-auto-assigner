@@ -1,4 +1,5 @@
 [![JetBrains team project](http://jb.gg/badges/team.svg)](https://confluence.jetbrains.com/display/ALL/JetBrains+on+GitHub)
+[![TeamCity Build Status](https://teamcity.jetbrains.com/app/rest/builds/buildType(id:TeamCityPluginsByJetBrains_InvestigationsAutoAssigner_BuildAgainstTeamCity81x)/statusIcon.svg)](https://teamcity.jetbrains.com/viewType.html?buildTypeId=TeamCityPluginsByJetBrains_InvestigationsAutoAssigner_BuildAgainstTeamCity81x&guest=1)
 
 # TeamCity Investigations Auto-Assigner
 
