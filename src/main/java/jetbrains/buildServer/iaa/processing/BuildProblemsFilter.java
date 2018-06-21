@@ -68,14 +68,29 @@ class BuildProblemsFilter {
   private boolean isApplicable(@NotNull final SProject project,
                                @NotNull final SBuild sBuild,
                                @NotNull final BuildProblem problem) {
-    boolean result = (!problem.isMuted() &&
-                      isNew(problem) &&
-                      supportedTypes.contains(problem.getBuildProblemData().getType()) &&
-                      !myInvestigationsManager.checkUnderInvestigation(project, sBuild, problem));
+    String reason = null;
+    if (problem.isMuted()) {
+      reason = "is muted";
+    } else if (!isNew(problem)) {
+      reason = "occurs not for the first time";
+    } else if (!supportedTypes.contains(problem.getBuildProblemData().getType())) {
+      reason = String.format("has an unsupported type %s. Supported types: %s",
+                             problem.getBuildProblemData().getType(), supportedTypes);
+    } else if (myInvestigationsManager.checkUnderInvestigation(project, sBuild, problem)) {
+      reason = "is already under an investigation";
+    }
 
-    LOGGER.debug("Build problem " + sBuild.getBuildId() + ":" + problem.getTypeDescription() + " is " +
-                 (result ? "" : "not") + " applicable.");
-    return result;
+    boolean isApplicable = reason == null;
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug(String.format("Build problem %s:%s is %s.%s",
+                                 sBuild.getBuildId(),
+                                 problem.getTypeDescription(),
+                                 (isApplicable ? "applicable" : "not applicable"),
+                                 (isApplicable ? "" : String.format(" Reason: this build problem %s.", reason))
+      ));
+    }
+
+    return isApplicable;
   }
 
   private static boolean isNew(@NotNull final BuildProblem problem) {
