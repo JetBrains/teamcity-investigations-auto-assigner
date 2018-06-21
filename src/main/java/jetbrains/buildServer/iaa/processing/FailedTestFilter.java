@@ -62,17 +62,29 @@ class FailedTestFilter {
   private boolean isApplicable(@NotNull final SProject project,
                                @NotNull final SBuild sBuild,
                                @NotNull final STestRun testRun) {
+    String reason = null;
+
     final STest test = testRun.getTest();
+    if (testRun.isMuted()) {
+      reason = "is muted";
+    } else if (testRun.isFixed()) {
+      reason = "is fixed";
+    } else if (!testRun.isNewFailure()) {
+      reason = "occurs not for the first time";
+    } else if (myInvestigationsManager.checkUnderInvestigation(project, sBuild, test)) {
+      reason = "is already under an investigation";
+    } else if (myFlakyTestDetector.isFlaky(test.getTestNameId())) {
+      reason = "is marked as flaky";
+    }
 
-    boolean result = !testRun.isMuted() &&
-                     !testRun.isFixed() &&
-                     testRun.isNewFailure() &&
-                     !myInvestigationsManager.checkUnderInvestigation(project, sBuild, test) &&
-                     !myFlakyTestDetector.isFlaky(test.getTestNameId());
+    boolean isApplicable = reason == null;
+    LOGGER.debug(String.format("Test problem %s:%s is %s.%s",
+                               sBuild.getBuildId(),
+                               testRun.getTest().getName(),
+                               (isApplicable ? "applicable" : " not applicable"),
+                               (isApplicable ? "" : String.format("Reason: this test problem %s.", reason))
+    ));
 
-    LOGGER.debug("Test " + sBuild.getBuildId() + ":" + testRun.getTest().getName() + " is " +
-                 (result ? "" : "not") + " applicable.");
-
-    return result;
+    return isApplicable;
   }
 }
