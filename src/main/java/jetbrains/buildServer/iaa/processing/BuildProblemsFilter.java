@@ -85,7 +85,7 @@ class BuildProblemsFilter {
       LOGGER.debug(String.format("Build problem %s:%s is %s.%s",
                                  sBuild.getBuildId(),
                                  problem.getTypeDescription(),
-                                 (isApplicable ? "applicable" : " not applicable"),
+                                 (isApplicable ? "applicable" : "not applicable"),
                                  (isApplicable ? "" : String.format(" Reason: this build problem %s.", reason))
       ));
     }
