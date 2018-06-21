@@ -81,7 +81,7 @@ class BuildProblemsFilter {
     }
 
     boolean isApplicable = reason == null;
-    LOGGER.debug(String.format("Build problem %S:%s is %s. Reason: this build problem %s.",
+    LOGGER.debug(String.format("Build problem %s:%s is %s. Reason: this build problem %s.",
                                sBuild.getBuildId(),
                                problem.getTypeDescription(),
                                (isApplicable ? "applicable" : " not applicable"),
