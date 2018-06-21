@@ -67,7 +67,7 @@ public class FailedTestAndBuildProblemsProcessor {
     List<STestRun> allFailedTests = requestBrokenTestsWithStats(sBuild);
 
     LOGGER.debug("Build #" + sBuild.getBuildId() + ": has " + allBuildProblems.size() +
-                 " build problems and " + allBuildProblems.size() + " failed tests.");
+                 " build problems and " + allFailedTests.size() + " failed tests.");
 
     List<BuildProblem> applicableBuildProblems =
       myBuildProblemsFilter.apply(failedBuildInfo, sProject, allBuildProblems);
