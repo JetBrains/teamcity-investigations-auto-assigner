@@ -85,7 +85,7 @@ class BuildProblemsFilter {
                                sBuild.getBuildId(),
                                problem.getTypeDescription(),
                                (isApplicable ? "applicable" : " not applicable"),
-                               (isApplicable ? "" : String.format("Reason: this build problem %s.", reason))
+                               (isApplicable ? "" : String.format(" Reason: this build problem %s.", reason))
                  ));
 
     return isApplicable;

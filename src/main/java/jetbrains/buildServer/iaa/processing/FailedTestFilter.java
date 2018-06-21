@@ -82,7 +82,7 @@ class FailedTestFilter {
                                sBuild.getBuildId(),
                                testRun.getTest().getName(),
                                (isApplicable ? "applicable" : " not applicable"),
-                               (isApplicable ? "" : String.format("Reason: this test problem %s.", reason))
+                               (isApplicable ? "" : String.format(" Reason: this test problem %s.", reason))
     ));
 
     return isApplicable;
