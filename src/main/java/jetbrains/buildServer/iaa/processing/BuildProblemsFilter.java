@@ -81,12 +81,14 @@ class BuildProblemsFilter {
     }
 
     boolean isApplicable = reason == null;
-    LOGGER.debug(String.format("Build problem %s:%s is %s.%s",
-                               sBuild.getBuildId(),
-                               problem.getTypeDescription(),
-                               (isApplicable ? "applicable" : " not applicable"),
-                               (isApplicable ? "" : String.format(" Reason: this build problem %s.", reason))
-                 ));
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug(String.format("Build problem %s:%s is %s.%s",
+                                 sBuild.getBuildId(),
+                                 problem.getTypeDescription(),
+                                 (isApplicable ? "applicable" : " not applicable"),
+                                 (isApplicable ? "" : String.format(" Reason: this build problem %s.", reason))
+      ));
+    }
 
     return isApplicable;
   }

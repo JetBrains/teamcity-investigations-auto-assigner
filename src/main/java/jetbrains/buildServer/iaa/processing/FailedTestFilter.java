@@ -78,13 +78,14 @@ class FailedTestFilter {
     }
 
     boolean isApplicable = reason == null;
-    LOGGER.debug(String.format("Test problem %s:%s is %s.%s",
-                               sBuild.getBuildId(),
-                               testRun.getTest().getName(),
-                               (isApplicable ? "applicable" : " not applicable"),
-                               (isApplicable ? "" : String.format(" Reason: this test problem %s.", reason))
-    ));
-
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug(String.format("Test problem %s:%s is %s.%s",
+                                 sBuild.getBuildId(),
+                                 testRun.getTest().getName(),
+                                 (isApplicable ? "applicable" : " not applicable"),
+                                 (isApplicable ? "" : String.format(" Reason: this test problem %s.", reason))
+      ));
+    }
     return isApplicable;
   }
 }
