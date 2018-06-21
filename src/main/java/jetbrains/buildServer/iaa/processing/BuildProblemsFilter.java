@@ -74,7 +74,7 @@ class BuildProblemsFilter {
     } else if (!isNew(problem)) {
       reason = "occurs not for the first time";
     } else if (!supportedTypes.contains(problem.getBuildProblemData().getType())) {
-      reason = String.format("has not supported type %s. Supported types: %s",
+      reason = String.format("has an unsupported type %s. Supported types: %s",
                              problem.getBuildProblemData().getType(), supportedTypes);
     } else if (myInvestigationsManager.checkUnderInvestigation(project, sBuild, problem)) {
       reason = "is already under an investigation";
