@@ -39,15 +39,18 @@ class FailedTestAssigner {
   }
 
   void assign(final HeuristicResult heuristicsResult, final SProject sProject, final List<STestRun> sTestRuns) {
-    for (STestRun sTestRun : sTestRuns) {
+    for (STestRun sTestRun: sTestRuns) {
       Responsibility responsibility = heuristicsResult.getResponsibility(sTestRun);
 
       if (responsibility != null) {
         final STest test = sTestRun.getTest();
         final TestName testName = test.getName();
 
-        LOGGER.info("Found responsible for " + sProject.describe(false) + "#" + testName  + ":: user: " +
-                    responsibility.getUser().getUsername() + " because of \"" + responsibility.getDescription() + "\"");
+        LOGGER.info(String.format("Automatically assigning investigation to %s in %s # %s because of %s",
+                                  responsibility.getUser().getUsername(),
+                                  sProject.describe(false),
+                                  testName,
+                                  responsibility.getDescription()));
 
         myTestNameResponsibilityFacade.setTestNameResponsibility(
           testName, sProject.getProjectId(),

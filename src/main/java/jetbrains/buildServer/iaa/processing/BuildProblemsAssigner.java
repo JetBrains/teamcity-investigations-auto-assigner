@@ -38,13 +38,14 @@ class BuildProblemsAssigner {
   }
 
   void assign(final HeuristicResult heuristicsResult, final SProject sProject, final List<BuildProblem> buildProblems) {
-    for (BuildProblem buildProblem : buildProblems) {
+    for (BuildProblem buildProblem: buildProblems) {
       Responsibility responsibility = heuristicsResult.getResponsibility(buildProblem);
 
       if (responsibility != null) {
-        LOGGER.info("Found responsible for " + sProject.describe(false) + "#" +
-                    buildProblem.getBuildProblemDescription()  + ":: user: " + responsibility.getUser().getUsername() +
-                    " because of \"" + responsibility.getDescription() + "\"");
+        LOGGER.info(String.format("Automatically assigning investigation to %s in %s because of %s",
+                                  responsibility.getUser().getUsername(),
+                                  sProject.describe(false),
+                                  responsibility.getDescription()));
 
         myBuildProblemResponsibilityFacade.setBuildProblemResponsibility(
           buildProblem, sProject.getProjectId(),
