@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.iaa.common.FailedBuildInfo;
+import jetbrains.buildServer.iaa.utils.BuildProblemUtils;
 import jetbrains.buildServer.iaa.utils.InvestigationsManager;
 import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.iaa.common.Constants;
@@ -50,6 +51,7 @@ public class BuildProblemsFilterTest extends BaseTestCase {
   private BuildProblemData myBuildProblemData;
   private FailedBuildInfo myFailedBuildInfo;
   private List<BuildProblem> myBuildProblemWrapper;
+  private BuildProblemUtils myBuildProblemUtils;
 
   @BeforeMethod
   @Override
@@ -65,6 +67,7 @@ public class BuildProblemsFilterTest extends BaseTestCase {
     myBuildProblemData = Mockito.mock(BuildProblemData.class);
     BuildProblemResponsibilityEntry responsibilityEntry2 = Mockito.mock(BuildProblemResponsibilityEntry.class);
     myInvestigationsManager = Mockito.mock(InvestigationsManager.class);
+    myBuildProblemUtils = Mockito.mock(BuildProblemUtils.class);
 
     when(mySBuild.getBuildPromotion()).thenReturn(buildPromotion);
     when(mySProject.getProjectId()).thenReturn("Project ID");
@@ -76,12 +79,12 @@ public class BuildProblemsFilterTest extends BaseTestCase {
     when(myBuildProblem.getBuildProblemData()).thenReturn(myBuildProblemData);
     when(myBuildProblemData.getType()).thenReturn(Constants.TC_COMPILATION_ERROR_TYPE);
     when(myBuildProblem.isMuted()).thenReturn(false);
-    when(myBuildProblem.isNew()).thenReturn(true);
+    when(myBuildProblemUtils.isNew(myBuildProblem)).thenReturn(true);
     when(myBuildProblem.getAllResponsibilities())
       .thenReturn(Arrays.asList(myResponsibilityEntry, responsibilityEntry2));
     when(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, myBuildProblem)).thenReturn(false);
     when(myInvestigationsManager.checkUnderInvestigation(project2, mySBuild, myBuildProblem)).thenReturn(false);
-    myBuildProblemsFilter = new BuildProblemsFilter(myInvestigationsManager);
+    myBuildProblemsFilter = new BuildProblemsFilter(myInvestigationsManager, myBuildProblemUtils);
 
     myBuildProblemWrapper = Collections.singletonList(myBuildProblem);
     myFailedBuildInfo = new FailedBuildInfo(mySBuild);
@@ -106,7 +109,7 @@ public class BuildProblemsFilterTest extends BaseTestCase {
   }
 
   public void Test_BuildProblemNotNew() {
-    when(myBuildProblem.isNew()).thenReturn(false);
+    when(myBuildProblemUtils.isNew(myBuildProblem)).thenReturn(false);
 
     List<BuildProblem> applicableBuildProblems =
       myBuildProblemsFilter.apply(myFailedBuildInfo, mySProject, myBuildProblemWrapper);
@@ -115,7 +118,7 @@ public class BuildProblemsFilterTest extends BaseTestCase {
   }
 
   public void Test_BuildProblemIsNew() {
-    when(myBuildProblem.isNew()).thenReturn(true);
+    when(myBuildProblemUtils.isNew(myBuildProblem)).thenReturn(true);
 
     List<BuildProblem> applicableBuildProblems =
       myBuildProblemsFilter.apply(myFailedBuildInfo, mySProject, myBuildProblemWrapper);

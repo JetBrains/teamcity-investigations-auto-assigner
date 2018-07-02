@@ -23,11 +23,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.iaa.common.FailedBuildInfo;
+import jetbrains.buildServer.iaa.utils.BuildProblemUtils;
 import jetbrains.buildServer.iaa.utils.CustomParameters;
 import jetbrains.buildServer.iaa.utils.InvestigationsManager;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
-import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -36,13 +36,16 @@ import org.springframework.stereotype.Component;
 class BuildProblemsFilter {
 
   private static final Logger LOGGER = Logger.getInstance(BuildProblemsFilter.class.getName());
+  private final BuildProblemUtils myBuildProblemUtils;
   private InvestigationsManager myInvestigationsManager;
   private final Set<String> supportedTypes =
     Collections.unmodifiableSet(Collections.singleton(Constants.TC_COMPILATION_ERROR_TYPE));
 
 
-  BuildProblemsFilter(@NotNull final InvestigationsManager investigationsManager) {
+  BuildProblemsFilter(@NotNull final InvestigationsManager investigationsManager,
+                      @NotNull final BuildProblemUtils buildProblemUtils) {
     myInvestigationsManager = investigationsManager;
+    myBuildProblemUtils = buildProblemUtils;
   }
 
   List<BuildProblem> apply(final FailedBuildInfo failedBuildInfo,
@@ -50,8 +53,6 @@ class BuildProblemsFilter {
                            final List<BuildProblem> buildProblems) {
     SBuild sBuild = failedBuildInfo.getBuild();
     Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
-
-    BuildProblemImpl.fillIsNew(sBuild.getBuildPromotion(), buildProblems);
 
     List<BuildProblem> filteredBuildProblems = buildProblems.stream()
                                                             .filter(failedBuildInfo::checkNotProcessed)
@@ -71,7 +72,7 @@ class BuildProblemsFilter {
     String reason = null;
     if (problem.isMuted()) {
       reason = "is muted";
-    } else if (!isNew(problem)) {
+    } else if (!myBuildProblemUtils.isNew(problem)) {
       reason = "occurs not for the first time";
     } else if (!supportedTypes.contains(problem.getBuildProblemData().getType())) {
       reason = String.format("has an unsupported type %s. Supported types: %s",
@@ -91,14 +92,5 @@ class BuildProblemsFilter {
     }
 
     return isApplicable;
-  }
-
-  private static boolean isNew(@NotNull final BuildProblem problem) {
-    if (problem instanceof BuildProblemImpl) {
-      final Boolean isNew = ((BuildProblemImpl)problem).isNew();
-      return isNew != null && isNew;
-    }
-
-    return true;
   }
 }

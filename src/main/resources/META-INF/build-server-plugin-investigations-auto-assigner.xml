@@ -17,6 +17,7 @@
   <bean class="jetbrains.buildServer.iaa.processing.FailedTestAndBuildProblemsProcessor"/>
   <bean class="jetbrains.buildServer.iaa.processing.FailedTestFilter"/>
   <bean class="jetbrains.buildServer.iaa.processing.BuildProblemsFilter"/>
+  <bean class="jetbrains.buildServer.iaa.utils.BuildProblemUtils"/>
   <bean class="jetbrains.buildServer.iaa.processing.FailedTestAssigner"/>
   <bean class="jetbrains.buildServer.iaa.processing.BuildProblemsAssigner"/>
   <bean class="jetbrains.buildServer.iaa.utils.InvestigationsManager"/>
