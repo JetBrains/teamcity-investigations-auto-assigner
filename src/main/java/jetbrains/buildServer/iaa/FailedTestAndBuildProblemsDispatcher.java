@@ -55,7 +55,6 @@ public class FailedTestAndBuildProblemsDispatcher {
                                        @NotNull List<BuildProblemData> before,
                                        @NotNull List<BuildProblemData> after) {
         if (shouldIgnore(sBuild) || !(sBuild instanceof BuildEx)) {
-          LOGGER.debug("Dispatcher decides that build #" + sBuild.getBuildId() + " should be ignored.");
           return;
         }
 
