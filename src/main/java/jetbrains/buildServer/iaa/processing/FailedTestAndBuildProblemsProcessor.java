@@ -49,13 +49,14 @@ public class FailedTestAndBuildProblemsProcessor {
 
   public Boolean processBuild(final FailedBuildInfo failedBuildInfo) {
     SBuild sBuild = failedBuildInfo.getBuild();
-    if (sBuild.getBuildType() == null) {
+    SBuildType sBuildType = sBuild.getBuildType();
+    if (sBuildType == null) {
       LOGGER.warn("Build #" + sBuild.getBuildId() + " doesn't have a build type.");
       return true;
     }
     LOGGER.debug("Start processing build #" + sBuild.getBuildId() + ".");
 
-    SProject sProject = sBuild.getBuildType().getProject();
+    SProject sProject = sBuildType.getProject();
     boolean shouldDelete = sBuild.isFinished();
     Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
     if (failedBuildInfo.processed >= threshold) {
