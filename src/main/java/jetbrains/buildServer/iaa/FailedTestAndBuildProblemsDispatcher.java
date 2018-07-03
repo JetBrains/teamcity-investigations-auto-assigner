@@ -37,10 +37,13 @@ public class FailedTestAndBuildProblemsDispatcher {
 
   private static final Logger LOGGER = Logger.getInstance(FailedTestAndBuildProblemsDispatcher.class.getName());
 
-  @NotNull private final FailedTestAndBuildProblemsProcessor myProcessor;
+  @NotNull
+  private final FailedTestAndBuildProblemsProcessor myProcessor;
   // Map isn't synchronized because we work with it from synchronized method
-  @NotNull private final ConcurrentHashMap<Long, FailedBuildInfo> myFailedBuilds;
-  @NotNull private final ScheduledExecutorService myDaemon;
+  @NotNull
+  private final ConcurrentHashMap<Long, FailedBuildInfo> myFailedBuilds;
+  @NotNull
+  private final ScheduledExecutorService myDaemon;
 
   public FailedTestAndBuildProblemsDispatcher(@NotNull final BuildServerListenerEventDispatcher buildServerListenerEventDispatcher,
                                               @NotNull final FailedTestAndBuildProblemsProcessor processor) {
@@ -76,7 +79,8 @@ public class FailedTestAndBuildProblemsDispatcher {
   }
 
   private void processBrokenBuild(final FailedBuildInfo failedBuildInfo, final Long buildKey) {
-    Boolean shouldRemove = myProcessor.processBuild(failedBuildInfo);
+    Boolean shouldRemove = failedBuildInfo.getBuild().isFinished();
+    myProcessor.processBuild(failedBuildInfo);
 
     if (shouldRemove) {
       long buildId = failedBuildInfo.getBuild().getBuildId();
