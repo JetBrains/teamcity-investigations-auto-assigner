@@ -22,6 +22,7 @@ import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.iaa.common.FailedBuildInfo;
 import jetbrains.buildServer.iaa.processing.FailedTestAndBuildProblemsProcessor;
 import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.util.ThreadUtil;
 import jetbrains.buildServer.util.executors.ExecutorsFactory;
 import org.jetbrains.annotations.NotNull;
 
@@ -63,7 +64,7 @@ public class FailedTestAndBuildProblemsDispatcher {
 
       @Override
       public void serverShutdown() {
-        myDaemon.shutdown();
+        ThreadUtil.shutdownGracefully(myDaemon, "Investigator-Auto-Assigner Daemon");
       }
     });
   }
