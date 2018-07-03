@@ -53,8 +53,7 @@ public class FailedTestAndBuildProblemsDispatcher {
       public void buildProblemsChanged(@NotNull SBuild sBuild,
                                        @NotNull List<BuildProblemData> before,
                                        @NotNull List<BuildProblemData> after) {
-        SBuildType buildType = sBuild.getBuildType();
-        if (shouldIgnore(sBuild) || !(sBuild instanceof BuildEx) || buildType == null) {
+        if (shouldIgnore(sBuild) || !(sBuild instanceof BuildEx)) {
           LOGGER.debug("Dispatcher decides that build #" + sBuild.getBuildId() + " should be ignored.");
           return;
         }
