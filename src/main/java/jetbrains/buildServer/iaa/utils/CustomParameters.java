@@ -17,10 +17,19 @@
 package jetbrains.buildServer.iaa.utils;
 
 import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.TeamCityProperties;
 import jetbrains.buildServer.util.StringUtil;
 import org.jetbrains.annotations.Nullable;
 
 public class CustomParameters {
+  final static Integer MINIMAL_PROCESSING_DELAY = 5;
+  final static Integer DEFAULT_PROCESSING_DELAY_IN_SECONDS = 120;
+
+  public static int getProcessingDelayInSeconds() {
+    int value = TeamCityProperties.getInteger("teamcity.autoassigner.processingDelayInSeconds", DEFAULT_PROCESSING_DELAY_IN_SECONDS);
+    return value < 10 ? MINIMAL_PROCESSING_DELAY : value;
+  }
+
   public static Integer getMaxTestsPerBuildThreshold(SBuild build) {
     return parseThreshold(build.getBuildOwnParameters().get("autoassigner.maxTestsPerBuildNumber"));
   }

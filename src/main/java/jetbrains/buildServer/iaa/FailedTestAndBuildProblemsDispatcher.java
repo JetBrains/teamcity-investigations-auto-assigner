@@ -21,6 +21,7 @@ import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.iaa.common.FailedBuildInfo;
 import jetbrains.buildServer.iaa.processing.FailedTestAndBuildProblemsProcessor;
+import jetbrains.buildServer.iaa.utils.CustomParameters;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.util.ThreadUtil;
 import jetbrains.buildServer.util.executors.ExecutorsFactory;
@@ -50,7 +51,10 @@ public class FailedTestAndBuildProblemsDispatcher {
     myProcessor = processor;
     myFailedBuilds = new ConcurrentHashMap<>();
     myDaemon = ExecutorsFactory.newFixedScheduledDaemonExecutor("Investigator-Auto-Assigner-", 1);
-    myDaemon.scheduleWithFixedDelay(this::processBrokenBuildsOneThread, 2, 2, TimeUnit.MINUTES);
+    myDaemon.scheduleWithFixedDelay(this::processBrokenBuildsOneThread,
+            CustomParameters.getProcessingDelayInSeconds(),
+            CustomParameters.getProcessingDelayInSeconds(),
+            TimeUnit.SECONDS);
 
     buildServerListenerEventDispatcher.addListener(new BuildServerAdapter() {
       @Override
