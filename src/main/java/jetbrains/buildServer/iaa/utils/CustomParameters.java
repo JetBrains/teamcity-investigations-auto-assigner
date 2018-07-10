@@ -22,12 +22,12 @@ import jetbrains.buildServer.util.StringUtil;
 import org.jetbrains.annotations.Nullable;
 
 public class CustomParameters {
-  final static Integer MINIMAL_PROCESSING_DELAY = 5;
-  final static Integer DEFAULT_PROCESSING_DELAY_IN_SECONDS = 120;
+  private final static Integer MINIMAL_PROCESSING_DELAY = 5;
+  private final static Integer DEFAULT_PROCESSING_DELAY_IN_SECONDS = 120;
 
   public static int getProcessingDelayInSeconds() {
     int value = TeamCityProperties.getInteger("teamcity.autoassigner.processingDelayInSeconds", DEFAULT_PROCESSING_DELAY_IN_SECONDS);
-    return value < 10 ? MINIMAL_PROCESSING_DELAY : value;
+    return value < MINIMAL_PROCESSING_DELAY ? MINIMAL_PROCESSING_DELAY : value;
   }
 
   public static Integer getMaxTestsPerBuildThreshold(SBuild build) {
@@ -35,7 +35,7 @@ public class CustomParameters {
   }
 
   private static int parseThreshold(@Nullable String value) {
-    final Integer DEFAULT_TEST_COUNT_THRESHOLD = 100;
+    final int DEFAULT_TEST_COUNT_THRESHOLD = 100;
     if (value == null) {
       return DEFAULT_TEST_COUNT_THRESHOLD;
     }
