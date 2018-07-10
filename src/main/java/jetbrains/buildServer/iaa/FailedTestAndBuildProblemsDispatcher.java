@@ -83,7 +83,7 @@ public class FailedTestAndBuildProblemsDispatcher {
   }
 
   private void processBrokenBuild(final FailedBuildInfo failedBuildInfo, final Long buildKey) {
-    Boolean shouldRemove = failedBuildInfo.getBuild().isFinished();
+    boolean shouldRemove = failedBuildInfo.getBuild().isFinished();
     myProcessor.processBuild(failedBuildInfo);
 
     if (shouldRemove) {
