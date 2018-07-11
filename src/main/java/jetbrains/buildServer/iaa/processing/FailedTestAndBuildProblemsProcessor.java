@@ -47,20 +47,20 @@ public class FailedTestAndBuildProblemsProcessor {
     myBuildProblemsAssigner = buildProblemsAssigner;
   }
 
-  public Boolean processBuild(final FailedBuildInfo failedBuildInfo) {
+  public void processBuild(final FailedBuildInfo failedBuildInfo) {
     SBuild sBuild = failedBuildInfo.getBuild();
-    if (sBuild.getBuildType() == null) {
+    SBuildType sBuildType = sBuild.getBuildType();
+    if (sBuildType == null) {
       LOGGER.warn("Build #" + sBuild.getBuildId() + " doesn't have a build type.");
-      return true;
+      return;
     }
     LOGGER.debug("Start processing build #" + sBuild.getBuildId() + ".");
 
-    SProject sProject = sBuild.getBuildType().getProject();
-    boolean shouldDelete = sBuild.isFinished();
+    SProject sProject = sBuildType.getProject();
     Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
     if (failedBuildInfo.processed >= threshold) {
       LOGGER.debug("Stop processing build #" + sBuild.getBuildId() + " as the threshold was exceeded.");
-      return shouldDelete;
+      return;
     }
 
     List<BuildProblem> allBuildProblems = ((BuildEx)sBuild).getBuildProblems();
@@ -81,8 +81,6 @@ public class FailedTestAndBuildProblemsProcessor {
 
     myFailedTestAssigner.assign(heuristicsResult, sProject, applicableFailedTests);
     myBuildProblemsAssigner.assign(heuristicsResult, sProject, applicableBuildProblems);
-
-    return shouldDelete;
   }
 
   private List<STestRun> requestBrokenTestsWithStats(final SBuild build) {

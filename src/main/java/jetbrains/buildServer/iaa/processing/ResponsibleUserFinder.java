@@ -37,12 +37,13 @@ public class ResponsibleUserFinder {
                                       SProject sProject,
                                       List<BuildProblem> buildProblems,
                                       List<STestRun> testRuns) {
+
+    if (buildProblems.isEmpty() && testRuns.isEmpty()) {
+      return new HeuristicResult();
+    }
+
     HeuristicResult result = new HeuristicResult();
     for (Heuristic heuristic : myOrderedHeuristics) {
-      if (buildProblems.isEmpty() && testRuns.isEmpty()) {
-        break;
-      }
-
       HeuristicContext heuristicContext = new HeuristicContext(sBuild, sProject, buildProblems, testRuns);
       HeuristicResult heuristicResult = heuristic.findResponsibleUser(heuristicContext);
 
@@ -57,6 +58,10 @@ public class ResponsibleUserFinder {
                                  .collect(Collectors.toList());
 
       result.merge(heuristicResult);
+
+      if (buildProblems.isEmpty() && testRuns.isEmpty()) {
+        break;
+      }
     }
 
     return result;
