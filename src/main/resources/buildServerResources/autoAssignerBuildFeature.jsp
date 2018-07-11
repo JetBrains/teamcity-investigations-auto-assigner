@@ -24,10 +24,11 @@
   </td>
 </tr>
 <tr>
+  <th>
+    <label for="<%= Constants.DEFAULT_RESPONSIBLE%>">Default investigator username:</label>
+  </th>
   <td>
-    <label for="<%= Constants.DEFAULT_RESPONSIBLE%>">Default Responsible User:</label>
-  </td>
-  <td>
-    <props:textProperty name="<%= Constants.DEFAULT_RESPONSIBLE%>" maxlength="100"/>
+    <props:textProperty name="<%= Constants.DEFAULT_RESPONSIBLE%>" className="longField textProperty_max-width js_max-width"/>
+    <span class="smallNote">Username of a user to whom an investigation is assigned if no other possible investigator is found</span>
   </td>
 </tr>
