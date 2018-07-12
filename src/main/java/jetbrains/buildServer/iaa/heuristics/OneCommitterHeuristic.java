@@ -62,7 +62,7 @@ public class OneCommitterHeuristic implements Heuristic {
 
 
     Responsibility responsibility = new Responsibility(
-      committers.iterator().next(), String.format("%s you were responsible the only committer to the " +
+      committers.iterator().next(), String.format("%s you were responsible as the only committer to the " +
                                                   "build: %s # %s", Constants.REASON_PREFIX,
                                                   build.getFullName(), build.getBuildNumber()));
 
