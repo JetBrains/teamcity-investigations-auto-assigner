@@ -16,6 +16,7 @@
 
 package jetbrains.buildServer.iaa.common;
 
+import java.util.Arrays;
 import jetbrains.buildServer.users.User;
 
 public class Responsibility {
@@ -33,5 +34,24 @@ public class Responsibility {
 
   public String getDescription() {
     return myDescription;
+  }
+
+  @Override
+  public boolean equals(final Object another) {
+    if (!(another instanceof Responsibility)) {
+      return false;
+    }
+
+    Responsibility anotherResponsibility = (Responsibility)another;
+    return myUser.getUsername().equals(anotherResponsibility.getUser().getUsername()) &&
+           myDescription.equals(anotherResponsibility.getDescription());
+  }
+
+  @Override
+  public int hashCode() {
+    return Arrays.hashCode(new String[]{
+      myUser.getUsername(),
+      myDescription
+    });
   }
 }
