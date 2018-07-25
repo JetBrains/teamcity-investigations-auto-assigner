@@ -32,6 +32,7 @@
     </constructor-arg>
   </bean>
   <bean id="oneCommitterHeuristic" class="jetbrains.buildServer.iaa.heuristics.OneCommitterHeuristic"/>
+  <bean id="customParameters" class="jetbrains.buildServer.iaa.utils.CustomParameters"/>
   <bean id="brokenFileHeuristic" class="jetbrains.buildServer.iaa.heuristics.BrokenFileHeuristic"/>
   <bean id="defaultUserHeuristic" class="jetbrains.buildServer.iaa.heuristics.DefaultUserHeuristic"/>
   <bean id="previousResponsibleHeuristic" class="jetbrains.buildServer.iaa.heuristics.PreviousResponsibleHeuristic"/>

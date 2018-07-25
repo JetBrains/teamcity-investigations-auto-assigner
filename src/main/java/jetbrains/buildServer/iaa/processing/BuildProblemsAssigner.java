@@ -41,7 +41,16 @@ class BuildProblemsAssigner {
     myBuildProblemResponsibilityFacade = buildProblemResponsibilityFacade;
   }
 
-  void assign(final HeuristicResult heuristicsResult, final SProject sProject, final List<BuildProblem> buildProblems) {
+  void assign(final HeuristicResult heuristicsResult,
+              final SProject sProject,
+              final List<BuildProblem> buildProblems) {
+    assign(heuristicsResult, sProject, buildProblems, false);
+  }
+
+  void assign(final HeuristicResult heuristicsResult,
+              final SProject sProject,
+              final List<BuildProblem> buildProblems,
+              final boolean silentModeOn) {
     HashMap<Responsibility, List<BuildProblemInfo>> responsibilityToBuildProblem = new HashMap<>();
     for (BuildProblem buildProblem : buildProblems) {
       Responsibility responsibility = heuristicsResult.getResponsibility(buildProblem);
@@ -55,19 +64,23 @@ class BuildProblemsAssigner {
     for (Responsibility responsibility : uniqueResponsibilities) {
 
       if (responsibility != null) {
-        LOGGER.info(String.format("Automatically assigning investigation to %s in %s because of %s",
+        String prefix = silentModeOn ? "Silently found " : "Automatically assigning";
+        LOGGER.info(String.format("%s investigation to %s in %s because of %s",
+                                  prefix,
                                   responsibility.getUser().getUsername(),
                                   sProject.describe(false),
                                   responsibility.getDescription()));
         List<BuildProblemInfo> buildProblemList = responsibilityToBuildProblem.get(responsibility);
 
-        myBuildProblemResponsibilityFacade.setBuildProblemResponsibility(
-          buildProblemList,
-          sProject.getProjectId(),
-          new ResponsibilityEntryEx(
-            ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
-            responsibility.getDescription(), ResponsibilityEntry.RemoveMethod.WHEN_FIXED)
-        );
+        if (!silentModeOn) {
+          myBuildProblemResponsibilityFacade.setBuildProblemResponsibility(
+            buildProblemList,
+            sProject.getProjectId(),
+            new ResponsibilityEntryEx(
+              ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
+              responsibility.getDescription(), ResponsibilityEntry.RemoveMethod.WHEN_FIXED)
+          );
+        }
       }
     }
   }

@@ -24,6 +24,9 @@ public class Constants {
   // Parameter names
   public static final String DEFAULT_RESPONSIBLE = "teamcity.iaa.defaultResponsible";
 
+  // Parameter names
+  public static final String SILENT_MODE_ON = "teamcity.iaa.silentModeOn";
+
   //Message constants
   public static final String REASON_PREFIX = "Auto-assigned investigation:";
 

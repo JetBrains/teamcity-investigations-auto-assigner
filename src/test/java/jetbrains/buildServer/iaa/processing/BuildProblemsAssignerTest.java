@@ -82,6 +82,13 @@ public class BuildProblemsAssignerTest extends BaseTestCase {
     Mockito.verify(myBuildProblemResponsibilityFacade, Mockito.only()).setBuildProblemResponsibility(anyList(), any(), any());
   }
 
+  public void Test_OneResponsibilityFoundSilentModeOn() {
+    BuildProblemsAssigner buildProblemsAssigner = new BuildProblemsAssigner(myBuildProblemResponsibilityFacade);
+    myHeuristicResult.addResponsibility(myBuildProblem1, new Responsibility(myUser1, "any description"));
+    buildProblemsAssigner.assign(myHeuristicResult, mySProject, Collections.singletonList(myBuildProblem1), true);
+    Mockito.verify(myBuildProblemResponsibilityFacade, Mockito.never()).setBuildProblemResponsibility(anyList(), any(), any());
+  }
+
   public void Test_TwoSameResponsibilitiesFound() {
     BuildProblemsAssigner buildProblemsAssigner = new BuildProblemsAssigner(myBuildProblemResponsibilityFacade);
     myHeuristicResult.addResponsibility(myBuildProblem1, new Responsibility(myUser1, "any description"));

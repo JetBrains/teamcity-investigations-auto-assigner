@@ -40,7 +40,16 @@ class FailedTestAssigner {
     myTestNameResponsibilityFacade = testNameResponsibilityFacade;
   }
 
-  void assign(final HeuristicResult heuristicsResult, final SProject sProject, final List<STestRun> sTestRuns) {
+  void assign(final HeuristicResult heuristicsResult,
+              final SProject sProject,
+              final List<STestRun> sTestRuns) {
+    assign(heuristicsResult, sProject,sTestRuns, false);
+  }
+
+  void assign(final HeuristicResult heuristicsResult,
+              final SProject sProject,
+              final List<STestRun> sTestRuns,
+              final boolean silentModeOn) {
     HashMap<Responsibility, List<TestName>> responsibilityToTestNames = new HashMap<>();
     for (STestRun sTestRun : sTestRuns) {
       Responsibility responsibility = heuristicsResult.getResponsibility(sTestRun);
@@ -54,18 +63,21 @@ class FailedTestAssigner {
     for (Responsibility responsibility : uniqueResponsibilities) {
       if (responsibility != null) {
         List<TestName> testNameList = responsibilityToTestNames.get(responsibility);
-        LOGGER.info(String.format("Automatically assigning investigation to %s in %s # %s because of %s",
+        String prefix = silentModeOn ? "Silently found " : "Automatically assigning";
+        LOGGER.info(String.format("%s investigation(s) to %s in %s # %s because of %s",
+                                  prefix,
                                   responsibility.getUser().getUsername(),
                                   sProject.describe(false),
                                   testNameList,
                                   responsibility.getDescription()));
-
-        myTestNameResponsibilityFacade.setTestNameResponsibility(
-          testNameList, sProject.getProjectId(),
-          new ResponsibilityEntryEx(
-            ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
-            responsibility.getDescription(), ResponsibilityEntry.RemoveMethod.WHEN_FIXED)
-        );
+        if (!silentModeOn) {
+          myTestNameResponsibilityFacade.setTestNameResponsibility(
+            testNameList, sProject.getProjectId(),
+            new ResponsibilityEntryEx(
+              ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
+              responsibility.getDescription(), ResponsibilityEntry.RemoveMethod.WHEN_FIXED)
+          );
+        }
       }
     }
   }

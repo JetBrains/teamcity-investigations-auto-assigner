@@ -32,6 +32,7 @@ public class FailedTestAndBuildProblemsProcessor {
   private final BuildProblemsFilter myBuildProblemsFilter;
   private final FailedTestAssigner myFailedTestAssigner;
   private final BuildProblemsAssigner myBuildProblemsAssigner;
+  @NotNull private final CustomParameters myCustomParameters;
   @NotNull private ResponsibleUserFinder myResponsibleUserFinder;
 
 
@@ -39,12 +40,14 @@ public class FailedTestAndBuildProblemsProcessor {
                                              @NotNull final FailedTestFilter failedTestFilter,
                                              @NotNull final FailedTestAssigner failedTestAssigner,
                                              @NotNull final BuildProblemsFilter buildProblemsFilter,
-                                             @NotNull final BuildProblemsAssigner buildProblemsAssigner) {
+                                             @NotNull final BuildProblemsAssigner buildProblemsAssigner,
+                                             @NotNull final CustomParameters customParameters) {
     myResponsibleUserFinder = responsibleUserFinder;
     myFailedTestFilter = failedTestFilter;
     myFailedTestAssigner = failedTestAssigner;
     myBuildProblemsFilter = buildProblemsFilter;
     myBuildProblemsAssigner = buildProblemsAssigner;
+    myCustomParameters = customParameters;
   }
 
   public void processBuild(final FailedBuildInfo failedBuildInfo) {
@@ -79,8 +82,9 @@ public class FailedTestAndBuildProblemsProcessor {
     HeuristicResult heuristicsResult =
       myResponsibleUserFinder.findResponsibleUser(sBuild, sProject, applicableBuildProblems, applicableFailedTests);
 
-    myFailedTestAssigner.assign(heuristicsResult, sProject, applicableFailedTests);
-    myBuildProblemsAssigner.assign(heuristicsResult, sProject, applicableBuildProblems);
+    boolean silentModeOn = myCustomParameters.isSilentModeOn(sBuild);
+    myFailedTestAssigner.assign(heuristicsResult, sProject, applicableFailedTests, silentModeOn);
+    myBuildProblemsAssigner.assign(heuristicsResult, sProject, applicableBuildProblems, silentModeOn);
   }
 
   private List<STestRun> requestBrokenTestsWithStats(final SBuild build) {

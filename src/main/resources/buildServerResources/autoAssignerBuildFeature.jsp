@@ -32,3 +32,12 @@
     <span class="smallNote">Username of a user to whom an investigation is assigned if no other possible investigator is found</span>
   </td>
 </tr>
+<tr>
+  <th>
+    <label for="<%= Constants.SILENT_MODE_ON%>">Enable silent mode:</label>
+  </th>
+  <td>
+    <props:checkboxProperty name="<%= Constants.SILENT_MODE_ON%>"/>Do not assign investigations<br/>
+    <span class="smallNote">Responsibilities won't be assigned in TeamCity. Only log messages about possible investigators.</span>
+  </td>
+</tr>
