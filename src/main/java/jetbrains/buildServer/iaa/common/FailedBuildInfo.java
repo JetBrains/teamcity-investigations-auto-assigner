@@ -30,6 +30,8 @@ public class FailedBuildInfo {
 
   private Set<Integer> processedTests = new HashSet<>();
   private Set<Integer> processedBuildProblems = new HashSet<>();
+  private HeuristicResult myHeuristicResult = new HeuristicResult();
+
   public int processed = 0;
 
   public FailedBuildInfo(final SBuild sBuild) {
@@ -59,5 +61,13 @@ public class FailedBuildInfo {
 
   public boolean checkNotProcessed(final BuildProblem buildProblem) {
     return !processedBuildProblems.contains(buildProblem.getId());
+  }
+
+  public void addHeuristicsResult(final HeuristicResult heuristicsResult) {
+    myHeuristicResult.merge(heuristicsResult);
+  }
+
+  public HeuristicResult getHeuristicsResult() {
+    return myHeuristicResult;
   }
 }

@@ -85,6 +85,8 @@ public class FailedTestAndBuildProblemsProcessor {
     boolean silentModeOn = myCustomParameters.isSilentModeOn(sBuild);
     myFailedTestAssigner.assign(heuristicsResult, sProject, applicableFailedTests, silentModeOn);
     myBuildProblemsAssigner.assign(heuristicsResult, sProject, applicableBuildProblems, silentModeOn);
+
+    failedBuildInfo.addHeuristicsResult(heuristicsResult);
   }
 
   private List<STestRun> requestBrokenTestsWithStats(final SBuild build) {

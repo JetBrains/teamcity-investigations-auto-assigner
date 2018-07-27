@@ -17,6 +17,9 @@
 package jetbrains.buildServer.iaa.common;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.jetbrains.annotations.Nullable;
@@ -56,5 +59,10 @@ public class HeuristicResult {
 
   public boolean isEmpty() {
     return testRun2Responsibility.isEmpty() && buildProblem2Responsibility.isEmpty();
+  }
+
+  public List<Responsibility> getAllResponsibilities() {
+    return Stream.concat(testRun2Responsibility.values().stream(), buildProblem2Responsibility.values().stream())
+                 .collect(Collectors.toList());
   }
 }
