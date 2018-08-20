@@ -40,7 +40,7 @@ public class ProblemTextExtractor {
       final Integer compileBlockIndex = getCompileBlockIndex(problem);
       if (compileBlockIndex != null) {
         final List<LogMessage> errors =
-          new BuildLogCompileErrorCollector().collectCompileErrors(compileBlockIndex, (SBuild)build.getBuildLog());
+          new BuildLogCompileErrorCollector().collectCompileErrors(compileBlockIndex, build);
         for (LogMessage error : errors) {
           problemSpecificText.append(error.getText()).append(" ");
         }
