@@ -93,7 +93,7 @@ public class FailedTestAndBuildProblemsDispatcher {
   }
 
   private static boolean shouldIgnore(@NotNull SBuild build) {
-    return checkFeatureDisabled(build) /*|| build.isPersonal()*/;
+    return checkFeatureDisabled(build) || build.isPersonal();
   }
 
   private static boolean checkFeatureDisabled(@NotNull SBuild build) {
