@@ -32,4 +32,7 @@ public class Constants {
 
   //Constants
   public static final String TC_COMPILATION_ERROR_TYPE = "TC_COMPILATION_ERROR";
+  public final static String TEAMCITY_DIRECTORY = ".teamcity";
+  public final static String TEST_RUN_IN_REQUEST = "loadedTestRun";
+
 }

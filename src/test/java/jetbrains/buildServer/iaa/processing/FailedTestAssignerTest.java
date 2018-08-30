@@ -21,6 +21,7 @@ import java.util.Collections;
 import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.iaa.common.HeuristicResult;
 import jetbrains.buildServer.iaa.common.Responsibility;
+import jetbrains.buildServer.iaa.utils.AssignerArtifactDao;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityFacade;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STest;
@@ -28,6 +29,7 @@ import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.tests.TestName;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.users.impl.UserImpl;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -46,6 +48,8 @@ public class FailedTestAssignerTest extends BaseTestCase {
   private SProject mySProject;
   private STestRun mySTestRun2;
   private User myUser2;
+  private FailedTestAssigner myTestedFailedTestAssigner;
+  private AssignerArtifactDao myAssignerArtifactDaoMock;
 
   @BeforeMethod
   @Override
@@ -71,62 +75,79 @@ public class FailedTestAssignerTest extends BaseTestCase {
     myUser2 = Mockito.mock(UserImpl.class);
     when(myUser2.getUsername()).thenReturn("user2");
     myHeuristicResult = new HeuristicResult();
+
+    myAssignerArtifactDaoMock = Mockito.mock(AssignerArtifactDao.class);
+    myTestedFailedTestAssigner = new FailedTestAssigner(myTestNameResponsibilityFacade, myAssignerArtifactDaoMock);
   }
 
   public void Test_NoTestRuns() {
-    FailedTestAssigner FailedTestAssigner = new FailedTestAssigner(myTestNameResponsibilityFacade);
-    FailedTestAssigner.assign(myHeuristicResult, mySProject, Collections.emptyList());
+    myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, Collections.emptyList());
+
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.never()).setTestNameResponsibility(anyList(), any(), any());
   }
 
   public void Test_NoResponsibilitiesFound() {
-    FailedTestAssigner FailedTestAssigner = new FailedTestAssigner(myTestNameResponsibilityFacade);
-    FailedTestAssigner.assign(myHeuristicResult, mySProject, Collections.singletonList(mySTestRun1));
+    myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, Collections.singletonList(mySTestRun1));
+
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.never()).setTestNameResponsibility(anyList(), any(), any());
   }
 
   public void Test_OneResponsibilityFound() {
-    FailedTestAssigner FailedTestAssigner = new FailedTestAssigner(myTestNameResponsibilityFacade);
-    myHeuristicResult.addResponsibility(mySTestRun1, new Responsibility(myUser1, "any description"));
-    FailedTestAssigner.assign(myHeuristicResult, mySProject, Collections.singletonList(mySTestRun1));
+    Responsibility putResponsibility = new Responsibility(myUser1, "any description");
+    myHeuristicResult.addResponsibility(mySTestRun1, putResponsibility);
+
+    myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, Collections.singletonList(mySTestRun1));
+
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.only()).setTestNameResponsibility(anyList(), any(), any());
+    Mockito.verify(myAssignerArtifactDaoMock, Mockito.only()).put(mySTestRun1, putResponsibility);
   }
 
   public void Test_OneResponsibilityFoundSilentModeOn() {
-    FailedTestAssigner FailedTestAssigner = new FailedTestAssigner(myTestNameResponsibilityFacade);
-    myHeuristicResult.addResponsibility(mySTestRun1, new Responsibility(myUser1, "any description"));
-    FailedTestAssigner.assign(myHeuristicResult, mySProject, Collections.singletonList(mySTestRun1), true);
+    Responsibility putResponsibility = new Responsibility(myUser1, "any description");
+    myHeuristicResult.addResponsibility(mySTestRun1, putResponsibility);
+
+    myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, Collections.singletonList(mySTestRun1), true);
+
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.never()).setTestNameResponsibility(anyList(), any(), any());
+    Mockito.verify(myAssignerArtifactDaoMock, Mockito.only()).put(mySTestRun1, putResponsibility);
   }
 
 
   public void Test_TwoSameResponsibilitiesFound() {
-    FailedTestAssigner FailedTestAssigner = new FailedTestAssigner(myTestNameResponsibilityFacade);
-    myHeuristicResult.addResponsibility(mySTestRun1, new Responsibility(myUser1, "any description"));
-    myHeuristicResult.addResponsibility(mySTestRun2, new Responsibility(myUser1, "any description"));
-    FailedTestAssigner.assign(myHeuristicResult, mySProject, Arrays.asList(mySTestRun1, mySTestRun2));
+    Responsibility putResponsibility = new Responsibility(myUser1, "any description");
+    Responsibility putResponsibility2 = new Responsibility(myUser1, "any description");
+    myHeuristicResult.addResponsibility(mySTestRun1, putResponsibility);
+    myHeuristicResult.addResponsibility(mySTestRun2, putResponsibility2);
+
+    myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, Arrays.asList(mySTestRun1, mySTestRun2));
+
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.only()).setTestNameResponsibility(anyList(), any(), any());
+    Mockito.verify(myAssignerArtifactDaoMock, Mockito.times(2)).put(any(), any());
   }
 
   public void Test_TwoDifferentResponsibilitiesFound() {
-    FailedTestAssigner FailedTestAssigner = new FailedTestAssigner(myTestNameResponsibilityFacade);
     myHeuristicResult.addResponsibility(mySTestRun1, new Responsibility(myUser1, "any description"));
     myHeuristicResult.addResponsibility(mySTestRun2, new Responsibility(myUser2, "any description"));
-    FailedTestAssigner.assign(myHeuristicResult, mySProject, Arrays.asList(mySTestRun1, mySTestRun2));
+    myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, Arrays.asList(mySTestRun1, mySTestRun2));
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.times(2)).setTestNameResponsibility(anyList(), any(), any());
+    Mockito.verify(myAssignerArtifactDaoMock, Mockito.times(2)).put(any(), any());
 
     myHeuristicResult = new HeuristicResult();
     Mockito.clearInvocations(myTestNameResponsibilityFacade);
+    Mockito.clearInvocations(myAssignerArtifactDaoMock);
     myHeuristicResult.addResponsibility(mySTestRun1, new Responsibility(myUser1, "any description"));
     myHeuristicResult.addResponsibility(mySTestRun2, new Responsibility(myUser1, "any description 2"));
-    FailedTestAssigner.assign(myHeuristicResult, mySProject, Arrays.asList(mySTestRun1, mySTestRun2));
+    myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, Arrays.asList(mySTestRun1, mySTestRun2));
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.times(2)).setTestNameResponsibility(anyList(), any(), any());
+    Mockito.verify(myAssignerArtifactDaoMock, Mockito.times(2)).put(any(), any());
 
     myHeuristicResult = new HeuristicResult();
     Mockito.clearInvocations(myTestNameResponsibilityFacade);
+    Mockito.clearInvocations(myAssignerArtifactDaoMock);
     myHeuristicResult.addResponsibility(mySTestRun1, new Responsibility(myUser1, "any description"));
     myHeuristicResult.addResponsibility(mySTestRun2, new Responsibility(myUser2, "any description 2"));
-    FailedTestAssigner.assign(myHeuristicResult, mySProject, Arrays.asList(mySTestRun1, mySTestRun2));
+    myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, Arrays.asList(mySTestRun1, mySTestRun2));
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.times(2)).setTestNameResponsibility(anyList(), any(), any());
+    Mockito.verify(myAssignerArtifactDaoMock, Mockito.times(2)).put(any(), any());
   }
 }
