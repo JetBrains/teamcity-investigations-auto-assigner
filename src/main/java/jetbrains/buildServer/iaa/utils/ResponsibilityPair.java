@@ -16,19 +16,12 @@
 
 package jetbrains.buildServer.iaa.utils;
 
-import com.google.gson.*;
-import java.lang.reflect.Type;
-import jetbrains.buildServer.iaa.common.Responsibility;
+class ResponsibilityPair {
+  String investigator;
+  String description;
 
-public class ResponsibilitySerializer implements JsonSerializer<Responsibility> {
-
-  @Override
-  public JsonElement serialize(final Responsibility responsibility,
-                               final Type typeOfSrc,
-                               final JsonSerializationContext context) {
-    JsonObject result = new JsonObject();
-    result.add("investigator", new JsonPrimitive(responsibility.getUser().getUsername()));
-    result.add("description", new JsonPrimitive(responsibility.getDescription()));
-    return result;
+  ResponsibilityPair(String investigator, String description) {
+    this.investigator = investigator;
+    this.description = description;
   }
 }

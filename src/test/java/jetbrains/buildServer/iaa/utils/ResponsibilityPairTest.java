@@ -16,19 +16,16 @@
 
 package jetbrains.buildServer.iaa.utils;
 
-import com.google.gson.*;
-import java.lang.reflect.Type;
-import jetbrains.buildServer.iaa.common.Responsibility;
+import jetbrains.buildServer.BaseTestCase;
+import org.testng.annotations.Test;
 
-public class ResponsibilitySerializer implements JsonSerializer<Responsibility> {
-
-  @Override
-  public JsonElement serialize(final Responsibility responsibility,
-                               final Type typeOfSrc,
-                               final JsonSerializationContext context) {
-    JsonObject result = new JsonObject();
-    result.add("investigator", new JsonPrimitive(responsibility.getUser().getUsername()));
-    result.add("description", new JsonPrimitive(responsibility.getDescription()));
-    return result;
+@Test
+public class ResponsibilityPairTest extends BaseTestCase {
+  public void TestFields() {
+    String testInvestigator = "testName";
+    String testDescription = "testDescription";
+    ResponsibilityPair rp = new ResponsibilityPair(testInvestigator, testDescription);
+    assertEquals(testInvestigator, rp.investigator);
+    assertEquals(testDescription, rp.description);
   }
 }
