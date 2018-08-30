@@ -27,7 +27,6 @@ import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.iaa.common.FailedBuildInfo;
 import jetbrains.buildServer.iaa.processing.FailedTestAndBuildProblemsProcessor;
-import jetbrains.buildServer.iaa.utils.ArtifactCreator;
 import jetbrains.buildServer.iaa.utils.CustomParameters;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.util.ThreadUtil;
@@ -40,7 +39,6 @@ public class FailedTestAndBuildProblemsDispatcher {
 
   @NotNull
   private final FailedTestAndBuildProblemsProcessor myProcessor;
-  @NotNull private final ArtifactCreator myArtifactCreator;
   // Map isn't synchronized because we work with it from synchronized method
   @NotNull
   private final ConcurrentHashMap<Long, FailedBuildInfo> myFailedBuilds;
@@ -48,10 +46,8 @@ public class FailedTestAndBuildProblemsDispatcher {
   private final ScheduledExecutorService myDaemon;
 
   public FailedTestAndBuildProblemsDispatcher(@NotNull final BuildServerListenerEventDispatcher buildServerListenerEventDispatcher,
-                                              @NotNull final FailedTestAndBuildProblemsProcessor processor,
-                                              @NotNull final ArtifactCreator artifactCreator) {
+                                              @NotNull final FailedTestAndBuildProblemsProcessor processor) {
     myProcessor = processor;
-    myArtifactCreator = artifactCreator;
     myFailedBuilds = new ConcurrentHashMap<>();
     myDaemon = ExecutorsFactory.newFixedScheduledDaemonExecutor("Investigator-Auto-Assigner-", 1);
     myDaemon.scheduleWithFixedDelay(this::processBrokenBuildsOneThread,
@@ -90,7 +86,6 @@ public class FailedTestAndBuildProblemsDispatcher {
     myProcessor.processBuild(failedBuildInfo);
 
     if (shouldRemove) {
-      myArtifactCreator.create(failedBuildInfo);
       long buildId = failedBuildInfo.getBuild().getBuildId();
       myFailedBuilds.remove(buildKey);
       LOGGER.debug("Build #" + buildId + " removed from processing.");
