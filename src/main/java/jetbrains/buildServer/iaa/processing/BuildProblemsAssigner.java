@@ -69,7 +69,7 @@ class BuildProblemsAssigner {
                                   prefix,
                                   responsibility.getUser().getUsername(),
                                   sProject.describe(false),
-                                  responsibility.getDescription()));
+                                  responsibility.getAssignDescription()));
         List<BuildProblemInfo> buildProblemList = responsibilityToBuildProblem.get(responsibility);
 
         if (!silentModeOn) {
@@ -78,7 +78,7 @@ class BuildProblemsAssigner {
             sProject.getProjectId(),
             new ResponsibilityEntryEx(
               ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
-              responsibility.getDescription(), ResponsibilityEntry.RemoveMethod.WHEN_FIXED)
+              responsibility.getAssignDescription(), ResponsibilityEntry.RemoveMethod.WHEN_FIXED)
           );
         }
       }

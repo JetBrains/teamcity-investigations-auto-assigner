@@ -75,13 +75,13 @@ class FailedTestAssigner {
                                   responsibility.getUser().getUsername(),
                                   sProject.describe(false),
                                   testNameList,
-                                  responsibility.getDescription()));
+                                  responsibility.getAssignDescription()));
         if (!silentModeOn) {
           myTestNameResponsibilityFacade.setTestNameResponsibility(
             testNameList, sProject.getProjectId(),
             new ResponsibilityEntryEx(
               ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
-              responsibility.getDescription(), ResponsibilityEntry.RemoveMethod.WHEN_FIXED)
+              responsibility.getAssignDescription(), ResponsibilityEntry.RemoveMethod.WHEN_FIXED)
           );
         }
       }

@@ -28,7 +28,8 @@ public class Constants {
   public static final String SILENT_MODE_ON = "teamcity.iaa.silentModeOn";
 
   //Message constants
-  public static final String REASON_PREFIX = "Auto-assigned investigation:";
+  public static final String REASON_PREFIX_ASSIGN = "You were chosen as probable responsible because you";
+  public static final String REASON_PREFIX_REPRESENT = "was chosen as probable responsible because the user";
 
   //Constants
   public static final String TC_COMPILATION_ERROR_TYPE = "TC_COMPILATION_ERROR";

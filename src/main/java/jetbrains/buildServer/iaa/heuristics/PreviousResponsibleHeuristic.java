@@ -67,8 +67,8 @@ public class PreviousResponsibleHeuristic implements Heuristic {
       }
 
       if (responsibleUser != null) {
-        String description = String.format("%s you were responsible for the test: `%s` in build `%s` previous time",
-                                           Constants.REASON_PREFIX, sTest.getName(), sBuild.getFullName());
+        String description = String.format("assigned as responsible for the test: `%s` in build `%s` previous time",
+                                           sTest.getName(), sBuild.getFullName());
 
         result.addResponsibility(sTestRun, new Responsibility(responsibleUser, description));
       }
@@ -79,8 +79,8 @@ public class PreviousResponsibleHeuristic implements Heuristic {
       if (responsibleUser != null) {
         String buildProblemType = buildProblem.getBuildProblemData().getType();
         String description =
-          String.format("%s you were responsible for the build problem: `%s` in build `%s` previous time",
-                        Constants.REASON_PREFIX, buildProblemType, sBuild.getFullName());
+          String.format("assigned as responsible for the build problem: `%s` in build `%s` previous time",
+                        buildProblemType, sBuild.getFullName());
 
         result.addResponsibility(buildProblem, new Responsibility(responsibleUser, description));
       }

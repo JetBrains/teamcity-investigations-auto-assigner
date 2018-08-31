@@ -1,8 +1,6 @@
 <%-- Referenced from jetbrains.buildServer.iaa.representation.TestDetailsExtension --%>
 <%@ include file="/include.jsp" %>
 
-${myCssPath}
-
 <style type="text/css">
   <%--@elvariable id="myCssPath" type="java.lang.String"--%>
   @import "${myCssPath}";
@@ -16,7 +14,10 @@ ${myCssPath}
       <strong>Investigation auto-assigner:</strong>
     </div>
     <div>
-      <c:out value="${responsibility.presentableDescription}"/>
+      <strong>
+        ${responsibility.user.username}
+      </strong>
+      ${responsibility.presentableDescription}
     </div>
   </c:if>
 </div>

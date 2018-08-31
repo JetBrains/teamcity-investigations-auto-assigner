@@ -36,8 +36,15 @@ public class Responsibility {
     return myDescription;
   }
 
+  public String getAssignDescription() {
+    return String.format("%s: %s %s",
+                         Constants.BUILD_FEATURE_DISPLAY_NAME,
+                         Constants.REASON_PREFIX_ASSIGN,
+                         myDescription);
+  }
+
   public String getPresentableDescription() {
-    return myDescription.replaceFirst("you were", myUser.getUsername() + " was");
+    return String.format("%s %s", Constants.REASON_PREFIX_REPRESENT, myDescription);
   }
 
   @Override
@@ -48,7 +55,7 @@ public class Responsibility {
 
     Responsibility anotherResponsibility = (Responsibility)another;
     return myUser.getUsername().equals(anotherResponsibility.getUser().getUsername()) &&
-           myDescription.equals(anotherResponsibility.getDescription());
+           myDescription.equals(anotherResponsibility.getAssignDescription());
   }
 
   @Override
