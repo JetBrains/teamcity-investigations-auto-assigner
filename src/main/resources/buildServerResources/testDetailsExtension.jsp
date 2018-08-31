@@ -7,17 +7,17 @@
 </style>
 
 
-<%--@elvariable id="responsibility" type="jetbrains.buildServer.iaa.common.Responsibility"--%>
+<%--@elvariable id="autoAssignedResponsibility" type="jetbrains.buildServer.iaa.common.Responsibility"--%>
 <div class="investigations-auto-assigner-results">
-  <c:if test="${not empty responsibility}">
+  <c:if test="${not empty autoAssignedResponsibility}">
     <div>
       <strong>Investigation auto-assigner:</strong>
     </div>
     <div>
       <strong>
-        ${responsibility.user.username}
+        ${autoAssignedResponsibility.user.username}
       </strong>
-      ${responsibility.presentableDescription}
+      ${autoAssignedResponsibility.presentableDescription}
     </div>
   </c:if>
 </div>

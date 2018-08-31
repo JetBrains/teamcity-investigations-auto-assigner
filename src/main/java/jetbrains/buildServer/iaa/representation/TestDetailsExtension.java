@@ -54,7 +54,7 @@ public class TestDetailsExtension extends SimplePageExtension {
       STestRun sTestRun = (STestRun)testRunObject;
       Responsibility responsibility = myAssignerArtifactDao.get(sTestRun);
       if (responsibility != null) {
-        model.put("responsibility", responsibility);
+        model.put("autoAssignedResponsibility", responsibility);
       }
     }
   }
