@@ -32,6 +32,7 @@ import static jetbrains.buildServer.iaa.common.Constants.TEST_RUN_IN_REQUEST;
 
 public class TestDetailsExtension extends SimplePageExtension {
   private final AssignerArtifactDao myAssignerArtifactDao;
+  private final String myCssPath;
 
   public TestDetailsExtension(@NotNull final PagePlaces pagePlaces,
                               @NotNull final PluginDescriptor descriptor,
@@ -41,11 +42,13 @@ public class TestDetailsExtension extends SimplePageExtension {
           Constants.BUILD_FEATURE_TYPE,
           descriptor.getPluginResourcesPath("testDetailsExtension.jsp"));
     myAssignerArtifactDao = assignerArtifactDao;
+    myCssPath = descriptor.getPluginResourcesPath("testDetailsExtension.css");
   }
 
   @Override
   public void fillModel(@NotNull final Map<String, Object> model, @NotNull final HttpServletRequest request) {
     final Object testRunObject = request.getAttribute(TEST_RUN_IN_REQUEST);
+    model.put("myCssPath", request.getContextPath() + myCssPath);
 
     if (testRunObject instanceof STestRun) {
       STestRun sTestRun = (STestRun)testRunObject;

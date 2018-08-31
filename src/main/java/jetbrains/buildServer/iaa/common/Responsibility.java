@@ -36,6 +36,10 @@ public class Responsibility {
     return myDescription;
   }
 
+  public String getPresentableDescription() {
+    return myDescription.replaceFirst("you were", myUser.getUsername() + " was");
+  }
+
   @Override
   public boolean equals(final Object another) {
     if (!(another instanceof Responsibility)) {

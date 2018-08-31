@@ -1,9 +1,11 @@
 <%-- Referenced from jetbrains.buildServer.iaa.representation.TestDetailsExtension --%>
 <%@ include file="/include.jsp" %>
 
+${myCssPath}
+
 <style type="text/css">
-  <%--@elvariable id="teamcityPluginResourcesPath" type="java.lang.String"--%>
-  @import "${teamcityPluginResourcesPath}testDetailsExtension.css";
+  <%--@elvariable id="myCssPath" type="java.lang.String"--%>
+  @import "${myCssPath}";
 </style>
 
 
@@ -11,7 +13,10 @@
 <div class="investigations-auto-assigner-results">
   <c:if test="${not empty responsibility}">
     <div>
-      <c:out value="${responsibility.description}"/>
+      <strong>Investigation auto-assigner:</strong>
+    </div>
+    <div>
+      <c:out value="${responsibility.presentableDescription}"/>
     </div>
   </c:if>
 </div>
