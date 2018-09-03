@@ -20,6 +20,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -43,9 +44,9 @@ public class AssignerArtifactDao {
   }
 
   public void put(STestRun testRun, Responsibility responsibility) {
-    try {
-      Path resultsFilePath = this.getAssignerResultFilePath(testRun);
-      Files.write(resultsFilePath, myGson.toJson(responsibility).getBytes(StandardCharsets.UTF_8));
+    try (BufferedWriter writer =
+           Files.newBufferedWriter(getAssignerResultFilePath((testRun)), StandardCharsets.UTF_8)) {
+      myGson.toJson(responsibility, writer);
     } catch (IOException ex) {
       LOGGER.error(String.format("%s An error occurs during creation of file with results",
                                  Utils.getLogPrefix(testRun)), ex);
@@ -62,8 +63,9 @@ public class AssignerArtifactDao {
         return null;
       }
 
-      BufferedReader reader = Files.newBufferedReader(resultsFilePath);
-      pair = myGson.fromJson(reader, ResponsibilityPair.class);
+      try (BufferedReader reader = Files.newBufferedReader(resultsFilePath)) {
+        pair = myGson.fromJson(reader, ResponsibilityPair.class);
+      }
     } catch (IOException ex) {
       LOGGER.error(String.format("%s An error occurs during reading of file with results",
                                  Utils.getLogPrefix(testRun)), ex);
