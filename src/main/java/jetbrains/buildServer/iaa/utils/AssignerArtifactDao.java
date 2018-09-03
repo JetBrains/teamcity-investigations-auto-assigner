@@ -47,6 +47,7 @@ public class AssignerArtifactDao {
     try {
       Files.write(resultsFile.toPath(), gson.toJson(responsibility).getBytes(StandardCharsets.UTF_8));
     } catch (IOException ex) {
+      LOGGER.error("An error occurs during creation of file with results", ex);
       throw new RuntimeException("An error occurs during creation of file with results");
     }
   }
@@ -59,7 +60,7 @@ public class AssignerArtifactDao {
     }
 
     Gson gson = new GsonBuilder().registerTypeAdapter(Responsibility.class, new ResponsibilitySerializer()).create();
-    Responsibility result;
+    Responsibility result = null;
     try {
       List<String> responsibilityJson = Files.readAllLines(resultsFile.toPath(), StandardCharsets.UTF_8);
       ResponsibilityPair pair = gson.fromJson(String.join("\n", responsibilityJson), ResponsibilityPair.class);
@@ -73,7 +74,8 @@ public class AssignerArtifactDao {
         LOGGER.warn(String.format("User %s was not found in our model.", pair.investigator));
       }
     } catch (IOException ex) {
-      throw new RuntimeException("An error occurs during creation of file with results");
+      LOGGER.error("An error occurs during reading of file with results", ex);
+      throw new RuntimeException("An error occurs during reading of file with results");
     }
     return result;
   }
