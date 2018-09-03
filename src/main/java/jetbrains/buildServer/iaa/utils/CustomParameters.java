@@ -17,6 +17,7 @@
 package jetbrains.buildServer.iaa.utils;
 
 import java.util.Collection;
+import java.util.Optional;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SBuildFeatureDescriptor;
@@ -53,7 +54,7 @@ public class CustomParameters {
     Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
     if (descriptors.isEmpty()) throw new IllegalStateException("Descriptors should not be empty");
 
-    final SBuildFeatureDescriptor sBuildFeature = (SBuildFeatureDescriptor)descriptors.toArray()[0];
-    return Boolean.valueOf(sBuildFeature.getParameters().get(Constants.SILENT_MODE_ON));
+    final Optional<SBuildFeatureDescriptor> sBuildFeatureOptional = descriptors.stream().findFirst();
+    return Boolean.valueOf(sBuildFeatureOptional.get().getParameters().get(Constants.SILENT_MODE_ON));
   }
 }
