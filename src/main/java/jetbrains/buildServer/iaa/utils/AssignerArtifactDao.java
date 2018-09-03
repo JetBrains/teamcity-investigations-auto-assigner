@@ -19,10 +19,10 @@ package jetbrains.buildServer.iaa.utils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.intellij.openapi.diagnostic.Logger;
-import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.iaa.common.Responsibility;
@@ -43,9 +43,9 @@ public class AssignerArtifactDao {
   }
 
   public void put(STestRun testRun, Responsibility responsibility) {
-    File resultsFile = this.getAssignerResultFile(testRun);
     try {
-      Files.write(resultsFile.toPath(), myGson.toJson(responsibility).getBytes(StandardCharsets.UTF_8));
+      Path resultsFilePath = this.getAssignerResultFilePath(testRun);
+      Files.write(resultsFilePath, myGson.toJson(responsibility).getBytes(StandardCharsets.UTF_8));
     } catch (IOException ex) {
       LOGGER.error("An error occurs during creation of file with results", ex);
       throw new RuntimeException("An error occurs during creation of file with results");
@@ -54,48 +54,46 @@ public class AssignerArtifactDao {
 
   @Nullable
   public Responsibility get(STestRun testRun) {
-    File resultsFile = this.getAssignerResultFile(testRun);
-    if (!resultsFile.exists()) {
-      return null;
-    }
-    
-    Responsibility result = null;
+    List<String> responsibilityJson;
     try {
-      List<String> responsibilityJson = Files.readAllLines(resultsFile.toPath(), StandardCharsets.UTF_8);
-      ResponsibilityPair pair = myGson.fromJson(String.join("\n", responsibilityJson), ResponsibilityPair.class);
-      if (pair.investigator == null) {
-        throw new RuntimeException("Investigator is not specified!");
+      Path resultsFilePath = this.getAssignerResultFilePath(testRun);
+      if (!Files.exists(resultsFilePath)) {
+        return null;
       }
-      User user = myUserModel.findUserAccount(null, pair.investigator);
-      if (user != null) {
-        result = new Responsibility(user, pair.description);
-      } else {
-        LOGGER.warn(String.format("User %s was not found in our model.", pair.investigator));
-      }
+
+      responsibilityJson = Files.readAllLines(resultsFilePath);
     } catch (IOException ex) {
       LOGGER.error("An error occurs during reading of file with results", ex);
       throw new RuntimeException("An error occurs during reading of file with results");
     }
-    return result;
+
+    ResponsibilityPair pair = myGson.fromJson(String.join("\n", responsibilityJson), ResponsibilityPair.class);
+    if (pair.investigator == null) {
+      throw new RuntimeException("Investigator is not specified!");
+    }
+
+    User user = myUserModel.findUserAccount(null, pair.investigator);
+    if (user == null) {
+      LOGGER.warn(String.format("User %s was not found in our model.", pair.investigator));
+    }
+    return user != null ? new Responsibility(user, pair.description) : null;
   }
 
-  private File getAssignerResultFile(STestRun testRun) {
-    File artifactDirectory = testRun.getBuild().getArtifactsDirectory();
-    File teamcityDirectory = new File(artifactDirectory, Constants.TEAMCITY_DIRECTORY);
-    if (!teamcityDirectory.exists()) {
+  private Path getAssignerResultFilePath(STestRun testRun) throws IOException {
+    Path artifactDirectoryPath = testRun.getBuild().getArtifactsDirectory().toPath();
+    Path teamcityDirectoryPath = artifactDirectoryPath.resolve(Constants.TEAMCITY_DIRECTORY);
+    if (!Files.exists(teamcityDirectoryPath)) {
       throw new RuntimeException("TeamCity directory does not exist");
     }
 
-    File autoAssignerDirectory = new File(teamcityDirectory, Constants.BUILD_FEATURE_TYPE);
-    if (!autoAssignerDirectory.exists()) {
-      boolean creationResult = autoAssignerDirectory.mkdir();
-      if (!creationResult) {
-        throw new RuntimeException("Creation of auto-assigner folder is failed");
-      }
+
+    Path autoAssignerDirectoryPath = teamcityDirectoryPath.resolve(Constants.BUILD_FEATURE_TYPE);
+    if (!Files.exists(autoAssignerDirectoryPath)) {
+      Files.createDirectory(autoAssignerDirectoryPath);
     }
 
     final String fileName = this.getFileName(testRun);
-    return new File(autoAssignerDirectory, fileName);
+    return autoAssignerDirectoryPath.resolve(fileName);
   }
 
   private String getFileName(final STestRun testRun) {
