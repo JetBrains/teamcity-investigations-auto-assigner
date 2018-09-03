@@ -33,19 +33,19 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AssignerArtifactDao {
+  private final Gson myGson;
   private UserModelEx myUserModel;
   private static final Logger LOGGER = Logger.getInstance(AssignerArtifactDao.class.getName());
 
   public AssignerArtifactDao(@NotNull final UserModelEx userModel) {
     myUserModel = userModel;
+    myGson = new GsonBuilder().registerTypeAdapter(Responsibility.class, new ResponsibilitySerializer()).create();
   }
 
   public void put(STestRun testRun, Responsibility responsibility) {
     File resultsFile = this.getAssignerResultFile(testRun);
-
-    Gson gson = new GsonBuilder().registerTypeAdapter(Responsibility.class, new ResponsibilitySerializer()).create();
     try {
-      Files.write(resultsFile.toPath(), gson.toJson(responsibility).getBytes(StandardCharsets.UTF_8));
+      Files.write(resultsFile.toPath(), myGson.toJson(responsibility).getBytes(StandardCharsets.UTF_8));
     } catch (IOException ex) {
       LOGGER.error("An error occurs during creation of file with results", ex);
       throw new RuntimeException("An error occurs during creation of file with results");
@@ -58,12 +58,11 @@ public class AssignerArtifactDao {
     if (!resultsFile.exists()) {
       return null;
     }
-
-    Gson gson = new GsonBuilder().registerTypeAdapter(Responsibility.class, new ResponsibilitySerializer()).create();
+    
     Responsibility result = null;
     try {
       List<String> responsibilityJson = Files.readAllLines(resultsFile.toPath(), StandardCharsets.UTF_8);
-      ResponsibilityPair pair = gson.fromJson(String.join("\n", responsibilityJson), ResponsibilityPair.class);
+      ResponsibilityPair pair = myGson.fromJson(String.join("\n", responsibilityJson), ResponsibilityPair.class);
       if (pair.investigator == null) {
         throw new RuntimeException("Investigator is not specified!");
       }
