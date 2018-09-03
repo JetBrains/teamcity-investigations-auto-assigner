@@ -23,6 +23,7 @@ import jetbrains.buildServer.iaa.common.FailedBuildInfo;
 import jetbrains.buildServer.iaa.utils.CustomParameters;
 import jetbrains.buildServer.iaa.utils.FlakyTestDetector;
 import jetbrains.buildServer.iaa.utils.InvestigationsManager;
+import jetbrains.buildServer.iaa.utils.Utils;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STest;
@@ -79,9 +80,8 @@ class FailedTestFilter {
 
     boolean isApplicable = reason == null;
     if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug(String.format("Test problem %s:%s is %s.%s",
-                                 sBuild.getBuildId(),
-                                 testRun.getTest().getName(),
+      LOGGER.debug(String.format("%s Test problem is %s.%s",
+                                 Utils.getLogPrefix(testRun),
                                  (isApplicable ? "applicable" : "not applicable"),
                                  (isApplicable ? "" : String.format(" Reason: this test problem %s.", reason))
       ));

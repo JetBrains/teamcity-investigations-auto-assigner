@@ -47,7 +47,8 @@ public class AssignerArtifactDao {
       Path resultsFilePath = this.getAssignerResultFilePath(testRun);
       Files.write(resultsFilePath, myGson.toJson(responsibility).getBytes(StandardCharsets.UTF_8));
     } catch (IOException ex) {
-      LOGGER.error("An error occurs during creation of file with results", ex);
+      LOGGER.error(String.format("%s An error occurs during creation of file with results",
+                                 Utils.getLogPrefix(testRun)), ex);
       throw new RuntimeException("An error occurs during creation of file with results");
     }
   }
@@ -63,7 +64,8 @@ public class AssignerArtifactDao {
 
       responsibilityJson = Files.readAllLines(resultsFilePath);
     } catch (IOException ex) {
-      LOGGER.error("An error occurs during reading of file with results", ex);
+      LOGGER.error(String.format("%s An error occurs during reading of file with results",
+                                 Utils.getLogPrefix(testRun)), ex);
       throw new RuntimeException("An error occurs during reading of file with results");
     }
 
@@ -74,7 +76,8 @@ public class AssignerArtifactDao {
 
     User user = myUserModel.findUserAccount(null, pair.investigator);
     if (user == null) {
-      LOGGER.warn(String.format("User %s was not found in our model.", pair.investigator));
+      LOGGER.warn(String.format("%s User %s was not found in our model.", Utils.getLogPrefix(testRun),
+                                pair.investigator));
     }
     return user != null ? new Responsibility(user, pair.description) : null;
   }
