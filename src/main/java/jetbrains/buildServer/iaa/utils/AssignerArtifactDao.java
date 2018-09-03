@@ -18,6 +18,7 @@ package jetbrains.buildServer.iaa.utils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.intellij.openapi.diagnostic.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -33,6 +34,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class AssignerArtifactDao {
   private UserModelEx myUserModel;
+  private static final Logger LOGGER = Logger.getInstance(AssignerArtifactDao.class.getName());
 
   public AssignerArtifactDao(@NotNull final UserModelEx userModel) {
     myUserModel = userModel;
@@ -65,7 +67,11 @@ public class AssignerArtifactDao {
         throw new RuntimeException("Investigator is not specified!");
       }
       User user = myUserModel.findUserAccount(null, pair.investigator);
-      result = new Responsibility(user, pair.description);
+      if (user != null) {
+        result = new Responsibility(user, pair.description);
+      } else {
+        LOGGER.warn(String.format("User %s was not found in our model.", pair.investigator));
+      }
     } catch (IOException ex) {
       throw new RuntimeException("An error occurs during creation of file with results");
     }
