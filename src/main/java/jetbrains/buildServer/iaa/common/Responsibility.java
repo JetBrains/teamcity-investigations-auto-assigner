@@ -18,12 +18,13 @@ package jetbrains.buildServer.iaa.common;
 
 import java.util.Arrays;
 import jetbrains.buildServer.users.User;
+import org.jetbrains.annotations.NotNull;
 
 public class Responsibility {
   private final User myUser;
   private final String myDescription;
 
-  public Responsibility(User user, String description) {
+  public Responsibility(@NotNull User user, @NotNull String description) {
     myUser = user;
     myDescription = description;
   }
