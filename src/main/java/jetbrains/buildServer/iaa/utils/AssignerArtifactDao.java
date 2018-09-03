@@ -19,11 +19,11 @@ package jetbrains.buildServer.iaa.utils;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.intellij.openapi.diagnostic.Logger;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.iaa.common.Responsibility;
 import jetbrains.buildServer.serverSide.STestRun;
@@ -55,21 +55,21 @@ public class AssignerArtifactDao {
 
   @Nullable
   public Responsibility get(STestRun testRun) {
-    List<String> responsibilityJson;
+    ResponsibilityPair pair;
     try {
       Path resultsFilePath = this.getAssignerResultFilePath(testRun);
       if (!Files.exists(resultsFilePath)) {
         return null;
       }
 
-      responsibilityJson = Files.readAllLines(resultsFilePath);
+      BufferedReader reader = Files.newBufferedReader(resultsFilePath);
+      pair = myGson.fromJson(reader, ResponsibilityPair.class);
     } catch (IOException ex) {
       LOGGER.error(String.format("%s An error occurs during reading of file with results",
                                  Utils.getLogPrefix(testRun)), ex);
       throw new RuntimeException("An error occurs during reading of file with results");
     }
 
-    ResponsibilityPair pair = myGson.fromJson(String.join("\n", responsibilityJson), ResponsibilityPair.class);
     if (pair.investigator == null) {
       throw new RuntimeException("Investigator is not specified!");
     }
@@ -88,7 +88,6 @@ public class AssignerArtifactDao {
     if (!Files.exists(teamcityDirectoryPath)) {
       throw new RuntimeException("TeamCity directory does not exist");
     }
-
 
     Path autoAssignerDirectoryPath = teamcityDirectoryPath.resolve(Constants.BUILD_FEATURE_TYPE);
     if (!Files.exists(autoAssignerDirectoryPath)) {
