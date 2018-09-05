@@ -17,11 +17,11 @@
 package jetbrains.buildServer.iaa.utils;
 
 class ResponsibilityPair {
-  String investigator;
+  long investigatorId;
   String description;
 
-  ResponsibilityPair(String investigator, String description) {
-    this.investigator = investigator;
+  ResponsibilityPair(long investigatorId, String description) {
+    this.investigatorId = investigatorId;
     this.description = description;
   }
 }

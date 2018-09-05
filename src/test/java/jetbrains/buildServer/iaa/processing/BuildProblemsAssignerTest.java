@@ -58,8 +58,10 @@ public class BuildProblemsAssignerTest extends BaseTestCase {
     mySProject = Mockito.mock(SProject.class);
     myUser1 = Mockito.mock(UserImpl.class);
     when(myUser1.getUsername()).thenReturn("user1");
+    when(myUser1.getId()).thenReturn(1L);
     myUser2 = Mockito.mock(UserImpl.class);
     when(myUser2.getUsername()).thenReturn("user2");
+    when(myUser2.getId()).thenReturn(2L);
     myHeuristicResult = new HeuristicResult();
   }
 

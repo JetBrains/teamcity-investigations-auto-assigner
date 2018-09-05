@@ -55,14 +55,14 @@ public class Responsibility {
     }
 
     Responsibility anotherResponsibility = (Responsibility)another;
-    return myUser.getUsername().equals(anotherResponsibility.getUser().getUsername()) &&
-           myDescription.equals(anotherResponsibility.getAssignDescription());
+    return myUser.getId() == anotherResponsibility.getUser().getId() &&
+           myDescription.equals(anotherResponsibility.getDescription());
   }
 
   @Override
   public int hashCode() {
-    return Arrays.hashCode(new String[]{
-      myUser.getUsername(),
+    return Arrays.hashCode(new Object[]{
+      myUser.getId(),
       myDescription
     });
   }

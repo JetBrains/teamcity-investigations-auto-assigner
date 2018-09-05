@@ -27,7 +27,7 @@ public class ResponsibilitySerializer implements JsonSerializer<Responsibility> 
                                final Type typeOfSrc,
                                final JsonSerializationContext context) {
     JsonObject result = new JsonObject();
-    result.add("investigator", new JsonPrimitive(responsibility.getUser().getUsername()));
+    result.add("investigatorId", new JsonPrimitive(responsibility.getUser().getId()));
     result.add("description", new JsonPrimitive(responsibility.getDescription()));
     return result;
   }

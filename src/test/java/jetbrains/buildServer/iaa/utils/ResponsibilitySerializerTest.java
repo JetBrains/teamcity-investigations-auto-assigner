@@ -29,17 +29,17 @@ import static org.mockito.Mockito.when;
 @Test
 public class ResponsibilitySerializerTest extends BaseTestCase {
   private User myUser;
-  private String testUserName = "testUserName";
+  private long testUserId = 239;
   private String testDescription = "testDescription - 239";
   private final String EXPECTED_JSON =
-    String.format("{\"investigator\":\"%s\",\"description\":\"%s\"}", testUserName, testDescription);
+    String.format("{\"investigatorId\":%s,\"description\":\"%s\"}", testUserId, testDescription);
 
   @BeforeMethod
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     myUser = Mockito.mock(User.class);
-    when(myUser.getUsername()).thenReturn(testUserName);
+    when(myUser.getId()).thenReturn(testUserId);
   }
 
   public void TestSerialize() {

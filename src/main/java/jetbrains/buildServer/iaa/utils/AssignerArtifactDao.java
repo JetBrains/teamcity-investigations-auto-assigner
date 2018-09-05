@@ -72,14 +72,10 @@ public class AssignerArtifactDao {
       throw new RuntimeException("An error occurs during reading of file with results");
     }
 
-    if (pair.investigator == null) {
-      throw new RuntimeException("Investigator is not specified!");
-    }
-
-    User user = myUserModel.findUserAccount(null, pair.investigator);
+    User user = myUserModel.findUserById(pair.investigatorId);
     if (user == null) {
-      LOGGER.warn(String.format("%s User %s was not found in our model.", Utils.getLogPrefix(testRun),
-                                pair.investigator));
+      LOGGER.warn(String.format("%s User with id %s was not found in our model.", Utils.getLogPrefix(testRun),
+                                pair.investigatorId));
     }
     return user != null ? new Responsibility(user, pair.description) : null;
   }

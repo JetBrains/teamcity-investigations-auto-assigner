@@ -22,10 +22,10 @@ import org.testng.annotations.Test;
 @Test
 public class ResponsibilityPairTest extends BaseTestCase {
   public void TestFields() {
-    String testInvestigator = "testName";
+    long testInvestigatorId = 239L;
     String testDescription = "testDescription";
-    ResponsibilityPair rp = new ResponsibilityPair(testInvestigator, testDescription);
-    assertEquals(testInvestigator, rp.investigator);
+    ResponsibilityPair rp = new ResponsibilityPair(testInvestigatorId, testDescription);
+    assertEquals(testInvestigatorId, rp.investigatorId);
     assertEquals(testDescription, rp.description);
   }
 }
