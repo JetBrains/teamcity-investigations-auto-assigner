@@ -78,7 +78,7 @@ public class AssignerArtifactDao {
       if (responsibility != null) {
         result.add(new ResponsibilityPersistentInfo(testRun.getTestRunId(),
                                                     responsibility.getUser().getId(),
-                                                    responsibility.getPresentableDescription()));
+                                                    responsibility.getDescription()));
       }
     }
     return result;
