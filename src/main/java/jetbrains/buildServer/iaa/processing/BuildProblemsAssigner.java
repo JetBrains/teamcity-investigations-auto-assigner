@@ -43,12 +43,6 @@ class BuildProblemsAssigner {
 
   void assign(final HeuristicResult heuristicsResult,
               final SProject sProject,
-              final List<BuildProblem> buildProblems) {
-    assign(heuristicsResult, sProject, buildProblems, false);
-  }
-
-  void assign(final HeuristicResult heuristicsResult,
-              final SProject sProject,
               final List<BuildProblem> buildProblems,
               final boolean silentModeOn) {
     HashMap<Responsibility, List<BuildProblemInfo>> responsibilityToBuildProblem = new HashMap<>();

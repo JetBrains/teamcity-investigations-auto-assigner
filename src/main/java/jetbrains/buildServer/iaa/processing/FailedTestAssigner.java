@@ -46,12 +46,6 @@ class FailedTestAssigner {
 
   void assign(final HeuristicResult heuristicsResult,
               final SProject sProject,
-              final List<STestRun> sTestRuns) {
-    assign(heuristicsResult, sProject,sTestRuns, false);
-  }
-
-  void assign(final HeuristicResult heuristicsResult,
-              final SProject sProject,
               final List<STestRun> sTestRuns,
               final boolean silentModeOn) {
     HashMap<Responsibility, List<TestName>> responsibilityToTestNames = new HashMap<>();
