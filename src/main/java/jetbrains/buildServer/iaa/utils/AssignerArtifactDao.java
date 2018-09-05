@@ -25,8 +25,11 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.*;
 import jetbrains.buildServer.iaa.common.Constants;
+import jetbrains.buildServer.iaa.common.HeuristicResult;
 import jetbrains.buildServer.iaa.common.Responsibility;
+import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.users.UserModelEx;
@@ -43,46 +46,54 @@ public class AssignerArtifactDao {
     myGson = new GsonBuilder().registerTypeAdapter(Responsibility.class, new ResponsibilitySerializer()).create();
   }
 
-  public void put(STestRun testRun, Responsibility responsibility) {
-    try (BufferedWriter writer =
-           Files.newBufferedWriter(getAssignerResultFilePath((testRun)), StandardCharsets.UTF_8)) {
-      myGson.toJson(responsibility, writer);
-    } catch (IOException ex) {
-      LOGGER.error(String.format("%s An error occurs during creation of file with results",
-                                 Utils.getLogPrefix(testRun)), ex);
-      throw new RuntimeException("An error occurs during creation of file with results");
-    }
-  }
-
-  @Nullable
-  public Responsibility get(STestRun testRun) {
-    ResponsibilityPair pair;
+  public void appendHeuristicsResult(@NotNull SBuild build,
+                                     @NotNull List<STestRun> testRuns,
+                                     @NotNull HeuristicResult heuristicResult) {
     try {
-      Path resultsFilePath = this.getAssignerResultFilePath(testRun);
-      if (!Files.exists(resultsFilePath)) {
-        return null;
-      }
+      Path resultsFilePath = this.getAssignerResultFilePath(build);
+      List<ResponsibilityPersistentInfo> previouslyAdded = readPreviouslyAdded(resultsFilePath);
+      List<ResponsibilityPersistentInfo> infoToAdd = new ArrayList<>(previouslyAdded);
+      infoToAdd.addAll(getPersistentInfoList(testRuns, heuristicResult));
 
-      try (BufferedReader reader = Files.newBufferedReader(resultsFilePath)) {
-        pair = myGson.fromJson(reader, ResponsibilityPair.class);
+      try (BufferedWriter writer =
+             Files.newBufferedWriter(getAssignerResultFilePath(build), StandardCharsets.UTF_8)) {
+        myGson.toJson(infoToAdd, writer);
       }
     } catch (IOException ex) {
-      LOGGER.error(String.format("%s An error occurs during reading of file with results",
-                                 Utils.getLogPrefix(testRun)), ex);
-      throw new RuntimeException("An error occurs during reading of file with results");
+      LOGGER.error(String.format("%s :: An error occurs during appending results", build.getBuildId()), ex);
+      throw new RuntimeException("An error occurs during appending results");
     }
-
-    User user = myUserModel.findUserById(pair.investigatorId);
-    if (user == null) {
-      LOGGER.warn(String.format("%s User with id %s was not found in our model.", Utils.getLogPrefix(testRun),
-                                pair.investigatorId));
-    }
-    return user != null ? new Responsibility(user, pair.description) : null;
   }
 
   @NotNull
-  private Path getAssignerResultFilePath(@NotNull STestRun testRun) throws IOException {
-    Path artifactDirectoryPath = testRun.getBuild().getArtifactsDirectory().toPath();
+  private List<ResponsibilityPersistentInfo> getPersistentInfoList(@NotNull final List<STestRun> testRuns,
+                                                                   @NotNull final HeuristicResult heuristicResult) {
+    List<ResponsibilityPersistentInfo> result = new ArrayList<>();
+    for (STestRun testRun : testRuns) {
+      Responsibility responsibility = heuristicResult.getResponsibility(testRun);
+      if (responsibility != null) {
+        result.add(new ResponsibilityPersistentInfo(testRun.getTestRunId(),
+                                                    responsibility.getUser().getId(),
+                                                    responsibility.getPresentableDescription()));
+      }
+    }
+    return result;
+  }
+
+  private List<ResponsibilityPersistentInfo> readPreviouslyAdded(Path resultsFilePath) throws IOException {
+
+    if (Files.exists(resultsFilePath)) {
+      try (BufferedReader reader = Files.newBufferedReader(resultsFilePath)) {
+        return Arrays.asList(myGson.fromJson(reader, ResponsibilityPersistentInfo[].class));
+      }
+    }
+
+    return Collections.emptyList();
+  }
+
+  @NotNull
+  private Path getAssignerResultFilePath(@NotNull final SBuild build) throws IOException {
+    Path artifactDirectoryPath = build.getArtifactsDirectory().toPath();
     Path teamcityDirectoryPath = artifactDirectoryPath.resolve(Constants.TEAMCITY_DIRECTORY);
     if (!Files.exists(teamcityDirectoryPath)) {
       throw new RuntimeException("TeamCity directory does not exist");
@@ -93,13 +104,39 @@ public class AssignerArtifactDao {
       Files.createDirectory(autoAssignerDirectoryPath);
     }
 
-    final String fileName = this.getFileName(testRun);
-    return autoAssignerDirectoryPath.resolve(fileName);
+    return autoAssignerDirectoryPath.resolve("results.json");
   }
 
-  @NotNull
-  private String getFileName(@NotNull final STestRun testRun) {
-    return String.format("r-%s.json", testRun.getTestRunId());
+  @Nullable
+  public Responsibility get(STestRun testRun) {
+    ResponsibilityPersistentInfo[] persistentBuildInfo;
+    try {
+      Path resultsFilePath = this.getAssignerResultFilePath(testRun.getBuild());
+      if (!Files.exists(resultsFilePath)) {
+        return null;
+      }
+
+      try (BufferedReader reader = Files.newBufferedReader(resultsFilePath)) {
+        persistentBuildInfo = myGson.fromJson(reader, ResponsibilityPersistentInfo[].class);
+      }
+    } catch (IOException ex) {
+      LOGGER.error(String.format("%s An error occurs during reading of file with results",
+                                 Utils.getLogPrefix(testRun)), ex);
+      throw new RuntimeException("An error occurs during reading of file with results");
+    }
+
+    for (ResponsibilityPersistentInfo persistentInfo: persistentBuildInfo) {
+      if (persistentInfo.testRunId == testRun.getTestRunId()) {
+        User user = myUserModel.findUserById(persistentInfo.investigatorId);
+        if (user == null) {
+          LOGGER.warn(String.format("%s User with id %s was not found in our model.", Utils.getLogPrefix(testRun),
+                                    persistentInfo.investigatorId));
+        }
+        return user != null ? new Responsibility(user, persistentInfo.description) : null;
+      }
+    }
+
+    return null;
   }
 }
 

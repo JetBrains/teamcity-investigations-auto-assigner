@@ -16,16 +16,14 @@
 
 package jetbrains.buildServer.iaa.utils;
 
-import jetbrains.buildServer.BaseTestCase;
-import org.testng.annotations.Test;
+class ResponsibilityPersistentInfo {
+  int testRunId;
+  long investigatorId;
+  String description;
 
-@Test
-public class ResponsibilityPairTest extends BaseTestCase {
-  public void TestFields() {
-    long testInvestigatorId = 239L;
-    String testDescription = "testDescription";
-    ResponsibilityPair rp = new ResponsibilityPair(testInvestigatorId, testDescription);
-    assertEquals(testInvestigatorId, rp.investigatorId);
-    assertEquals(testDescription, rp.description);
+  ResponsibilityPersistentInfo(int testRunId, long investigatorId, String description) {
+    this.testRunId = testRunId;
+    this.investigatorId = investigatorId;
+    this.description = description;
   }
 }

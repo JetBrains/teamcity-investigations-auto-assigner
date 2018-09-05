@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Set;
 import jetbrains.buildServer.iaa.common.HeuristicResult;
 import jetbrains.buildServer.iaa.common.Responsibility;
-import jetbrains.buildServer.iaa.utils.AssignerArtifactDao;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntryEx;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityFacade;
@@ -36,12 +35,9 @@ import org.jetbrains.annotations.NotNull;
 class FailedTestAssigner {
   @NotNull private final TestNameResponsibilityFacade myTestNameResponsibilityFacade;
   private static final Logger LOGGER = Logger.getInstance(FailedTestAssigner.class.getName());
-  private final AssignerArtifactDao myAssignerDao;
 
-  FailedTestAssigner(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade,
-                     @NotNull final AssignerArtifactDao assignerArtifactDao) {
+  FailedTestAssigner(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade) {
     myTestNameResponsibilityFacade = testNameResponsibilityFacade;
-    myAssignerDao = assignerArtifactDao;
   }
 
   void assign(final HeuristicResult heuristicsResult,
@@ -54,8 +50,6 @@ class FailedTestAssigner {
       responsibilityToTestNames.putIfAbsent(responsibility, new ArrayList<>());
       List<TestName> testNameList = responsibilityToTestNames.get(responsibility);
       testNameList.add(sTestRun.getTest().getName());
-
-      myAssignerDao.put(sTestRun, responsibility);
     }
 
     Set<Responsibility> uniqueResponsibilities = responsibilityToTestNames.keySet();
