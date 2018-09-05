@@ -65,7 +65,7 @@ public class DefaultUserHeuristic implements Heuristic {
     UserEx responsibleUser = myUserModel.findUserAccount(null, defaultResponsible);
 
     if (responsibleUser == null) {
-      LOGGER.warn(String.format("There is specified default user %s, but the user is not in a user model. " +
+      LOGGER.warn(String.format("The specified default user %s cannot be found in the users list. " +
                                 "Failed build #%s", defaultResponsible, build.getBuildId()));
       return result;
     }

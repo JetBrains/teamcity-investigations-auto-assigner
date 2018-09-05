@@ -55,7 +55,7 @@ public class OneCommitterHeuristic implements Heuristic {
     }
 
     if (committers.size() != 1) {
-      LOGGER.debug(String.format("There are more then one committers (total: %d) since last build for failed build #%s",
+      LOGGER.debug(String.format("There are more than one committer (total: %d) since last build for failed build #%s",
                                  committers.size(), build.getBuildId()));
       return result;
     }
