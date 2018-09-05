@@ -17,6 +17,12 @@
 package jetbrains.buildServer.iaa;
 
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.iaa.common.FailedBuildInfo;
@@ -26,13 +32,6 @@ import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.util.ThreadUtil;
 import jetbrains.buildServer.util.executors.ExecutorsFactory;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public class FailedTestAndBuildProblemsDispatcher {
 

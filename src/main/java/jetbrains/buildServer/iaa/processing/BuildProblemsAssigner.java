@@ -17,14 +17,18 @@
 package jetbrains.buildServer.iaa.processing;
 
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import jetbrains.buildServer.iaa.common.HeuristicResult;
 import jetbrains.buildServer.iaa.common.Responsibility;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityFacade;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
-import jetbrains.buildServer.responsibility.impl.BuildProblemResponsibilityEntryImpl;
+import jetbrains.buildServer.responsibility.ResponsibilityEntryEx;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
+import jetbrains.buildServer.serverSide.problems.BuildProblemInfo;
 import jetbrains.buildServer.util.Dates;
 import org.jetbrains.annotations.NotNull;
 
@@ -37,23 +41,40 @@ class BuildProblemsAssigner {
     myBuildProblemResponsibilityFacade = buildProblemResponsibilityFacade;
   }
 
-  void assign(final HeuristicResult heuristicsResult, final SProject sProject, final List<BuildProblem> buildProblems) {
-    for (BuildProblem buildProblem: buildProblems) {
+  void assign(final HeuristicResult heuristicsResult,
+              final SProject sProject,
+              final List<BuildProblem> buildProblems,
+              final boolean silentModeOn) {
+    HashMap<Responsibility, List<BuildProblemInfo>> responsibilityToBuildProblem = new HashMap<>();
+    for (BuildProblem buildProblem : buildProblems) {
       Responsibility responsibility = heuristicsResult.getResponsibility(buildProblem);
+      responsibilityToBuildProblem.putIfAbsent(responsibility, new ArrayList<>());
+      List<BuildProblemInfo> buildProblemList = responsibilityToBuildProblem.get(responsibility);
+      buildProblemList.add(buildProblem);
+    }
+
+    Set<Responsibility> uniqueResponsibilities = responsibilityToBuildProblem.keySet();
+
+    for (Responsibility responsibility : uniqueResponsibilities) {
 
       if (responsibility != null) {
-        LOGGER.info(String.format("Automatically assigning investigation to %s in %s because of %s",
+        String prefix = silentModeOn ? "Silently found " : "Automatically assigning";
+        LOGGER.info(String.format("%s investigation to %s in %s because of %s",
+                                  prefix,
                                   responsibility.getUser().getUsername(),
                                   sProject.describe(false),
-                                  responsibility.getDescription()));
+                                  responsibility.getAssignDescription()));
+        List<BuildProblemInfo> buildProblemList = responsibilityToBuildProblem.get(responsibility);
 
-        myBuildProblemResponsibilityFacade.setBuildProblemResponsibility(
-          buildProblem, sProject.getProjectId(),
-          new BuildProblemResponsibilityEntryImpl(
-            ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
-            responsibility.getDescription(), ResponsibilityEntry.RemoveMethod.WHEN_FIXED, sProject, buildProblem.getId()
-          )
-        );
+        if (!silentModeOn) {
+          myBuildProblemResponsibilityFacade.setBuildProblemResponsibility(
+            buildProblemList,
+            sProject.getProjectId(),
+            new ResponsibilityEntryEx(
+              ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
+              responsibility.getAssignDescription(), ResponsibilityEntry.RemoveMethod.WHEN_FIXED)
+          );
+        }
       }
     }
   }

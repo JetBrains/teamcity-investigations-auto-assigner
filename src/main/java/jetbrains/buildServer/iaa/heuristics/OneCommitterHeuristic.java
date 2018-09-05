@@ -55,15 +55,14 @@ public class OneCommitterHeuristic implements Heuristic {
     }
 
     if (committers.size() != 1) {
-      LOGGER.debug(String.format("There are more then one committers (total: %d) since last build for failed build #%s",
+      LOGGER.debug(String.format("There are more than one committer (total: %d) since last build for failed build #%s",
                                  committers.size(), build.getBuildId()));
       return result;
     }
 
 
     Responsibility responsibility = new Responsibility(
-      committers.iterator().next(), String.format("%s you were responsible as the only committer to the " +
-                                                  "build: %s # %s", Constants.REASON_PREFIX,
+      committers.iterator().next(), String.format("committed as the only detected committer to the build: %s # %s",
                                                   build.getFullName(), build.getBuildNumber()));
 
     heuristicContext.getTestRuns().forEach(sTestRun -> result.addResponsibility(sTestRun, responsibility));

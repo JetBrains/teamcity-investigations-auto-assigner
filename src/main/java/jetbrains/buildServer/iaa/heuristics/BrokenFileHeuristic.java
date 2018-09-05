@@ -102,7 +102,7 @@ public class BrokenFileHeuristic implements Heuristic {
 
       final SUser foundResponsibleUser = changeCommitters.iterator().next();
       if (responsibleUser != null && !responsibleUser.equals(foundResponsibleUser)) {
-        LOGGER.debug("There are more then one committers since last build for failed build #" + sBuild.getBuildId());
+        LOGGER.debug("There are more than one committer since last build for failed build #" + sBuild.getBuildId());
         return null;
       }
 
@@ -112,8 +112,8 @@ public class BrokenFileHeuristic implements Heuristic {
 
     if (responsibleUser == null) return null;
 
-    return new Responsibility(responsibleUser, String.format("%s you changed the \"%s\" file, which probably caused" +
-                                                             " this failure.", Constants.REASON_PREFIX, brokenFile));
+    return new Responsibility(responsibleUser, String.format("changed the \"%s\" file, which probably caused" +
+                                                             " this failure.", brokenFile));
   }
 
   @Nullable

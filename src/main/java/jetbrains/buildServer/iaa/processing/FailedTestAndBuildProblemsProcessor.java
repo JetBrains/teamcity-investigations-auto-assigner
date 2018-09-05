@@ -20,6 +20,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
 import jetbrains.buildServer.iaa.common.FailedBuildInfo;
 import jetbrains.buildServer.iaa.common.HeuristicResult;
+import jetbrains.buildServer.iaa.utils.AssignerArtifactDao;
 import jetbrains.buildServer.iaa.utils.CustomParameters;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
@@ -32,6 +33,8 @@ public class FailedTestAndBuildProblemsProcessor {
   private final BuildProblemsFilter myBuildProblemsFilter;
   private final FailedTestAssigner myFailedTestAssigner;
   private final BuildProblemsAssigner myBuildProblemsAssigner;
+  @NotNull private final CustomParameters myCustomParameters;
+  @NotNull private final AssignerArtifactDao myAssignerArtifactDao;
   @NotNull private ResponsibleUserFinder myResponsibleUserFinder;
 
 
@@ -39,12 +42,16 @@ public class FailedTestAndBuildProblemsProcessor {
                                              @NotNull final FailedTestFilter failedTestFilter,
                                              @NotNull final FailedTestAssigner failedTestAssigner,
                                              @NotNull final BuildProblemsFilter buildProblemsFilter,
-                                             @NotNull final BuildProblemsAssigner buildProblemsAssigner) {
+                                             @NotNull final BuildProblemsAssigner buildProblemsAssigner,
+                                             @NotNull final CustomParameters customParameters,
+                                             @NotNull final AssignerArtifactDao assignerArtifactDao) {
     myResponsibleUserFinder = responsibleUserFinder;
     myFailedTestFilter = failedTestFilter;
     myFailedTestAssigner = failedTestAssigner;
     myBuildProblemsFilter = buildProblemsFilter;
     myBuildProblemsAssigner = buildProblemsAssigner;
+    myCustomParameters = customParameters;
+    myAssignerArtifactDao = assignerArtifactDao;
   }
 
   public void processBuild(final FailedBuildInfo failedBuildInfo) {
@@ -79,8 +86,13 @@ public class FailedTestAndBuildProblemsProcessor {
     HeuristicResult heuristicsResult =
       myResponsibleUserFinder.findResponsibleUser(sBuild, sProject, applicableBuildProblems, applicableFailedTests);
 
-    myFailedTestAssigner.assign(heuristicsResult, sProject, applicableFailedTests);
-    myBuildProblemsAssigner.assign(heuristicsResult, sProject, applicableBuildProblems);
+    boolean silentModeOn = myCustomParameters.isSilentModeOn(sBuild);
+
+    myAssignerArtifactDao.appendHeuristicsResult(sBuild, applicableFailedTests, heuristicsResult);
+    myFailedTestAssigner.assign(heuristicsResult, sProject, applicableFailedTests, silentModeOn);
+    myBuildProblemsAssigner.assign(heuristicsResult, sProject, applicableBuildProblems, silentModeOn);
+
+    failedBuildInfo.addHeuristicsResult(heuristicsResult);
   }
 
   private List<STestRun> requestBrokenTestsWithStats(final SBuild build) {

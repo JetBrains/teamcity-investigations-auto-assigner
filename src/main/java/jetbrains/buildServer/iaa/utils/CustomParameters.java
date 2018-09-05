@@ -16,9 +16,14 @@
 
 package jetbrains.buildServer.iaa.utils;
 
+import java.util.Collection;
+import java.util.Optional;
+import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.SBuildFeatureDescriptor;
 import jetbrains.buildServer.serverSide.TeamCityProperties;
 import jetbrains.buildServer.util.StringUtil;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class CustomParameters {
@@ -26,7 +31,8 @@ public class CustomParameters {
   private final static Integer DEFAULT_PROCESSING_DELAY_IN_SECONDS = 120;
 
   public static int getProcessingDelayInSeconds() {
-    int value = TeamCityProperties.getInteger("teamcity.autoassigner.processingDelayInSeconds", DEFAULT_PROCESSING_DELAY_IN_SECONDS);
+    int value = TeamCityProperties
+      .getInteger("teamcity.autoassigner.processingDelayInSeconds", DEFAULT_PROCESSING_DELAY_IN_SECONDS);
     return value < MINIMAL_PROCESSING_DELAY ? MINIMAL_PROCESSING_DELAY : value;
   }
 
@@ -42,5 +48,13 @@ public class CustomParameters {
 
     int parsedValue = StringUtil.parseInt(value, DEFAULT_TEST_COUNT_THRESHOLD);
     return parsedValue >= 0 ? parsedValue : Integer.MAX_VALUE;
+  }
+
+  public boolean isSilentModeOn(@NotNull SBuild build) {
+    Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
+    if (descriptors.isEmpty()) throw new IllegalStateException("Descriptors should not be empty");
+
+    final Optional<SBuildFeatureDescriptor> sBuildFeatureOptional = descriptors.stream().findFirst();
+    return Boolean.valueOf(sBuildFeatureOptional.get().getParameters().get(Constants.SILENT_MODE_ON));
   }
 }

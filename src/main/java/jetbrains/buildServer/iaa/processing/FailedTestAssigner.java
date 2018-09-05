@@ -17,14 +17,16 @@
 package jetbrains.buildServer.iaa.processing;
 
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Set;
 import jetbrains.buildServer.iaa.common.HeuristicResult;
 import jetbrains.buildServer.iaa.common.Responsibility;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
-import jetbrains.buildServer.responsibility.ResponsibilityEntryFactory;
+import jetbrains.buildServer.responsibility.ResponsibilityEntryEx;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityFacade;
 import jetbrains.buildServer.serverSide.SProject;
-import jetbrains.buildServer.serverSide.STest;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.tests.TestName;
 import jetbrains.buildServer.util.Dates;
@@ -38,27 +40,38 @@ class FailedTestAssigner {
     myTestNameResponsibilityFacade = testNameResponsibilityFacade;
   }
 
-  void assign(final HeuristicResult heuristicsResult, final SProject sProject, final List<STestRun> sTestRuns) {
-    for (STestRun sTestRun: sTestRuns) {
+  void assign(final HeuristicResult heuristicsResult,
+              final SProject sProject,
+              final List<STestRun> sTestRuns,
+              final boolean silentModeOn) {
+    HashMap<Responsibility, List<TestName>> responsibilityToTestNames = new HashMap<>();
+    for (STestRun sTestRun : sTestRuns) {
       Responsibility responsibility = heuristicsResult.getResponsibility(sTestRun);
+      responsibilityToTestNames.putIfAbsent(responsibility, new ArrayList<>());
+      List<TestName> testNameList = responsibilityToTestNames.get(responsibility);
+      testNameList.add(sTestRun.getTest().getName());
+    }
 
+    Set<Responsibility> uniqueResponsibilities = responsibilityToTestNames.keySet();
+
+    for (Responsibility responsibility : uniqueResponsibilities) {
       if (responsibility != null) {
-        final STest test = sTestRun.getTest();
-        final TestName testName = test.getName();
-
-        LOGGER.info(String.format("Automatically assigning investigation to %s in %s # %s because of %s",
+        List<TestName> testNameList = responsibilityToTestNames.get(responsibility);
+        String prefix = silentModeOn ? "Silently found " : "Automatically assigning";
+        LOGGER.info(String.format("%s investigation(s) to %s in %s # %s because of %s",
+                                  prefix,
                                   responsibility.getUser().getUsername(),
                                   sProject.describe(false),
-                                  testName,
-                                  responsibility.getDescription()));
-
-        myTestNameResponsibilityFacade.setTestNameResponsibility(
-          testName, sProject.getProjectId(),
-          ResponsibilityEntryFactory.createEntry(
-            testName, test.getTestNameId(), ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null,
-            Dates.now(), responsibility.getDescription(), sProject, ResponsibilityEntry.RemoveMethod.WHEN_FIXED
-          )
-        );
+                                  testNameList,
+                                  responsibility.getAssignDescription()));
+        if (!silentModeOn) {
+          myTestNameResponsibilityFacade.setTestNameResponsibility(
+            testNameList, sProject.getProjectId(),
+            new ResponsibilityEntryEx(
+              ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
+              responsibility.getAssignDescription(), ResponsibilityEntry.RemoveMethod.WHEN_FIXED)
+          );
+        }
       }
     }
   }

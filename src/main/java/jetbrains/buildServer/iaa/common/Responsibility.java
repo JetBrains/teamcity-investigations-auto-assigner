@@ -16,13 +16,15 @@
 
 package jetbrains.buildServer.iaa.common;
 
+import java.util.Arrays;
 import jetbrains.buildServer.users.User;
+import org.jetbrains.annotations.NotNull;
 
 public class Responsibility {
   private final User myUser;
   private final String myDescription;
 
-  public Responsibility(User user, String description) {
+  public Responsibility(@NotNull User user, @NotNull String description) {
     myUser = user;
     myDescription = description;
   }
@@ -33,5 +35,35 @@ public class Responsibility {
 
   public String getDescription() {
     return myDescription;
+  }
+
+  public String getAssignDescription() {
+    return String.format("%s: %s %s",
+                         Constants.BUILD_FEATURE_DISPLAY_NAME,
+                         Constants.REASON_PREFIX_ASSIGN,
+                         myDescription);
+  }
+
+  public String getPresentableDescription() {
+    return String.format("%s %s", Constants.REASON_PREFIX_REPRESENT, myDescription);
+  }
+
+  @Override
+  public boolean equals(final Object another) {
+    if (!(another instanceof Responsibility)) {
+      return false;
+    }
+
+    Responsibility anotherResponsibility = (Responsibility)another;
+    return myUser.getId() == anotherResponsibility.getUser().getId() &&
+           myDescription.equals(anotherResponsibility.getDescription());
+  }
+
+  @Override
+  public int hashCode() {
+    return Arrays.hashCode(new Object[]{
+      myUser.getId(),
+      myDescription
+    });
   }
 }
