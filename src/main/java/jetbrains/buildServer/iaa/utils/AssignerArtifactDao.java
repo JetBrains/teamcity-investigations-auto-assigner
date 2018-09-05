@@ -84,7 +84,8 @@ public class AssignerArtifactDao {
     return user != null ? new Responsibility(user, pair.description) : null;
   }
 
-  private Path getAssignerResultFilePath(STestRun testRun) throws IOException {
+  @NotNull
+  private Path getAssignerResultFilePath(@NotNull STestRun testRun) throws IOException {
     Path artifactDirectoryPath = testRun.getBuild().getArtifactsDirectory().toPath();
     Path teamcityDirectoryPath = artifactDirectoryPath.resolve(Constants.TEAMCITY_DIRECTORY);
     if (!Files.exists(teamcityDirectoryPath)) {
@@ -100,7 +101,8 @@ public class AssignerArtifactDao {
     return autoAssignerDirectoryPath.resolve(fileName);
   }
 
-  private String getFileName(final STestRun testRun) {
+  @NotNull
+  private String getFileName(@NotNull final STestRun testRun) {
     return String.format("r-%s.json", testRun.getTestRunId());
   }
 }
