@@ -65,7 +65,7 @@ public class TestDetailsExtensionTest extends BaseTestCase {
     myTestedTestDetailsExtension.fillModel(testedMap, myHttpServletRequestMock);
 
     Mockito.verify(myAssignerArtifactDaoMock, Mockito.never()).get(Mockito.any());
-    assertTrue(testedMap.isEmpty());
+    assertFalse(testedMap.containsKey("autoAssignedResponsibility"));
   }
 
   public void testFillModelNoResponsibilityForTest() {
@@ -75,8 +75,8 @@ public class TestDetailsExtensionTest extends BaseTestCase {
     Map<String, Object> testedMap = new HashMap<>();
     myTestedTestDetailsExtension.fillModel(testedMap, myHttpServletRequestMock);
 
-    Mockito.verify(myAssignerArtifactDaoMock, Mockito.atLeastOnce()).get(Mockito.any());
-    assertTrue(testedMap.isEmpty());
+    Mockito.verify(myAssignerArtifactDaoMock, Mockito.atLeastOnce()).get(mySTestRunMock);
+    assertFalse(testedMap.containsKey("autoAssignedResponsibility"));
   }
 
   public void testFillModelFine() {
@@ -87,6 +87,6 @@ public class TestDetailsExtensionTest extends BaseTestCase {
     myTestedTestDetailsExtension.fillModel(testedMap, myHttpServletRequestMock);
 
     Mockito.verify(myAssignerArtifactDaoMock, Mockito.atLeastOnce()).get(Mockito.any());
-    assertFalse(testedMap.isEmpty());
+    assertTrue(testedMap.containsKey("autoAssignedResponsibility"));
   }
 }
