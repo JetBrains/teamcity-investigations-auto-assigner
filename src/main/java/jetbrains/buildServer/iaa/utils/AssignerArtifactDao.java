@@ -53,14 +53,18 @@ public class AssignerArtifactDao {
       Path resultsFilePath = this.getAssignerResultFilePath(build);
       List<ResponsibilityPersistentInfo> previouslyAdded = readPreviouslyAdded(resultsFilePath);
       List<ResponsibilityPersistentInfo> infoToAdd = new ArrayList<>(previouslyAdded);
+      LOGGER.debug(String.format("Build %s :: Read %s previously added investigations",
+                                 build.getBuildId(), previouslyAdded.size()));
       infoToAdd.addAll(getPersistentInfoList(testRuns, heuristicResult));
 
       try (BufferedWriter writer =
              Files.newBufferedWriter(getAssignerResultFilePath(build), StandardCharsets.UTF_8)) {
         myGson.toJson(infoToAdd, writer);
+        LOGGER.debug(String.format("Build %s :: Wrote %s new found investigations",
+                                   build.getBuildId(), infoToAdd.size() - previouslyAdded.size()));
       }
     } catch (IOException ex) {
-      LOGGER.error(String.format("%s :: An error occurs during appending results", build.getBuildId()), ex);
+      LOGGER.error(String.format("Build %s :: An error occurs during appending results", build.getBuildId()), ex);
       throw new RuntimeException("An error occurs during appending results");
     }
   }
@@ -118,6 +122,8 @@ public class AssignerArtifactDao {
 
       try (BufferedReader reader = Files.newBufferedReader(resultsFilePath)) {
         persistentBuildInfo = myGson.fromJson(reader, ResponsibilityPersistentInfo[].class);
+        LOGGER.debug(String.format("%s Read %s stored investigations",
+                                   Utils.getLogPrefix(testRun), persistentBuildInfo.length));
       }
     } catch (IOException ex) {
       LOGGER.error(String.format("%s An error occurs during reading of file with results",
@@ -127,6 +133,8 @@ public class AssignerArtifactDao {
 
     for (ResponsibilityPersistentInfo persistentInfo: persistentBuildInfo) {
       if (persistentInfo.testRunId == testRun.getTestRunId()) {
+        LOGGER.debug(String.format("%s Investigation for testRun %s was found",
+                                   Utils.getLogPrefix(testRun), testRun.getTestRunId()));
         User user = myUserModel.findUserById(persistentInfo.investigatorId);
         if (user == null) {
           LOGGER.warn(String.format("%s User with id %s was not found in our model.", Utils.getLogPrefix(testRun),
@@ -136,6 +144,8 @@ public class AssignerArtifactDao {
       }
     }
 
+    LOGGER.debug(String.format("%s Investigation for testRun %s wasn't found",
+                               Utils.getLogPrefix(testRun), testRun.getTestRunId()));
     return null;
   }
 }
