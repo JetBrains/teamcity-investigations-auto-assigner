@@ -17,7 +17,6 @@
 package jetbrains.buildServer.iaa.utils;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -43,7 +42,7 @@ public class AssignerArtifactDao {
 
   public AssignerArtifactDao(@NotNull final UserModelEx userModel) {
     myUserModel = userModel;
-    myGson = new GsonBuilder().registerTypeAdapter(Responsibility.class, new ResponsibilitySerializer()).create();
+    myGson = new Gson();
   }
 
   public void appendHeuristicsResult(@NotNull SBuild build,
