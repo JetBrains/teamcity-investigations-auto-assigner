@@ -17,7 +17,6 @@
 package jetbrains.buildServer.iaa.heuristics;
 
 import java.util.HashMap;
-import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.iaa.common.HeuristicResult;
 import jetbrains.buildServer.iaa.common.Responsibility;
 import jetbrains.buildServer.iaa.processing.HeuristicContext;
@@ -42,12 +41,6 @@ public class PreviousResponsibleHeuristic implements Heuristic {
   @Override
   public String getName() {
     return "Previous Responsible Heuristic";
-  }
-
-  @NotNull
-  @Override
-  public String getDescription() {
-    return "Assign an investigation to a user if the user was responsible previous time.";
   }
 
   public HeuristicResult findResponsibleUser(@NotNull HeuristicContext heuristicContext) {

@@ -18,7 +18,6 @@ package jetbrains.buildServer.iaa.heuristics;
 
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.Set;
-import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.iaa.common.HeuristicResult;
 import jetbrains.buildServer.iaa.common.Responsibility;
 import jetbrains.buildServer.iaa.processing.HeuristicContext;
@@ -34,12 +33,6 @@ public class OneCommitterHeuristic implements Heuristic {
   @NotNull
   public String getName() {
     return "Only One Committer Heuristic";
-  }
-
-  @Override
-  @NotNull
-  public String getDescription() {
-    return "Assign an investigation to a user if the user is the only committer.";
   }
 
   @Override

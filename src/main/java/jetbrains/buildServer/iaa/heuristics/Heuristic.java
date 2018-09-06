@@ -33,12 +33,6 @@ public interface Heuristic {
   String getName();
 
   /**
-   * @return sufficient description of the heuristic.
-   */
-  @NotNull
-  String getDescription();
-
-  /**
    * Try to detect which person is probably responsible.
    * @param heuristicContext {@link HeuristicContext} object which presents known information about the problem.
    */

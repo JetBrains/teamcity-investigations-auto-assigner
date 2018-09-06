@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 import jetbrains.buildServer.iaa.processing.HeuristicContext;
 import jetbrains.buildServer.iaa.common.HeuristicResult;
 import jetbrains.buildServer.iaa.common.Responsibility;
-import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.iaa.utils.ProblemTextExtractor;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
@@ -50,13 +49,6 @@ public class BrokenFileHeuristic implements Heuristic {
   @NotNull
   public String getName() {
     return "Detect Broken File Heuristic";
-  }
-
-  @Override
-  @NotNull
-  public String getDescription() {
-    return "Assign an investigation to a user if the user is the only committer " +
-           "who changed the suspicious file. The suspicious file is the one that probably caused this failure.";
   }
 
   public HeuristicResult findResponsibleUser(@NotNull HeuristicContext heuristicContext) {

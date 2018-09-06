@@ -45,12 +45,6 @@ public class DefaultUserHeuristic implements Heuristic {
   }
 
   @Override
-  @NotNull
-  public String getDescription() {
-    return "Assign an investigation to the default responsible user.";
-  }
-
-  @Override
   public HeuristicResult findResponsibleUser(@NotNull HeuristicContext heuristicContext) {
     HeuristicResult result = new HeuristicResult();
 
