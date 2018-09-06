@@ -23,6 +23,7 @@ import jetbrains.buildServer.iaa.common.Responsibility;
 import jetbrains.buildServer.iaa.processing.HeuristicContext;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.vcs.SelectPrevBuildPolicy;
 import org.jetbrains.annotations.NotNull;
 
@@ -54,10 +55,8 @@ public class OneCommitterHeuristic implements Heuristic {
     }
 
 
-    Responsibility responsibility = new Responsibility(
-      committers.iterator().next(), String.format("committed as the only detected committer to the build: %s # %s",
-                                                  build.getFullName(), build.getBuildNumber()));
-
+    User responsible = committers.iterator().next();
+    Responsibility responsibility = new Responsibility(responsible, "is the only committer to the build");
     heuristicContext.getTestRuns().forEach(sTestRun -> result.addResponsibility(sTestRun, responsibility));
 
     heuristicContext.getBuildProblems()

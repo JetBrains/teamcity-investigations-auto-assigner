@@ -104,8 +104,8 @@ public class BrokenFileHeuristic implements Heuristic {
 
     if (responsibleUser == null) return null;
 
-    return new Responsibility(responsibleUser, String.format("changed the \"%s\" file, which probably caused" +
-                                                             " this failure.", brokenFile));
+    String description = String.format("changed suspicious file \"%s\" which probably broke the build", brokenFile);
+    return new Responsibility(responsibleUser, description);
   }
 
   @Nullable

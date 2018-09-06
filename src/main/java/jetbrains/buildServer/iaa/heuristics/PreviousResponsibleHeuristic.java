@@ -71,10 +71,8 @@ public class PreviousResponsibleHeuristic implements Heuristic {
       User responsibleUser = myInvestigationsManager.findPreviousResponsible(sProject, sBuild, buildProblem);
       if (responsibleUser != null) {
         String buildProblemType = buildProblem.getBuildProblemData().getType();
-        String description =
-          String.format("assigned as responsible for the build problem: `%s` in build `%s` previous time",
-                        buildProblemType, sBuild.getFullName());
 
+        String description = String.format("who was previously responsible for the problem %s`", buildProblemType);
         result.addResponsibility(buildProblem, new Responsibility(responsibleUser, description));
       }
     }

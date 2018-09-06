@@ -14,10 +14,7 @@
       <strong>Investigation auto-assigner:</strong>
     </div>
     <div>
-      <strong>
-        ${autoAssignedResponsibility.user.username}
-      </strong>
-      ${autoAssignedResponsibility.presentableDescription}
+      Investigation was automatically assigned to <strong>${autoAssignedResponsibility.user.username}</strong> who ${autoAssignedResponsibility.description}.
     </div>
   </c:if>
 </div>
