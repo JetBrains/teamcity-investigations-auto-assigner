@@ -31,6 +31,18 @@ When the plugin is installed, the Investigations Auto Assigner [build feature](h
 
 See [Wiki](https://github.com/JetBrains/teamcity-investigations-auto-assigner/wiki) for more information.
 
+## Additional configuration
+1. **Frequency of processing problems:** To avoid a TeamCity server performance degradation the extension
+checks builds for new build problems and failed tests and processes them once per a fixed period of time.
+By default the period is 120 seconds.
+You can change the period with the `teamcity.autoassigner.processingDelayInSeconds` TeamCity property.
+*The changes will be applied after a server restart.*
+ 
+2. **Limitation of processed failed tests and build problems:** Currently there is a limitation for processed build problems
+and failed tests.
+By default the value is 100.
+You can change the value with the `autoassigner.maxTestsPerBuildNumber` build parameter.
+*The changes will be applied for the build run with the parameter.*
 
 ## Feedback
 Everybody is encouraged to try the plugin and provide feedback in the [forum](http://devnet.jetbrains.net/community/teamcity/teamcity) or post bugs into the [issue tracker](http://youtrack.jetbrains.net/issues/TW).
