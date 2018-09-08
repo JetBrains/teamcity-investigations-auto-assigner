@@ -28,6 +28,7 @@ import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.iaa.common.FailedBuildInfo;
 import jetbrains.buildServer.iaa.processing.FailedTestAndBuildProblemsProcessor;
 import jetbrains.buildServer.iaa.utils.CustomParameters;
+import jetbrains.buildServer.iaa.utils.EmailReporter;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.util.ThreadUtil;
 import jetbrains.buildServer.util.executors.ExecutorsFactory;
@@ -39,6 +40,7 @@ public class FailedTestAndBuildProblemsDispatcher {
 
   @NotNull
   private final FailedTestAndBuildProblemsProcessor myProcessor;
+  @NotNull private final EmailReporter myEmailReporter;
   // Map isn't synchronized because we work with it from synchronized method
   @NotNull
   private final ConcurrentHashMap<Long, FailedBuildInfo> myFailedBuilds;
@@ -46,8 +48,10 @@ public class FailedTestAndBuildProblemsDispatcher {
   private final ScheduledExecutorService myDaemon;
 
   public FailedTestAndBuildProblemsDispatcher(@NotNull final BuildServerListenerEventDispatcher buildServerListenerEventDispatcher,
-                                              @NotNull final FailedTestAndBuildProblemsProcessor processor) {
+                                              @NotNull final FailedTestAndBuildProblemsProcessor processor,
+                                              @NotNull final EmailReporter emailReporter) {
     myProcessor = processor;
+    myEmailReporter = emailReporter;
     myFailedBuilds = new ConcurrentHashMap<>();
     myDaemon = ExecutorsFactory.newFixedScheduledDaemonExecutor("Investigator-Auto-Assigner-", 1);
     myDaemon.scheduleWithFixedDelay(this::processBrokenBuildsOneThread,
@@ -86,6 +90,8 @@ public class FailedTestAndBuildProblemsDispatcher {
     myProcessor.processBuild(failedBuildInfo);
 
     if (shouldRemove) {
+      myEmailReporter.sendResults(failedBuildInfo.getBuild(),
+                                  failedBuildInfo.getHeuristicsResult().getAllResponsibilities());
       long buildId = failedBuildInfo.getBuild().getBuildId();
       myFailedBuilds.remove(buildKey);
       LOGGER.debug("Build #" + buildId + " removed from processing.");

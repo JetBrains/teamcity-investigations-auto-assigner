@@ -57,4 +57,9 @@ public class CustomParameters {
     final Optional<SBuildFeatureDescriptor> sBuildFeatureOptional = descriptors.stream().findFirst();
     return Boolean.valueOf(sBuildFeatureOptional.get().getParameters().get(Constants.SILENT_MODE_ON));
   }
+
+  @Nullable
+  static String getEmailForEmailReporter() {
+    return TeamCityProperties.getPropertyOrNull("teamcity.autoassigner.reporter.email");
+  }
 }
