@@ -43,7 +43,7 @@ via the `teamcity.autoassigner.processingDelayInSeconds`
 2. **Limitation of processed failed tests and build problems:** 
 Currently there is a configurable limit of the number of the processed build problems 
 and failed tests. The default is 100, which can be changed via 
-the `autoassigner.maxTestsPerBuildNumber` [build parameter](https://confluence.jetbrains.com/display/TCD18/Configuring+Build+Parameters).
+the `autoassigner.maxTestsPerBuildNumber` [build parameter](https://confluence.jetbrains.com/display/TCDL/Configuring+Build+Parameters).
 *The changes will be applied to the build run with the parameter.*
 
 ## Feedback
