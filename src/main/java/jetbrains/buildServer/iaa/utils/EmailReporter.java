@@ -18,10 +18,9 @@ package jetbrains.buildServer.iaa.utils;
 
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
-import jetbrains.buildServer.RootUrlHolder;
 import jetbrains.buildServer.iaa.common.Responsibility;
-import jetbrains.buildServer.serverSide.RelativeWebLinks;
 import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.WebLinks;
 import jetbrains.buildServer.util.EmailException;
 import jetbrains.buildServer.util.EmailSender;
 import org.jetbrains.annotations.NotNull;
@@ -32,13 +31,12 @@ public class EmailReporter {
   private static final Logger LOGGER = Logger.getInstance(EmailReporter.class.getName());
   @NotNull private final EmailSender myEmailSender;
   @Nullable private final String mySupervisorEmail;
-  private final RelativeWebLinks myWebLinks = new RelativeWebLinks();
-  @NotNull private final RootUrlHolder myRootUrlHolder;
+  @NotNull private final WebLinks myWebLinks;
 
-  public EmailReporter(@NotNull EmailSender emailSender, @NotNull RootUrlHolder rootUrlHolder) {
+  public EmailReporter(@NotNull EmailSender emailSender, @NotNull WebLinks webLinks) {
     myEmailSender = emailSender;
+    myWebLinks = webLinks;
     mySupervisorEmail = CustomParameters.getEmailForEmailReporter();
-    myRootUrlHolder = rootUrlHolder;
   }
 
   public void sendResults(SBuild sBuild, List<Responsibility> responsibilities) {
@@ -64,7 +62,7 @@ public class EmailReporter {
                     "<body>\n" +
                     "<h2>Report for <a href=\"%s\">%s#%s</a>. Found %s investigations:</h2>\n" +
                     "<ol>",
-                    myRootUrlHolder.getRootUrl() + myWebLinks.getViewResultsUrl(sBuild),
+                    myWebLinks.getViewResultsUrl(sBuild),
                     sBuild.getBuildTypeName(),
                     sBuild.getBuildId(),
                     responsibilities.size()));
