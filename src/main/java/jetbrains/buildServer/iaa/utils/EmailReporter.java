@@ -16,47 +16,66 @@
 
 package jetbrains.buildServer.iaa.utils;
 
+import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
+import jetbrains.buildServer.RootUrlHolder;
 import jetbrains.buildServer.iaa.common.Responsibility;
 import jetbrains.buildServer.serverSide.RelativeWebLinks;
 import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.util.EmailException;
 import jetbrains.buildServer.util.EmailSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class EmailReporter {
 
+  private static final Logger LOGGER = Logger.getInstance(EmailReporter.class.getName());
   @NotNull private final EmailSender myEmailSender;
   @Nullable private final String mySupervisorEmail;
   private final RelativeWebLinks myWebLinks = new RelativeWebLinks();
+  @NotNull private final RootUrlHolder myRootUrlHolder;
 
-  public EmailReporter(@NotNull EmailSender emailSender) {
+  public EmailReporter(@NotNull EmailSender emailSender, @NotNull RootUrlHolder rootUrlHolder) {
     myEmailSender = emailSender;
     mySupervisorEmail = CustomParameters.getEmailForEmailReporter();
+    myRootUrlHolder = rootUrlHolder;
   }
 
   public void sendResults(SBuild sBuild, List<Responsibility> responsibilities) {
     if (mySupervisorEmail != null && responsibilities.size() > 0) {
       String title = String.format("Investigation auto-assigner report for build #%s", sBuild.getBuildId());
-      myEmailSender.send(mySupervisorEmail, generateReport(sBuild, responsibilities), title, null);
+      trySendEmail(mySupervisorEmail, title, generateHtmlReport(sBuild, responsibilities));
+    }
+  }
+
+  private void trySendEmail(@NotNull String to, String title, String html) {
+    try {
+      myEmailSender.send(to, title, "", html);
+    } catch (EmailException ex) {
+      LOGGER.error(ex);
     }
   }
 
   @NotNull
-  private String generateReport(final SBuild sBuild, final List<Responsibility> responsibilities) {
-    StringBuilder sb = new StringBuilder(String.format("Report for %s#%s: found %s investigations.\n",
-                                                       sBuild.getBuildTypeName(),
-                                                       sBuild.getBuildId(),
-                                                       responsibilities.size()));
-    for (int i = 0; i < responsibilities.size(); i++) {
-      Responsibility responsibility = responsibilities.get(i);
-      sb.append(String.format("%s. Investigation was assigned to %s who %s.\n",
-                              i,
-                              responsibility.getUser().getUsername(),
-                              responsibility.getDescription()));
+  private String generateHtmlReport(final SBuild sBuild, final List<Responsibility> responsibilities) {
+    StringBuilder htmlBuilder = new StringBuilder(
+      String.format("<!DOCTYPE html>\n" +
+                    "<html>\n" +
+                    "<body>\n" +
+                    "<h2>Report for <a href=\"%s\">%s#%s</a>. Found %s investigations:</h2>\n" +
+                    "<ol>",
+                    myRootUrlHolder.getRootUrl() + myWebLinks.getViewResultsUrl(sBuild),
+                    sBuild.getBuildTypeName(),
+                    sBuild.getBuildId(),
+                    responsibilities.size()));
+    for (Responsibility responsibility : responsibilities) {
+      htmlBuilder.append(String.format("<li>Investigation was assigned to %s who %s.</li>\n",
+                                       responsibility.getUser().getUsername(),
+                                       responsibility.getDescription()));
     }
-
-    sb.append("Link: ").append(myWebLinks.getViewResultsUrl(sBuild));
-    return sb.toString();
+    htmlBuilder.append("</ol>\n" +
+                       "</body>\n" +
+                       "</html>");
+    return htmlBuilder.toString();
   }
 }
