@@ -33,10 +33,12 @@ public class EmailReporter {
   @Nullable private final String mySupervisorEmail;
   @NotNull private final WebLinks myWebLinks;
 
-  public EmailReporter(@NotNull EmailSender emailSender, @NotNull WebLinks webLinks) {
+  public EmailReporter(@NotNull EmailSender emailSender,
+                       @NotNull WebLinks webLinks,
+                       @NotNull CustomParameters customParameters) {
     myEmailSender = emailSender;
     myWebLinks = webLinks;
-    mySupervisorEmail = CustomParameters.getEmailForEmailReporter();
+    mySupervisorEmail = customParameters.getEmailForEmailReporter();
   }
 
   public void sendResults(SBuild sBuild, List<Responsibility> responsibilities) {

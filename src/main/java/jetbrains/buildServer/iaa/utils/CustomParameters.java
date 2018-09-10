@@ -59,7 +59,7 @@ public class CustomParameters {
   }
 
   @Nullable
-  static String getEmailForEmailReporter() {
+  String getEmailForEmailReporter() {
     return TeamCityProperties.getPropertyOrNull("teamcity.autoassigner.reporter.email");
   }
 }
