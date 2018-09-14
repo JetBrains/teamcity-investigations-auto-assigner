@@ -29,7 +29,16 @@
   </th>
   <td>
     <props:textProperty name="<%= Constants.DEFAULT_RESPONSIBLE%>" className="longField textProperty_max-width js_max-width"/>
-    <span class="smallNote">Username of a user to whom an investigation is assigned if no other possible investigator is found</span>
+    <span class="smallNote">Username of a user to whom an investigation is assigned if no other possible investigator is found.</span>
+  </td>
+</tr>
+<tr>
+  <th>
+    <label for="<%= Constants.WHITE_LIST%>">White list:</label>
+  </th>
+  <td>
+    <props:textProperty name="<%= Constants.WHITE_LIST%>" className="longField textProperty_max-width js_max-width"/>
+    <span class="smallNote">The comma-separated list of users to exclude from auto-assignment of investigation.</span>
   </td>
 </tr>
 <tr>

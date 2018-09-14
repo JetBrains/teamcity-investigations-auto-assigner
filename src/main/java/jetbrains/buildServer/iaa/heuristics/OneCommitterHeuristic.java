@@ -18,6 +18,7 @@ package jetbrains.buildServer.iaa.heuristics;
 
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.Set;
+import java.util.stream.Collectors;
 import jetbrains.buildServer.iaa.common.HeuristicResult;
 import jetbrains.buildServer.iaa.common.Responsibility;
 import jetbrains.buildServer.iaa.processing.HeuristicContext;
@@ -42,7 +43,11 @@ public class OneCommitterHeuristic implements Heuristic {
 
     SBuild build = heuristicContext.getBuild();
     final SelectPrevBuildPolicy selectPrevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
-    final Set<SUser> committers = build.getCommitters(selectPrevBuildPolicy).getUsers();
+    final Set<SUser> committers = build.getCommitters(selectPrevBuildPolicy).getUsers()
+                                       .stream()
+                                       .filter(user -> !heuristicContext.getWhiteList().contains(user.getUsername()))
+                                       .collect(Collectors.toSet());
+
     if (committers.isEmpty()) {
       LOGGER.debug("There are no committers since last build for failed build #" + build.getBuildId());
       return result;

@@ -59,7 +59,11 @@ public class DefaultUserHeuristicTest extends BaseTestCase {
     myUserEx = Mockito.mock(UserEx.class);
     mySTestRun = Mockito.mock(STestRun.class);
     myHeuristicContext =
-      new HeuristicContext(mySBuild, sProject, Collections.emptyList(), Collections.singletonList(mySTestRun));
+      new HeuristicContext(mySBuild,
+                           sProject,
+                           Collections.emptyList(),
+                           Collections.singletonList(mySTestRun),
+                           Collections.emptyList());
 
     myBuildFeatureParams = new HashMap<>();
     when(

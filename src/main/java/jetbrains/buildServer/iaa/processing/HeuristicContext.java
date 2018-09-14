@@ -28,15 +28,18 @@ public final class HeuristicContext {
   private final List<BuildProblem> myBuildProblems;
   private final List<STestRun> mySTestRuns;
   private final SBuild mySBuild;
+  private final List<String> myWhiteList;
 
   public HeuristicContext(SBuild sBuild,
-                   SProject sProject,
-                   List<BuildProblem> buildProblems,
-                   List<STestRun> sTestRuns) {
+                          SProject sProject,
+                          List<BuildProblem> buildProblems,
+                          List<STestRun> sTestRuns,
+                          @NotNull List<String> usernameWhiteList) {
     mySBuild = sBuild;
     mySProject = sProject;
     myBuildProblems = buildProblems;
     mySTestRuns = sTestRuns;
+    myWhiteList = usernameWhiteList;
   }
 
   @NotNull
@@ -55,6 +58,11 @@ public final class HeuristicContext {
 
   public List<STestRun> getTestRuns() {
     return mySTestRuns;
+  }
+
+  @NotNull
+  public List<String> getWhiteList() {
+    return myWhiteList;
   }
 }
 
