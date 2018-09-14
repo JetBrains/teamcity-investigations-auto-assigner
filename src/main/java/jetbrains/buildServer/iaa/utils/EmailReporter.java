@@ -66,9 +66,9 @@ public class EmailReporter {
                          "<html>\n" +
                          "<body>\n" +
                          "<h2>Report for <a href=\"%s\">%s#%s</a>. Found %s investigations:</h2>\n" +
-                         "<ol>\n%s%s\n</ol>\n" +
+                         "<ol>\n%s%s</ol>\n" +
                          "</body>\n" +
-                         "</html>\n",
+                         "</html>",
                          buildRunResultsUrl,
                          sBuild.getBuildTypeName(),
                          sBuild.getBuildId(),

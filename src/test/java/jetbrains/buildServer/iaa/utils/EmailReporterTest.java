@@ -72,6 +72,8 @@ public class EmailReporterTest extends BaseTestCase {
     when(user2.getUsername()).thenReturn("testUser2");
     when(sTestRun1.getTest()).thenReturn(sTest1);
     when(sTestRun2.getTest()).thenReturn(sTest2);
+    when(sTestRun1.getTestRunId()).thenReturn(1);
+    when(sTestRun2.getTestRunId()).thenReturn(2);
     when(sTest1.getTestNameId()).thenReturn(1L);
     when(sTest2.getTestNameId()).thenReturn(2L);
     when(mySBuildMock.getBuildId()).thenReturn(BUILD_ID);
@@ -134,8 +136,8 @@ public class EmailReporterTest extends BaseTestCase {
                          "<html>\n" +
                          "<body>\n" +
                          "<h2>Report for <a href=\"%s\">%s#%s</a>. Found 2 investigations:</h2>\n" +
-                         "<ol><li>Investigation was assigned to %s who %s.</li>\n" +
-                         "<li>Investigation was assigned to %s who %s.</li>\n" +
+                         "<ol>\n<li><a href=\"testLinkUrl.com#testNameId1\">Investigation</a> was assigned to %s who %s.</li>\n" +
+                         "<li><a href=\"testLinkUrl.com#testNameId2\">Investigation</a> was assigned to %s who %s.</li>\n" +
                          "</ol>\n" +
                          "</body>\n" +
                          "</html>",
