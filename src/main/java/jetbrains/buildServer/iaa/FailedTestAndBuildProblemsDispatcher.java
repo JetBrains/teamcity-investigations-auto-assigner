@@ -90,8 +90,7 @@ public class FailedTestAndBuildProblemsDispatcher {
     myProcessor.processBuild(failedBuildInfo);
 
     if (shouldRemove) {
-      myEmailReporter.sendResults(failedBuildInfo.getBuild(),
-                                  failedBuildInfo.getHeuristicsResult().getAllResponsibilities());
+      myEmailReporter.sendResults(failedBuildInfo.getBuild(), failedBuildInfo.getHeuristicsResult());
       long buildId = failedBuildInfo.getBuild().getBuildId();
       myFailedBuilds.remove(buildKey);
       LOGGER.debug("Build #" + buildId + " removed from processing.");
