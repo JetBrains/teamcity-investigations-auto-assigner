@@ -44,10 +44,6 @@ public class Responsibility {
                          myDescription);
   }
 
-  public String getPresentableDescription() {
-    return String.format("%s %s", Constants.REASON_PREFIX_REPRESENT, myDescription);
-  }
-
   @Override
   public boolean equals(final Object another) {
     if (!(another instanceof Responsibility)) {
