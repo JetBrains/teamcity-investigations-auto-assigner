@@ -18,9 +18,10 @@ package jetbrains.buildServer.iaa.utils;
 
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
+import jetbrains.buildServer.iaa.common.HeuristicResult;
 import jetbrains.buildServer.iaa.common.Responsibility;
-import jetbrains.buildServer.serverSide.SBuild;
-import jetbrains.buildServer.serverSide.WebLinks;
+import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.util.EmailException;
 import jetbrains.buildServer.util.EmailSender;
 import org.jetbrains.annotations.NotNull;
@@ -41,10 +42,10 @@ public class EmailReporter {
     mySupervisorEmail = customParameters.getEmailForEmailReporter();
   }
 
-  public void sendResults(SBuild sBuild, List<Responsibility> responsibilities) {
-    if (mySupervisorEmail != null && responsibilities.size() > 0) {
+  public void sendResults(SBuild sBuild, HeuristicResult heuristicsResult) {
+    if (mySupervisorEmail != null && heuristicsResult.getAllResponsibilities().size() > 0) {
       String title = String.format("Investigation auto-assigner report for build #%s", sBuild.getBuildId());
-      trySendEmail(mySupervisorEmail, title, generateHtmlReport(sBuild, responsibilities));
+      trySendEmail(mySupervisorEmail, title, generateHtmlReport(sBuild, heuristicsResult));
     }
   }
 
@@ -57,25 +58,60 @@ public class EmailReporter {
   }
 
   @NotNull
-  private String generateHtmlReport(final SBuild sBuild, final List<Responsibility> responsibilities) {
-    StringBuilder htmlBuilder = new StringBuilder(
-      String.format("<!DOCTYPE html>\n" +
-                    "<html>\n" +
-                    "<body>\n" +
-                    "<h2>Report for <a href=\"%s\">%s#%s</a>. Found %s investigations:</h2>\n" +
-                    "<ol>",
-                    myWebLinks.getViewResultsUrl(sBuild),
-                    sBuild.getBuildTypeName(),
-                    sBuild.getBuildId(),
-                    responsibilities.size()));
-    for (Responsibility responsibility : responsibilities) {
-      htmlBuilder.append(String.format("<li>Investigation was assigned to %s who %s.</li>\n",
+  private String generateHtmlReport(final SBuild sBuild, final HeuristicResult heuristicsResult) {
+    String buildRunResultsUrl = myWebLinks.getViewResultsUrl(sBuild);
+
+
+    return String.format("<!DOCTYPE html>\n" +
+                         "<html>\n" +
+                         "<body>\n" +
+                         "<h2>Report for <a href=\"%s\">%s#%s</a>. Found %s investigations:</h2>\n" +
+                         "<ol>\n%s%s</ol>\n" +
+                         "</body>\n" +
+                         "</html>",
+                         buildRunResultsUrl,
+                         sBuild.getBuildTypeName(),
+                         sBuild.getBuildId(),
+                         heuristicsResult.getAllResponsibilities().size(),
+                         generateForFailedTests(sBuild, heuristicsResult),
+                         generateForBuildProblems(sBuild, heuristicsResult));
+  }
+
+  private String generateForFailedTests(SBuild sBuild, HeuristicResult heuristicsResult) {
+    StringBuilder htmlBuilder = new StringBuilder();
+    String buildRunResultsUrl = myWebLinks.getViewResultsUrl(sBuild);
+
+    List<STestRun> testRuns = sBuild.getBuildStatistics(new BuildStatisticsOptions()).getFailedTests();
+
+    for (STestRun testRun : testRuns) {
+      Responsibility responsibility = heuristicsResult.getResponsibility(testRun);
+      if (responsibility == null) {
+        continue;
+      }
+
+      htmlBuilder.append(String.format("<li><a href=\"%s\">Investigation</a> was assigned to %s who %s.</li>\n",
+                                       buildRunResultsUrl + "#testNameId" + testRun.getTest().getTestNameId(),
                                        responsibility.getUser().getUsername(),
                                        responsibility.getDescription()));
     }
-    htmlBuilder.append("</ol>\n" +
-                       "</body>\n" +
-                       "</html>");
+
     return htmlBuilder.toString();
   }
+
+  private String generateForBuildProblems(final SBuild sBuild, final HeuristicResult heuristicsResult) {
+    StringBuilder htmlBuilder = new StringBuilder();
+    List<BuildProblem> allBuildProblems = ((BuildEx)sBuild).getBuildProblems();
+    for (BuildProblem buildProblem : allBuildProblems) {
+      Responsibility responsibility = heuristicsResult.getResponsibility(buildProblem);
+      if (responsibility == null) {
+        continue;
+      }
+      htmlBuilder.append(String.format("<li>Investigation for build problem was assigned to %s who %s.</li>\n",
+                                       responsibility.getUser().getUsername(),
+                                       responsibility.getDescription()));
+    }
+
+    return htmlBuilder.toString();
+  }
+
 }

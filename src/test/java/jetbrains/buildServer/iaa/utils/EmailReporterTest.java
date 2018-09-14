@@ -17,11 +17,10 @@
 package jetbrains.buildServer.iaa.utils;
 
 import java.util.Arrays;
-import java.util.Collections;
 import jetbrains.buildServer.BaseTestCase;
+import jetbrains.buildServer.iaa.common.HeuristicResult;
 import jetbrains.buildServer.iaa.common.Responsibility;
-import jetbrains.buildServer.serverSide.SBuild;
-import jetbrains.buildServer.serverSide.WebLinks;
+import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.util.EmailSender;
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +29,7 @@ import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @Test
@@ -37,7 +37,7 @@ public class EmailReporterTest extends BaseTestCase {
 
   private EmailReporter myEmailReporter;
   private EmailSenderMock myMockedEmailSender;
-  private SBuild mySBuildMock;
+  private BuildEx mySBuildMock;
   private Responsibility myResponsibility1;
   private Responsibility myResponsibility2;
   private CustomParameters myCustomParameters;
@@ -45,6 +45,7 @@ public class EmailReporterTest extends BaseTestCase {
   private String TEST_LINK_URL = "testLinkUrl.com";
   private Long BUILD_ID = 239L;
   private String BUILD_TYPE_NAME = "testBuildTypeName";
+  private HeuristicResult myHeuristicResult;
 
   @BeforeMethod
   @Override
@@ -52,17 +53,35 @@ public class EmailReporterTest extends BaseTestCase {
     super.setUp();
     myMockedEmailSender = new EmailSenderMock();
     myWebLinks = Mockito.mock(WebLinks.class);
-    mySBuildMock = Mockito.mock(SBuild.class);
+    mySBuildMock = Mockito.mock(BuildEx.class);
+    final STestRun sTestRun1 = Mockito.mock(STestRun.class);
+    final STestRun sTestRun2 = Mockito.mock(STestRun.class);
+    final STest sTest1 = Mockito.mock(STest.class);
+    final STest sTest2 = Mockito.mock(STest.class);
     myCustomParameters = Mockito.mock(CustomParameters.class);
     final User user1 = Mockito.mock(User.class);
     final User user2 = Mockito.mock(User.class);
+    final BuildStatistics buildStatistics = Mockito.mock(BuildStatistics.class);
     myResponsibility1 = new Responsibility(user1, "testDescription");
     myResponsibility2 = new Responsibility(user2, "testDescription2");
 
+
+    when(mySBuildMock.getBuildStatistics(any())).thenReturn(buildStatistics);
+    when(buildStatistics.getFailedTests()).thenReturn(Arrays.asList(sTestRun1, sTestRun2));
     when(user1.getUsername()).thenReturn("testUser1");
     when(user2.getUsername()).thenReturn("testUser2");
+    when(sTestRun1.getTest()).thenReturn(sTest1);
+    when(sTestRun2.getTest()).thenReturn(sTest2);
+    when(sTestRun1.getTestRunId()).thenReturn(1);
+    when(sTestRun2.getTestRunId()).thenReturn(2);
+    when(sTest1.getTestNameId()).thenReturn(1L);
+    when(sTest2.getTestNameId()).thenReturn(2L);
     when(mySBuildMock.getBuildId()).thenReturn(BUILD_ID);
     when(mySBuildMock.getBuildTypeName()).thenReturn(BUILD_TYPE_NAME);
+    myHeuristicResult = new HeuristicResult();
+    myHeuristicResult.addResponsibility(sTestRun1, myResponsibility1);
+    myHeuristicResult.addResponsibility(sTestRun2, myResponsibility2);
+
     String testEmail = "test.mail.com";
     when(myCustomParameters.getEmailForEmailReporter()).thenReturn(testEmail);
     when(myWebLinks.getViewResultsUrl(mySBuildMock)).thenReturn(TEST_LINK_URL);
@@ -73,13 +92,14 @@ public class EmailReporterTest extends BaseTestCase {
     when(myCustomParameters.getEmailForEmailReporter()).thenReturn(null);
 
     EmailReporter emailReporter = new EmailReporter(myMockedEmailSender, myWebLinks, myCustomParameters);
-    emailReporter.sendResults(mySBuildMock, Arrays.asList(myResponsibility1, myResponsibility2));
+
+    emailReporter.sendResults(mySBuildMock, myHeuristicResult);
 
     assertFalse(myMockedEmailSender.called);
   }
 
   public void TestNoResponsibilities() {
-    myEmailReporter.sendResults(mySBuildMock, Collections.emptyList());
+    myEmailReporter.sendResults(mySBuildMock, new HeuristicResult());
 
     assertFalse(myMockedEmailSender.called);
   }
@@ -89,7 +109,7 @@ public class EmailReporterTest extends BaseTestCase {
     when(myCustomParameters.getEmailForEmailReporter()).thenReturn(testEmail);
 
     EmailReporter emailReporter = new EmailReporter(myMockedEmailSender, myWebLinks, myCustomParameters);
-    emailReporter.sendResults(mySBuildMock, Arrays.asList(myResponsibility1, myResponsibility2));
+    emailReporter.sendResults(mySBuildMock, myHeuristicResult);
 
     assertTrue(myMockedEmailSender.called);
     assertEquals(testEmail, myMockedEmailSender.usedAddress);
@@ -97,7 +117,7 @@ public class EmailReporterTest extends BaseTestCase {
 
   public void TestTopicContainsBuildLink() {
     EmailReporter emailReporter = new EmailReporter(myMockedEmailSender, myWebLinks, myCustomParameters);
-    emailReporter.sendResults(mySBuildMock, Arrays.asList(myResponsibility1, myResponsibility2));
+    emailReporter.sendResults(mySBuildMock, myHeuristicResult);
 
     assertTrue(myMockedEmailSender.called);
     assertTrue(myMockedEmailSender.usedSubject.contains(mySBuildMock.getBuildId() + ""));
@@ -105,7 +125,7 @@ public class EmailReporterTest extends BaseTestCase {
 
   public void TestCompareWithGold() {
     EmailReporter emailReporter = new EmailReporter(myMockedEmailSender, myWebLinks, myCustomParameters);
-    emailReporter.sendResults(mySBuildMock, Arrays.asList(myResponsibility1, myResponsibility2));
+    emailReporter.sendResults(mySBuildMock, myHeuristicResult);
 
     assertTrue(myMockedEmailSender.called);
     assertEquals(getHtmlReportGold(), myMockedEmailSender.usedHtml);
@@ -116,8 +136,8 @@ public class EmailReporterTest extends BaseTestCase {
                          "<html>\n" +
                          "<body>\n" +
                          "<h2>Report for <a href=\"%s\">%s#%s</a>. Found 2 investigations:</h2>\n" +
-                         "<ol><li>Investigation was assigned to %s who %s.</li>\n" +
-                         "<li>Investigation was assigned to %s who %s.</li>\n" +
+                         "<ol>\n<li><a href=\"testLinkUrl.com#testNameId1\">Investigation</a> was assigned to %s who %s.</li>\n" +
+                         "<li><a href=\"testLinkUrl.com#testNameId2\">Investigation</a> was assigned to %s who %s.</li>\n" +
                          "</ol>\n" +
                          "</body>\n" +
                          "</html>",
