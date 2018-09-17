@@ -36,39 +36,39 @@ public class CustomParametersTest extends BaseTestCase {
     super.setUp();
   }
 
-  public void getWhiteListTestNoDescriptor() {
+  public void getBlackListTestNoDescriptor() {
     SBuild sBuildMock = Mockito.mock(SBuild.class);
     Mockito.when(sBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE)).thenReturn(Collections.emptyList());
-    assertListEquals(CustomParameters.getWhiteList(sBuildMock));
+    assertListEquals(CustomParameters.getBlackList(sBuildMock));
   }
 
-  public void getWhiteListTestHasOneInList() {
+  public void getBlackListTestHasOneInList() {
     SBuild sBuildMock = Mockito.mock(SBuild.class);
     SBuildFeatureDescriptor sBuildFeatureDescriptor =
       Mockito.mock(jetbrains.buildServer.serverSide.SBuildFeatureDescriptor.class);
     Mockito.when(sBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE))
            .thenReturn(Collections.singletonList(sBuildFeatureDescriptor));
     Map<String, String> params = new HashMap<>();
-    params.put(Constants.WHITE_LIST, "username1");
+    params.put(Constants.BLACK_LIST, "username1");
     Mockito.when(sBuildFeatureDescriptor.getParameters()).thenReturn(params);
-    assertListEquals(CustomParameters.getWhiteList(sBuildMock), "username1");
+    assertListEquals(CustomParameters.getBlackList(sBuildMock), "username1");
 
-    params.put(Constants.WHITE_LIST, "username2 ");
-    assertListEquals(CustomParameters.getWhiteList(sBuildMock), "username2");
+    params.put(Constants.BLACK_LIST, "username2 ");
+    assertListEquals(CustomParameters.getBlackList(sBuildMock), "username2");
 
-    params.put(Constants.WHITE_LIST, "  username3    ");
-    assertListEquals(CustomParameters.getWhiteList(sBuildMock), "username3");
+    params.put(Constants.BLACK_LIST, "  username3    ");
+    assertListEquals(CustomParameters.getBlackList(sBuildMock), "username3");
   }
 
-  public void getWhiteListTestHasTwo() {
+  public void getBlackListTestHasTwo() {
     SBuild sBuildMock = Mockito.mock(SBuild.class);
     SBuildFeatureDescriptor sBuildFeatureDescriptor =
       Mockito.mock(jetbrains.buildServer.serverSide.SBuildFeatureDescriptor.class);
     Mockito.when(sBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE))
            .thenReturn(Collections.singletonList(sBuildFeatureDescriptor));
     Map<String, String> params = new HashMap<>();
-    params.put(Constants.WHITE_LIST, "username1, username2, username3");
+    params.put(Constants.BLACK_LIST, "username1, username2, username3");
     Mockito.when(sBuildFeatureDescriptor.getParameters()).thenReturn(params);
-    assertListEquals(CustomParameters.getWhiteList(sBuildMock), "username1", "username2", "username3");
+    assertListEquals(CustomParameters.getBlackList(sBuildMock), "username1", "username2", "username3");
   }
 }

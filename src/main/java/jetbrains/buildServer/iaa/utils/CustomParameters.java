@@ -39,13 +39,13 @@ public class CustomParameters {
   }
 
   @NotNull
-  public static List<String> getWhiteList(final SBuild build) {
+  public static List<String> getBlackList(final SBuild build) {
     final SBuildFeatureDescriptor sBuildFeature = CustomParameters.getBuildFeatureDescriptor(build);
     if (sBuildFeature == null) {
       return Collections.emptyList();
     }
 
-    return Arrays.stream(String.valueOf(sBuildFeature.getParameters().get(Constants.WHITE_LIST)).split(","))
+    return Arrays.stream(String.valueOf(sBuildFeature.getParameters().get(Constants.BLACK_LIST)).split(","))
       .map(String::trim).collect(Collectors.toList());
   }
 

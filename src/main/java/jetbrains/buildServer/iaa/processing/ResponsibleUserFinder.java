@@ -44,10 +44,10 @@ public class ResponsibleUserFinder {
     }
 
     HeuristicResult result = new HeuristicResult();
-    List<String> usernamesWhiteList = CustomParameters.getWhiteList(sBuild);
+    List<String> usernamesBlackList = CustomParameters.getBlackList(sBuild);
     for (Heuristic heuristic : myOrderedHeuristics) {
       HeuristicContext heuristicContext =
-        new HeuristicContext(sBuild, sProject, buildProblems, testRuns, usernamesWhiteList);
+        new HeuristicContext(sBuild, sProject, buildProblems, testRuns, usernamesBlackList);
       HeuristicResult heuristicResult = heuristic.findResponsibleUser(heuristicContext);
 
       buildProblems = heuristicContext.getBuildProblems()

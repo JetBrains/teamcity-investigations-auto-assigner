@@ -67,7 +67,7 @@ public class BrokenFileHeuristic implements Heuristic {
     for (STestRun sTestRun : heuristicContext.getTestRuns()) {
       String problemText = myProblemTextExtractor.getBuildProblemText(sTestRun);
       Responsibility responsibility =
-        findResponsibleUser(vcsChanges, sBuild, problemText, heuristicContext.getWhiteList());
+        findResponsibleUser(vcsChanges, sBuild, problemText, heuristicContext.getBlackList());
       if (responsibility != null)
         result.addResponsibility(sTestRun, responsibility);
     }
@@ -75,7 +75,7 @@ public class BrokenFileHeuristic implements Heuristic {
     for (BuildProblem buildProblem : heuristicContext.getBuildProblems()) {
       String problemText = myProblemTextExtractor.getBuildProblemText(buildProblem, sBuild);
       Responsibility responsibility =
-        findResponsibleUser(vcsChanges, sBuild, problemText, heuristicContext.getWhiteList());
+        findResponsibleUser(vcsChanges, sBuild, problemText, heuristicContext.getBlackList());
       if (responsibility != null)
         result.addResponsibility(buildProblem, responsibility);
     }
@@ -87,7 +87,7 @@ public class BrokenFileHeuristic implements Heuristic {
   private Responsibility findResponsibleUser(List<SVcsModification> vcsChanges,
                                              SBuild sBuild,
                                              String problemText,
-                                             List<String> usernamesWhiteList) {
+                                             List<String> usernamesBlackList) {
     SUser responsibleUser = null;
     String brokenFile = null;
     for (SVcsModification vcsChange : vcsChanges) {
@@ -96,7 +96,7 @@ public class BrokenFileHeuristic implements Heuristic {
 
       final Collection<SUser> changeCommitters = vcsChange.getCommitters()
                                                           .stream()
-                                                          .filter(user->!usernamesWhiteList.contains(user.getUsername()))
+                                                          .filter(user->!usernamesBlackList.contains(user.getUsername()))
                                                           .collect(Collectors.toList());
       if (changeCommitters.size() == 0) continue;
       if (changeCommitters.size() > 1) return null;
