@@ -34,11 +34,11 @@
 </tr>
 <tr>
   <th>
-    <label for="<%= Constants.BLACK_LIST%>">Black list:</label>
+    <label for="<%= Constants.BLACK_LIST%>">Users to ignore:</label>
   </th>
   <td>
     <props:textProperty name="<%= Constants.BLACK_LIST%>" className="longField textProperty_max-width js_max-width"/>
-    <span class="smallNote">The comma-separated list of users to exclude from auto-assignment of investigation.</span>
+    <span class="smallNote">The comma-separated list of usernames to exclude from auto-assignment of investigation.</span>
   </td>
 </tr>
 <tr>
