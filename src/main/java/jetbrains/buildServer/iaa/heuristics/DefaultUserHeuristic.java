@@ -17,13 +17,11 @@
 package jetbrains.buildServer.iaa.heuristics;
 
 import com.intellij.openapi.diagnostic.Logger;
-import java.util.Collection;
-import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.iaa.common.HeuristicResult;
 import jetbrains.buildServer.iaa.common.Responsibility;
 import jetbrains.buildServer.iaa.processing.HeuristicContext;
+import jetbrains.buildServer.iaa.utils.CustomParameters;
 import jetbrains.buildServer.serverSide.SBuild;
-import jetbrains.buildServer.serverSide.SBuildFeatureDescriptor;
 import jetbrains.buildServer.users.UserModelEx;
 import jetbrains.buildServer.users.impl.UserEx;
 import org.jetbrains.annotations.NotNull;
@@ -49,11 +47,7 @@ public class DefaultUserHeuristic implements Heuristic {
     HeuristicResult result = new HeuristicResult();
 
     SBuild build = heuristicContext.getBuild();
-    Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
-    if (descriptors.isEmpty()) return result;
-
-    final SBuildFeatureDescriptor sBuildFeature = (SBuildFeatureDescriptor)descriptors.toArray()[0];
-    String defaultResponsible = String.valueOf(sBuildFeature.getParameters().get(Constants.DEFAULT_RESPONSIBLE));
+    String defaultResponsible = CustomParameters.getDefaultResponsible(build);
 
     if (defaultResponsible == null || defaultResponsible.isEmpty()) return result;
     UserEx responsibleUser = myUserModel.findUserAccount(null, defaultResponsible);

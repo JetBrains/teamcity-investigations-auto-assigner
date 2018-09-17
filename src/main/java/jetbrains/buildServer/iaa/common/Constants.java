@@ -23,6 +23,7 @@ public class Constants {
 
   // Parameter names
   public static final String DEFAULT_RESPONSIBLE = "teamcity.iaa.defaultResponsible";
+  public static final String BLACK_LIST = "teamcity.iaa.blackList";
 
   // Parameter names
   public static final String SILENT_MODE_ON = "teamcity.iaa.silentModeOn";

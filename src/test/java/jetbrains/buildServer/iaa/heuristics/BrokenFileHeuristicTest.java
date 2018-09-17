@@ -51,6 +51,8 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
   private HeuristicContext myHeuristicContext;
   private STestRun mySTestRun;
   private ProblemTextExtractor myProblemTextExtractor;
+  private SBuild mySBuild;
+  private SProject mySProject;
 
   @BeforeMethod
   @Override
@@ -58,14 +60,20 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
     super.setUp();
     myProblemTextExtractor = Mockito.mock(ProblemTextExtractor.class);
     myHeuristic = new BrokenFileHeuristic(myProblemTextExtractor);
-    final SBuild sBuild = Mockito.mock(jetbrains.buildServer.serverSide.SBuild.class);
-    final SProject sProject = Mockito.mock(jetbrains.buildServer.serverSide.SProject.class);
+    mySBuild = Mockito.mock(jetbrains.buildServer.serverSide.SBuild.class);
+    mySProject = Mockito.mock(jetbrains.buildServer.serverSide.SProject.class);
     myUser = Mockito.mock(SUser.class);
+    when(myUser.getUsername()).thenReturn("myUser1");
     mySecondUser = Mockito.mock(SUser.class);
+    when(mySecondUser.getUsername()).thenReturn("myUser2");
     mySTestRun = Mockito.mock(STestRun.class);
-    myHeuristicContext = new HeuristicContext(sBuild, sProject, Collections.emptyList(), Collections.singletonList(mySTestRun));
+    myHeuristicContext = new HeuristicContext(mySBuild,
+                                              mySProject,
+                                              Collections.emptyList(),
+                                              Collections.singletonList(mySTestRun),
+                                              Collections.emptyList());
     myBuildPromotion = Mockito.mock(BuildPromotionEx.class);
-    when(sBuild.getBuildPromotion()).thenReturn(myBuildPromotion);
+    when(mySBuild.getBuildPromotion()).thenReturn(myBuildPromotion);
     when(myProblemTextExtractor.getBuildProblemText(any())).thenReturn("I contain ./path1/path1/path1/filename");
     myChangeDescriptor = Mockito.mock(ChangeDescriptor.class);
     myVcsModification = Mockito.mock(SVcsModification.class);
@@ -157,5 +165,23 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
     when(myVcsModification.getCommitters()).thenReturn(Arrays.asList(myUser, mySecondUser));
     result = myHeuristic.findResponsibleUser(myHeuristicContext);
     Assert.assertTrue(result.isEmpty());
+  }
+
+  public void TestWhiteList() {
+    when(myProblemTextExtractor.getBuildProblemText(any())).thenReturn("I contain ./path1/path1/path1/filename" +
+                                                                       "and ./path4/path4/path4/filename4");
+    when(myVcsModification.getCommitters()).thenReturn(Collections.singletonList(myUser));
+    when(myVcsModification2.getCommitters()).thenReturn(Collections.singletonList(mySecondUser));
+    HeuristicContext heuristicContexts = new HeuristicContext(mySBuild,
+                                                              mySProject,
+                                                              Collections.emptyList(),
+                                                              Collections.singletonList(mySTestRun),
+                                                              Collections.singletonList(myUser.getUsername()));
+    HeuristicResult result = myHeuristic.findResponsibleUser(heuristicContexts);
+    Assert.assertFalse(result.isEmpty());
+
+    when(myVcsModification.getCommitters()).thenReturn(Arrays.asList(myUser, mySecondUser));
+    result = myHeuristic.findResponsibleUser(heuristicContexts);
+    Assert.assertFalse(result.isEmpty());
   }
 }

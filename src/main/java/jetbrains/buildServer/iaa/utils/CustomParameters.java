@@ -16,8 +16,8 @@
 
 package jetbrains.buildServer.iaa.utils;
 
-import java.util.Collection;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SBuildFeatureDescriptor;
@@ -29,6 +29,36 @@ import org.jetbrains.annotations.Nullable;
 public class CustomParameters {
   private final static Integer MINIMAL_PROCESSING_DELAY = 5;
   private final static Integer DEFAULT_PROCESSING_DELAY_IN_SECONDS = 120;
+
+  @Nullable
+  public static String getDefaultResponsible(final SBuild build) {
+    final SBuildFeatureDescriptor sBuildFeature = getBuildFeatureDescriptor(build);
+    if (sBuildFeature == null) return null;
+
+    return String.valueOf(sBuildFeature.getParameters().get(Constants.DEFAULT_RESPONSIBLE));
+  }
+
+  @NotNull
+  public static List<String> getBlackList(final SBuild build) {
+    final SBuildFeatureDescriptor sBuildFeature = getBuildFeatureDescriptor(build);
+    if (sBuildFeature == null) {
+      return Collections.emptyList();
+    }
+
+    String usersToIgnore = sBuildFeature.getParameters().get(Constants.BLACK_LIST);
+    if (usersToIgnore == null) {
+      return Collections.emptyList();
+    }
+
+    return Arrays.stream(usersToIgnore.split(",")).map(String::trim).collect(Collectors.toList());
+  }
+
+  @Nullable
+  private static SBuildFeatureDescriptor getBuildFeatureDescriptor(final SBuild build) {
+    Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
+    if (descriptors.isEmpty()) return null;
+    return descriptors.iterator().next();
+  }
 
   public static int getProcessingDelayInSeconds() {
     int value = TeamCityProperties

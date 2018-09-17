@@ -16,7 +16,9 @@
 
 package jetbrains.buildServer.iaa.heuristics;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.iaa.common.HeuristicResult;
@@ -60,6 +62,7 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
     myUser = Mockito.mock(User.class);
     mySTest = Mockito.mock(STest.class);
 
+    when(myUser.getUsername()).thenReturn("testUser");
     myHeuristic = new PreviousResponsibleHeuristic(myInvestigationsManager);
     when(myBuildProblem.getBuildProblemData()).thenReturn(buildProblemData);
     when(buildProblemData.getType()).thenReturn("Type");
@@ -71,10 +74,16 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
     when(mySTest.getProjectId()).thenReturn("2134124");
     mySTestRun = Mockito.mock(STestRun.class);
     when(mySTestRun.getTest()).thenReturn(mySTest);
-    myBuildHeuristicContext =
-      new HeuristicContext(mySBuild, mySProject, Collections.singletonList(myBuildProblem), Collections.emptyList());
-    myTestHeuristicContext =
-      new HeuristicContext(mySBuild, mySProject, Collections.emptyList(), Collections.singletonList(mySTestRun));
+    myBuildHeuristicContext = new HeuristicContext(mySBuild,
+                                                   mySProject,
+                                                   Collections.singletonList(myBuildProblem),
+                                                   Collections.emptyList(),
+                                                   Collections.emptyList());
+    myTestHeuristicContext = new HeuristicContext(mySBuild,
+                                                  mySProject,
+                                                  Collections.emptyList(),
+                                                  Collections.singletonList(mySTestRun),
+                                                  Collections.emptyList());
   }
 
   public void TestBuildProblemInfo_ResponsibleFound() {
@@ -113,6 +122,25 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
 
     HeuristicResult result = myHeuristic.findResponsibleUser(myTestHeuristicContext);
 
+    Assert.assertTrue(result.isEmpty());
+  }
+
+  public void TestWhiteList() {
+    when(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, mySTest)).thenReturn(myUser);
+    HeuristicContext testHC = new HeuristicContext(mySBuild,
+                                                   mySProject,
+                                                   Collections.singletonList(myBuildProblem),
+                                                   Collections.emptyList(),
+                                                   Collections.singletonList(myUser.getUsername()));
+    HeuristicContext buildProblemsHc = new HeuristicContext(mySBuild,
+                                                            mySProject,
+                                                            Collections.emptyList(),
+                                                            Collections.singletonList(mySTestRun),
+                                                            Collections.singletonList(myUser.getUsername()));
+    HeuristicResult result = myHeuristic.findResponsibleUser(testHC);
+    Assert.assertTrue(result.isEmpty());
+
+    result = myHeuristic.findResponsibleUser(buildProblemsHc);
     Assert.assertTrue(result.isEmpty());
   }
 }

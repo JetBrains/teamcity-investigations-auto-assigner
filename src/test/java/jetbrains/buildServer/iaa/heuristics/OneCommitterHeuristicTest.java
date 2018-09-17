@@ -26,7 +26,6 @@ import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.users.SUser;
-import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.users.UserSet;
 import jetbrains.buildServer.vcs.SelectPrevBuildPolicy;
 import org.mockito.Mockito;
@@ -40,27 +39,34 @@ import static org.mockito.Mockito.when;
 public class OneCommitterHeuristicTest extends BaseTestCase {
 
   private OneCommitterHeuristic myHeuristic;
-  private UserSet myUserSetMock;
-  private User myFirstUser;
+  private UserSet<SUser> myUserSetMock;
+  private SUser myFirstUser;
   private SUser mySecondUser;
   private STestRun mySTestRun;
   private HeuristicContext myHeuristicContext;
+  private SProject mySProject;
+  private SBuild mySBuild;
 
   @BeforeMethod
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     myHeuristic = new OneCommitterHeuristic();
-    final SBuild sBuild = Mockito.mock(SBuild.class);
-    final SProject sProject = Mockito.mock(SProject.class);
+    mySBuild = Mockito.mock(SBuild.class);
+    mySProject = Mockito.mock(SProject.class);
 
     myUserSetMock = Mockito.mock(UserSet.class);
-    myFirstUser = Mockito.mock(User.class);
+    myFirstUser = Mockito.mock(SUser.class);
     mySecondUser = Mockito.mock(SUser.class);
-    when(sBuild.getCommitters(SelectPrevBuildPolicy.SINCE_LAST_BUILD)).thenReturn(myUserSetMock);
+    when(mySBuild.getCommitters(SelectPrevBuildPolicy.SINCE_LAST_BUILD)).thenReturn(myUserSetMock);
     mySTestRun = Mockito.mock(STestRun.class);
-    myHeuristicContext =
-      new HeuristicContext(sBuild, sProject, Collections.emptyList(), Collections.singletonList(mySTestRun));
+    myHeuristicContext = new HeuristicContext(mySBuild,
+                                              mySProject,
+                                              Collections.emptyList(),
+                                              Collections.singletonList(mySTestRun),
+                                              Collections.emptyList());
+    when(myFirstUser.getUsername()).thenReturn("myFirstUser");
+    when(mySecondUser.getUsername()).thenReturn("mySecondUser");
   }
 
   public void TestWithOneResponsible() {
@@ -73,7 +79,7 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
   }
 
   public void TestWithoutResponsible() {
-    when(myUserSetMock.getUsers()).thenReturn(new HashSet<User>());
+    when(myUserSetMock.getUsers()).thenReturn(new HashSet<>());
 
     HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 
@@ -86,5 +92,17 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
     HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 
     Assert.assertTrue(heuristicResult.isEmpty());
+  }
+
+  public void TestWhiteList() {
+    when(myUserSetMock.getUsers()).thenReturn(new HashSet<>(Arrays.asList(myFirstUser, mySecondUser)));
+    HeuristicContext hc = new HeuristicContext(mySBuild,
+                                               mySProject,
+                                               Collections.emptyList(),
+                                               Collections.singletonList(mySTestRun),
+                                               Collections.singletonList(myFirstUser.getUsername()));
+    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(hc);
+
+    Assert.assertFalse(heuristicResult.isEmpty());
   }
 }

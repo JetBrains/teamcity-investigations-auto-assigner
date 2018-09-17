@@ -17,6 +17,7 @@
 package jetbrains.buildServer.iaa.heuristics;
 
 import java.util.HashMap;
+import com.intellij.openapi.diagnostic.Logger;
 import jetbrains.buildServer.iaa.common.HeuristicResult;
 import jetbrains.buildServer.iaa.common.Responsibility;
 import jetbrains.buildServer.iaa.processing.HeuristicContext;
@@ -27,10 +28,12 @@ import jetbrains.buildServer.serverSide.STest;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.users.User;
+
 import org.jetbrains.annotations.NotNull;
 
 public class PreviousResponsibleHeuristic implements Heuristic {
 
+  private static final Logger LOGGER = Logger.getInstance(PreviousResponsibleHeuristic.class.getName());
   private InvestigationsManager myInvestigationsManager;
 
   PreviousResponsibleHeuristic(InvestigationsManager investigationsManager) {
@@ -59,6 +62,14 @@ public class PreviousResponsibleHeuristic implements Heuristic {
         responsibleUser = testId2Responsible.get(sTest.getTestNameId());
       }
 
+      if (responsibleUser != null && heuristicContext.getUserFilter().contains(responsibleUser.getUsername())) {
+        LOGGER.debug(
+          String.format("Build %s: Found PreviousResponsibleHeuristic for user `%s` from black list. Skip him.",
+                        sBuild.getBuildId(),
+                        responsibleUser.getUsername()));
+        continue;
+      }
+
       if (responsibleUser != null) {
         String description = String.format("assigned as responsible for the test: `%s` in build `%s` previous time",
                                            sTest.getName(), sBuild.getFullName());
@@ -69,6 +80,14 @@ public class PreviousResponsibleHeuristic implements Heuristic {
 
     for (BuildProblem buildProblem : heuristicContext.getBuildProblems()) {
       User responsibleUser = myInvestigationsManager.findPreviousResponsible(sProject, sBuild, buildProblem);
+      if (responsibleUser != null && heuristicContext.getUserFilter().contains(responsibleUser.getUsername())) {
+        LOGGER.debug(
+          String.format("Build %s: Found PreviousResponsibleHeuristic for user `%s` from black list. Skip him.",
+                        sBuild.getBuildId(),
+                        responsibleUser.getUsername()));
+        continue;
+      }
+
       if (responsibleUser != null) {
         String buildProblemType = buildProblem.getBuildProblemData().getType();
 

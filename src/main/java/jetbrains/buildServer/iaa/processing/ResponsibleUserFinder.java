@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import jetbrains.buildServer.iaa.common.HeuristicResult;
 import jetbrains.buildServer.iaa.heuristics.Heuristic;
+import jetbrains.buildServer.iaa.utils.CustomParameters;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STestRun;
@@ -43,8 +44,10 @@ public class ResponsibleUserFinder {
     }
 
     HeuristicResult result = new HeuristicResult();
+    List<String> usernamesBlackList = CustomParameters.getBlackList(sBuild);
     for (Heuristic heuristic : myOrderedHeuristics) {
-      HeuristicContext heuristicContext = new HeuristicContext(sBuild, sProject, buildProblems, testRuns);
+      HeuristicContext heuristicContext =
+        new HeuristicContext(sBuild, sProject, buildProblems, testRuns, usernamesBlackList);
       HeuristicResult heuristicResult = heuristic.findResponsibleUser(heuristicContext);
 
       buildProblems = heuristicContext.getBuildProblems()

@@ -66,14 +66,16 @@ public class BrokenFileHeuristic implements Heuristic {
                                                                           .collect(Collectors.toList());
     for (STestRun sTestRun : heuristicContext.getTestRuns()) {
       String problemText = myProblemTextExtractor.getBuildProblemText(sTestRun);
-      Responsibility responsibility = findResponsibleUser(vcsChanges, sBuild, problemText);
+      Responsibility responsibility =
+        findResponsibleUser(vcsChanges, sBuild, problemText, heuristicContext.getUserFilter());
       if (responsibility != null)
         result.addResponsibility(sTestRun, responsibility);
     }
 
     for (BuildProblem buildProblem : heuristicContext.getBuildProblems()) {
       String problemText = myProblemTextExtractor.getBuildProblemText(buildProblem, sBuild);
-      Responsibility responsibility = findResponsibleUser(vcsChanges, sBuild, problemText);
+      Responsibility responsibility =
+        findResponsibleUser(vcsChanges, sBuild, problemText, heuristicContext.getUserFilter());
       if (responsibility != null)
         result.addResponsibility(buildProblem, responsibility);
     }
@@ -82,22 +84,29 @@ public class BrokenFileHeuristic implements Heuristic {
   }
 
   @Nullable
-  private Responsibility findResponsibleUser(List<SVcsModification> vcsChanges, SBuild sBuild, String problemText) {
+  private Responsibility findResponsibleUser(List<SVcsModification> vcsChanges,
+                                             SBuild sBuild,
+                                             String problemText,
+                                             List<String> usernamesBlackList) {
     SUser responsibleUser = null;
     String brokenFile = null;
     for (SVcsModification vcsChange : vcsChanges) {
       final String foundBrokenFile = findBrokenFile(vcsChange, problemText);
       if (foundBrokenFile == null) continue;
 
-      final Collection<SUser> changeCommitters = vcsChange.getCommitters();
-      if (changeCommitters.size() != 1) return null;
+      final Collection<SUser> changeCommitters = vcsChange.getCommitters()
+                                                          .stream()
+                                                          .filter(user->!usernamesBlackList.contains(user.getUsername()))
+                                                          .collect(Collectors.toList());
+      if (changeCommitters.size() == 0) continue;
+      if (changeCommitters.size() > 1) return null;
 
       final SUser foundResponsibleUser = changeCommitters.iterator().next();
       if (responsibleUser != null && !responsibleUser.equals(foundResponsibleUser)) {
-        LOGGER.debug("There are more than one committer since last build for failed build #" + sBuild.getBuildId());
+        LOGGER.debug(String.format("Build %s: There are more than one committer since last build",
+                                   sBuild.getBuildId()));
         return null;
       }
-
       responsibleUser = foundResponsibleUser;
       brokenFile = foundBrokenFile;
     }
