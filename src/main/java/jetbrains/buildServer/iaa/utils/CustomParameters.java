@@ -40,7 +40,7 @@ public class CustomParameters {
 
   @NotNull
   public static List<String> getBlackList(final SBuild build) {
-    final SBuildFeatureDescriptor sBuildFeature = CustomParameters.getBuildFeatureDescriptor(build);
+    final SBuildFeatureDescriptor sBuildFeature = getBuildFeatureDescriptor(build);
     if (sBuildFeature == null) {
       return Collections.emptyList();
     }
@@ -57,7 +57,7 @@ public class CustomParameters {
   private static SBuildFeatureDescriptor getBuildFeatureDescriptor(final SBuild build) {
     Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
     if (descriptors.isEmpty()) return null;
-    return (SBuildFeatureDescriptor)descriptors.toArray()[0];
+    return descriptors.iterator().next();
   }
 
   public static int getProcessingDelayInSeconds() {
