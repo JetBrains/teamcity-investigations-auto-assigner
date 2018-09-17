@@ -61,7 +61,7 @@ public final class HeuristicContext {
   }
 
   @NotNull
-  public List<String> getBlackList() {
+  public List<String> getUserFilter() {
     return myBlackList;
   }
 }

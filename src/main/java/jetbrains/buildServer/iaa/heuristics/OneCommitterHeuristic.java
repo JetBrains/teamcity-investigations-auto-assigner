@@ -45,7 +45,7 @@ public class OneCommitterHeuristic implements Heuristic {
     final SelectPrevBuildPolicy selectPrevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
     final Set<SUser> committers = build.getCommitters(selectPrevBuildPolicy).getUsers()
                                        .stream()
-                                       .filter(user -> !heuristicContext.getBlackList().contains(user.getUsername()))
+                                       .filter(user -> !heuristicContext.getUserFilter().contains(user.getUsername()))
                                        .collect(Collectors.toSet());
 
     if (committers.isEmpty()) {
