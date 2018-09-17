@@ -45,8 +45,12 @@ public class CustomParameters {
       return Collections.emptyList();
     }
 
-    return Arrays.stream(String.valueOf(sBuildFeature.getParameters().get(Constants.BLACK_LIST)).split(","))
-      .map(String::trim).collect(Collectors.toList());
+    String usersToIgnore = sBuildFeature.getParameters().get(Constants.BLACK_LIST);
+    if (usersToIgnore == null) {
+      return Collections.emptyList();
+    }
+
+    return Arrays.stream(usersToIgnore.split(",")).map(String::trim).collect(Collectors.toList());
   }
 
   @Nullable
