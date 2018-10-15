@@ -30,12 +30,15 @@ public class CustomParameters {
   private final static Integer MINIMAL_PROCESSING_DELAY = 5;
   private final static Integer DEFAULT_PROCESSING_DELAY_IN_SECONDS = 120;
 
-  @Nullable
-  public static String getDefaultResponsible(final SBuild build) {
+  @NotNull
+  public static List<String> getDefaultResponsible(final SBuild build) {
     final SBuildFeatureDescriptor sBuildFeature = getBuildFeatureDescriptor(build);
-    if (sBuildFeature == null) return null;
-
-    return String.valueOf(sBuildFeature.getParameters().get(Constants.DEFAULT_RESPONSIBLE));
+    if (sBuildFeature == null) return Collections.emptyList();
+    String defaultResponsible = sBuildFeature.getParameters().get(Constants.DEFAULT_RESPONSIBLE);
+    if (defaultResponsible == null) {
+      return Collections.emptyList();
+    }
+    return Arrays.stream(defaultResponsible.split(",")).map(String::trim).collect(Collectors.toList());
   }
 
   @NotNull

@@ -17,11 +17,14 @@
 package jetbrains.buildServer.iaa.heuristics;
 
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.List;
+import java.util.Random;
 import jetbrains.buildServer.iaa.common.HeuristicResult;
 import jetbrains.buildServer.iaa.common.Responsibility;
 import jetbrains.buildServer.iaa.processing.HeuristicContext;
 import jetbrains.buildServer.iaa.utils.CustomParameters;
 import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.users.UserModelEx;
 import jetbrains.buildServer.users.impl.UserEx;
 import org.jetbrains.annotations.NotNull;
@@ -29,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 public class DefaultUserHeuristic implements Heuristic {
 
   private static final Logger LOGGER = Logger.getInstance(DefaultUserHeuristic.class.getName());
+  private Random myRandom = new Random();
 
   @NotNull private UserModelEx myUserModel;
 
@@ -47,10 +51,21 @@ public class DefaultUserHeuristic implements Heuristic {
     HeuristicResult result = new HeuristicResult();
 
     SBuild build = heuristicContext.getBuild();
-    String defaultResponsible = CustomParameters.getDefaultResponsible(build);
+    List<String> defaultResponsible = CustomParameters.getDefaultResponsible(build);
 
-    if (defaultResponsible == null || defaultResponsible.isEmpty()) return result;
-    UserEx responsibleUser = myUserModel.findUserAccount(null, defaultResponsible);
+    if (defaultResponsible.isEmpty()) return result;
+
+    UserEx responsibleUser = null;
+    while (responsibleUser == null && !defaultResponsible.isEmpty()) {
+
+      String chosenResponsible = defaultResponsible.get(myRandom.nextInt(defaultResponsible.size()));
+      responsibleUser = myUserModel.findUserAccount(null, chosenResponsible);
+      if (responsibleUser == null) {
+        LOGGER.warn(String.format("The specified default user %s cannot be found in the users list. " +
+                                  "Failed build #%s", chosenResponsible, build.getBuildId()));
+        defaultResponsible.remove(chosenResponsible);
+      }
+    }
 
     if (responsibleUser == null) {
       LOGGER.warn(String.format("The specified default user %s cannot be found in the users list. " +
