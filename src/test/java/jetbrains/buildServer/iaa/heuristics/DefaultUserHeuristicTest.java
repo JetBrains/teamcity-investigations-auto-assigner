@@ -18,6 +18,8 @@ package jetbrains.buildServer.iaa.heuristics;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.iaa.common.HeuristicResult;
@@ -27,6 +29,7 @@ import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SBuildFeatureDescriptor;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STestRun;
+import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.users.UserModelEx;
 import jetbrains.buildServer.users.impl.UserEx;
 import org.mockito.Mockito;
@@ -42,6 +45,8 @@ public class DefaultUserHeuristicTest extends BaseTestCase {
   private UserModelEx myUserModelEx;
   private SBuild mySBuild;
   private UserEx myUserEx;
+  private UserEx myUserEx2;
+  private UserEx myUserEx3;
   private static final String USER_NAME = "rugpanov";
   private HashMap<String, String> myBuildFeatureParams;
   private STestRun mySTestRun;
@@ -57,6 +62,8 @@ public class DefaultUserHeuristicTest extends BaseTestCase {
     mySBuild = Mockito.mock(SBuild.class);
     SProject sProject = Mockito.mock(SProject.class);
     myUserEx = Mockito.mock(UserEx.class);
+    myUserEx2 = Mockito.mock(UserEx.class);
+    myUserEx3 = Mockito.mock(UserEx.class);
     mySTestRun = Mockito.mock(STestRun.class);
     myHeuristicContext =
       new HeuristicContext(mySBuild,
@@ -111,5 +118,44 @@ public class DefaultUserHeuristicTest extends BaseTestCase {
     Responsibility responsibility = heuristicResult.getResponsibility(mySTestRun);
     assert responsibility != null;
     Assert.assertEquals(responsibility.getUser(), myUserEx);
+  }
+
+  public void TestSeveralDefaultResponsibleSpecified() {
+    myBuildFeatureParams.put(Constants.DEFAULT_RESPONSIBLE, "rugpanov, rugpanov2, rugpanov3");
+    when(myUserModelEx.findUserAccount(null, "rugpanov")).thenReturn(myUserEx);
+    when(myUserModelEx.findUserAccount(null, "rugpanov2")).thenReturn(myUserEx2);
+    when(myUserModelEx.findUserAccount(null, "rugpanov3")).thenReturn(myUserEx3);
+
+    Set<User> userCollection = executeFindResponsibleSeveralTimes(20);
+
+    Assert.assertEquals(userCollection.size(), 3);
+    Assert.assertTrue(userCollection.contains(myUserEx));
+    Assert.assertTrue(userCollection.contains(myUserEx2));
+    Assert.assertTrue(userCollection.contains(myUserEx3));
+  }
+
+  public void TestSeveralDefaultResponsibleOneNotExistSpecified() {
+    myBuildFeatureParams.put(Constants.DEFAULT_RESPONSIBLE, "rugpanov, rugpanov2, rugpanov3");
+    when(myUserModelEx.findUserAccount(null, "rugpanov")).thenReturn(myUserEx);
+    when(myUserModelEx.findUserAccount(null, "rugpanov2")).thenReturn(null);
+    when(myUserModelEx.findUserAccount(null, "rugpanov3")).thenReturn(myUserEx3);
+
+    Set<User> userCollection = executeFindResponsibleSeveralTimes(20);
+
+    Assert.assertEquals(userCollection.size(), 2);
+    Assert.assertTrue(userCollection.contains(myUserEx));
+    Assert.assertTrue(userCollection.contains(myUserEx3));
+  }
+
+  private Set<User> executeFindResponsibleSeveralTimes(int count) {
+    Set<User> userCollection = new HashSet<>();
+    for (int i = 0; i < count; i++) {
+      HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
+      Responsibility responsibility = heuristicResult.getResponsibility(mySTestRun);
+      Assert.assertNotNull(responsibility);
+      userCollection.add(responsibility.getUser());
+    }
+
+    return userCollection;
   }
 }
