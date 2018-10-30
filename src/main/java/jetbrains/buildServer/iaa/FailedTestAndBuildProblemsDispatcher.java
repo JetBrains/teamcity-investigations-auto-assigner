@@ -72,6 +72,14 @@ public class FailedTestAndBuildProblemsDispatcher {
       }
 
       @Override
+      public void buildFinished(@NotNull SRunningBuild build) {
+        FailedBuildInfo failedBuildInfo = myFailedBuilds.get(build.getBuildId());
+        if (failedBuildInfo != null) {
+          processBrokenBuild(failedBuildInfo, build.getBuildId());
+        }
+      }
+
+      @Override
       public void serverShutdown() {
         ThreadUtil.shutdownGracefully(myDaemon, "Investigator-Auto-Assigner Daemon");
       }
