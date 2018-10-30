@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class CustomParameters {
   private final static Integer MINIMAL_PROCESSING_DELAY = 5;
-  private final static Integer DEFAULT_PROCESSING_DELAY_IN_SECONDS = 120;
+  private final static Integer DEFAULT_PROCESSING_DELAY_IN_SECONDS = 10 * 60;
 
   @NotNull
   public static List<String> getDefaultResponsible(final SBuild build) {
