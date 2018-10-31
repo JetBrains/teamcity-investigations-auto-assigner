@@ -22,6 +22,7 @@ import jetbrains.buildServer.serverSide.DataItem;
 import jetbrains.buildServer.serverSide.ProjectDataFetcher;
 import jetbrains.buildServer.users.SUser;
 import jetbrains.buildServer.users.UserModel;
+import jetbrains.buildServer.users.UserModelEx;
 import jetbrains.buildServer.util.browser.Browser;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +30,7 @@ public class UserListFetcher implements ProjectDataFetcher {
 
   private final UserModel myUserModel;
 
-  public UserListFetcher(final UserModel userModel) {
+  public UserListFetcher(final UserModelEx userModel) {
     myUserModel = userModel;
   }
 
@@ -38,7 +39,7 @@ public class UserListFetcher implements ProjectDataFetcher {
   public List<DataItem> retrieveData(@NotNull final Browser fsBrowser, @NotNull final String projectFilePath) {
     List<DataItem> dataItems = new ArrayList<>();
     for (SUser user : myUserModel.getAllUsers().getUsers()) {
-      dataItems.add(new DataItem(user.getName(), null));
+      dataItems.add(new DataItem(user.getUsername(), null));
     }
 
     return dataItems;
