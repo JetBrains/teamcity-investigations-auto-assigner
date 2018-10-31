@@ -29,6 +29,9 @@
   </th>
   <td>
     <props:textProperty name="<%= Constants.DEFAULT_RESPONSIBLE%>" className="longField textProperty_max-width js_max-width"/>
+    <bs:projectData type="UserList" sourceFieldId="<%= Constants.PARAM_WORKING_DIR%>"
+                    targetFieldId="<%= Constants.DEFAULT_RESPONSIBLE%>" popupTitle="Select user"
+                    selectionMode="single" />
     <span class="smallNote">Username of a user to whom an investigation is assigned if no other possible investigator is found.</span>
   </td>
 </tr>
@@ -50,3 +53,4 @@
     <span class="smallNote">Responsibilities won't be assigned in TeamCity. Only log messages about possible investigators.</span>
   </td>
 </tr>
+
