@@ -39,7 +39,7 @@ public class UserListFetcher implements ProjectDataFetcher {
   public List<DataItem> retrieveData(@NotNull final Browser fsBrowser, @NotNull final String projectFilePath) {
     List<DataItem> dataItems = new ArrayList<>();
     for (SUser user : myUserModel.getAllUsers().getUsers()) {
-      dataItems.add(new DataItem(user.getUsername(), null));
+      dataItems.add(new DataItem(String.valueOf(user.getUsername()), user.getName()));
     }
 
     return dataItems;
