@@ -111,10 +111,12 @@ public class AssignerArtifactDao {
   }
 
   @Nullable
-  public Responsibility get(STestRun testRun) {
+  public Responsibility get(@Nullable SBuild firstFailedBuild, @NotNull STestRun testRun) {
     ResponsibilityPersistentInfo[] persistentBuildInfo;
     try {
-      Path resultsFilePath = this.getAssignerResultFilePath(testRun.getBuild());
+      Path resultsFilePath = firstFailedBuild != null ?
+                             this.getAssignerResultFilePath(firstFailedBuild) :
+                             this.getAssignerResultFilePath(testRun.getBuild());
       if (!Files.exists(resultsFilePath)) {
         return null;
       }

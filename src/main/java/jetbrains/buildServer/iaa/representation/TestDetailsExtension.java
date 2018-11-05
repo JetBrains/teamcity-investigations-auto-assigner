@@ -21,12 +21,14 @@ import javax.servlet.http.HttpServletRequest;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.iaa.common.Responsibility;
 import jetbrains.buildServer.iaa.utils.AssignerArtifactDao;
+import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.web.openapi.PagePlaces;
 import jetbrains.buildServer.web.openapi.PlaceId;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.openapi.SimplePageExtension;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import static jetbrains.buildServer.iaa.common.Constants.TEST_RUN_IN_REQUEST;
 
@@ -51,7 +53,8 @@ public class TestDetailsExtension extends SimplePageExtension {
 
     if (testRunObject instanceof STestRun) {
       STestRun sTestRun = (STestRun)testRunObject;
-      Responsibility responsibility = myAssignerArtifactDao.get(sTestRun);
+      @Nullable SBuild firstFailedBuild = sTestRun.getFirstFailed();
+      Responsibility responsibility = myAssignerArtifactDao.get(firstFailedBuild, sTestRun);
       if (responsibility != null) {
         model.put("myCssPath", request.getContextPath() + myCssPath);
         model.put("autoAssignedResponsibility", responsibility);
