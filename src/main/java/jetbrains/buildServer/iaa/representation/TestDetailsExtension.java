@@ -48,12 +48,12 @@ public class TestDetailsExtension extends SimplePageExtension {
   @Override
   public void fillModel(@NotNull final Map<String, Object> model, @NotNull final HttpServletRequest request) {
     final Object testRunObject = request.getAttribute(TEST_RUN_IN_REQUEST);
-    model.put("myCssPath", request.getContextPath() + myCssPath);
 
     if (testRunObject instanceof STestRun) {
       STestRun sTestRun = (STestRun)testRunObject;
       Responsibility responsibility = myAssignerArtifactDao.get(sTestRun);
       if (responsibility != null) {
+        model.put("myCssPath", request.getContextPath() + myCssPath);
         model.put("autoAssignedResponsibility", responsibility);
       }
     }
