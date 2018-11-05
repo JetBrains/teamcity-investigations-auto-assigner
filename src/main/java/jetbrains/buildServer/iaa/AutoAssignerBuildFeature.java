@@ -16,6 +16,7 @@
 
 package jetbrains.buildServer.iaa;
 
+import java.util.Map;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.serverSide.BuildFeature;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
@@ -49,6 +50,13 @@ public class AutoAssignerBuildFeature extends BuildFeature {
   @Override
   public String getEditParametersUrl() {
     return myEditUrl;
+  }
+
+  @NotNull
+  @Override
+  public String describeParameters(@NotNull Map<String, String> params) {
+    final String userName = params.get(Constants.DEFAULT_RESPONSIBLE);
+    return "Default responsible is \"" + userName + "\"";
   }
 
   @Override
