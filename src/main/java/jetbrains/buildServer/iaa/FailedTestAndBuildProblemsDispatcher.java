@@ -106,7 +106,7 @@ public class FailedTestAndBuildProblemsDispatcher {
   }
 
   private static boolean shouldIgnore(@NotNull SBuild build) {
-    return build.isPersonal() || (CustomParameters.isDefaultSilentModeDisabled() && checkFeatureDisabled(build));
+    return build.isPersonal() || (CustomParameters.isDefaultSilentModeDisabled(build) && checkFeatureDisabled(build));
   }
 
   private static boolean checkFeatureDisabled(@NotNull SBuild build) {
