@@ -85,10 +85,7 @@ public class CustomParameters {
 
   public boolean isSilentModeOn(@NotNull SBuild build) {
     Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
-    if (descriptors.isEmpty()) throw new IllegalStateException("Descriptors should not be empty");
-
-    final Optional<SBuildFeatureDescriptor> sBuildFeatureOptional = descriptors.stream().findFirst();
-    return Boolean.valueOf(sBuildFeatureOptional.get().getParameters().get(Constants.SILENT_MODE_ON));
+    return descriptors.isEmpty();
   }
 
   @Nullable

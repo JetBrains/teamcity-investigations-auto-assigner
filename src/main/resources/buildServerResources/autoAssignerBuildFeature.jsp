@@ -47,13 +47,3 @@
     <span class="smallNote">The comma-separated list of usernames to exclude from auto-assignment of investigation.</span>
   </td>
 </tr>
-<tr>
-  <th>
-    <label for="<%= Constants.SILENT_MODE_ON%>">Enable silent mode:</label>
-  </th>
-  <td>
-    <props:checkboxProperty name="<%= Constants.SILENT_MODE_ON%>"/>Do not assign investigations<br/>
-    <span class="smallNote">Responsibilities won't be assigned in TeamCity. Only log messages about possible investigators.</span>
-  </td>
-</tr>
-

@@ -28,9 +28,6 @@ public class Constants {
   public static final String BLACK_LIST = "teamcity.iaa.blackList";
   public final static String PARAM_WORKING_DIR = AgentRuntimeProperties.BUILD_WORKING_DIR;
 
-  // Parameter names
-  public static final String SILENT_MODE_ON = "teamcity.iaa.silentModeOn";
-
   //Message constants
   public static final String REASON_PREFIX_ASSIGN = "You were chosen as probable responsible because you";
   public static final String REASON_PREFIX_REPRESENT = "was chosen as probable responsible because the user";
