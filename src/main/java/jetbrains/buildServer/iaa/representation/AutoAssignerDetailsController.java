@@ -74,6 +74,8 @@ public class AutoAssignerDetailsController extends BaseController {
     if (responsibility != null) {
       final ModelAndView modelAndView = new ModelAndView( myDynamicTestDetailsExtensionPath);
       modelAndView.getModel().put("autoAssignedResponsibility", responsibility);
+      modelAndView.getModel().put("buildId", buildId);
+      modelAndView.getModel().put("test", sTestRun.getTest());
       modelAndView.getModel().put("myCssPath", request.getContextPath() + myCssPath);
       return modelAndView;
     }
