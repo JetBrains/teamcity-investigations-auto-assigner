@@ -17,12 +17,12 @@
 package jetbrains.buildServer.iaa.utils;
 
 class ResponsibilityPersistentInfo {
-  int testRunId;
+  long testNameId;
   long investigatorId;
   String description;
 
-  ResponsibilityPersistentInfo(int testRunId, long investigatorId, String description) {
-    this.testRunId = testRunId;
+  ResponsibilityPersistentInfo(long testNameId, long investigatorId, String description) {
+    this.testNameId = testNameId;
     this.investigatorId = investigatorId;
     this.description = description;
   }

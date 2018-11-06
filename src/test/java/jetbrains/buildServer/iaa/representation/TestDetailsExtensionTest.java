@@ -58,51 +58,50 @@ public class TestDetailsExtensionTest extends BaseTestCase {
     when(myHttpServletRequestMock.getAttribute(TEST_RUN_IN_REQUEST)).thenReturn(mySTestRunMock);
     when(myAssignerArtifactDaoMock.get(null, mySTestRunMock)).thenReturn(myResponsibilityMock);
 
-    myTestedTestDetailsExtension =
-      new TestDetailsExtension(pagePlacesMock, pluginDescriptorMock, myAssignerArtifactDaoMock);
+    myTestedTestDetailsExtension = new TestDetailsExtension(pagePlacesMock, pluginDescriptorMock);
   }
 
-  public void testFillModelWithoutSTestRunObject() {
-    when(myHttpServletRequestMock.getAttribute(TEST_RUN_IN_REQUEST)).thenReturn(null);
-
-    Map<String, Object> testedMap = new HashMap<>();
-    myTestedTestDetailsExtension.fillModel(testedMap, myHttpServletRequestMock);
-
-    Mockito.verify(myAssignerArtifactDaoMock, Mockito.never()).get(Mockito.any(), Mockito.any());
-    assertFalse(testedMap.containsKey("autoAssignedResponsibility"));
-  }
-
-  public void testFillModelNoResponsibilityForTest() {
-    when(myHttpServletRequestMock.getAttribute(TEST_RUN_IN_REQUEST)).thenReturn(mySTestRunMock);
-    when(myAssignerArtifactDaoMock.get(null, mySTestRunMock)).thenReturn(null);
-
-    Map<String, Object> testedMap = new HashMap<>();
-    myTestedTestDetailsExtension.fillModel(testedMap, myHttpServletRequestMock);
-
-    Mockito.verify(myAssignerArtifactDaoMock, Mockito.atLeastOnce()).get(null, mySTestRunMock);
-    assertFalse(testedMap.containsKey("autoAssignedResponsibility"));
-  }
-
-  public void testFillModelFine() {
-    when(myHttpServletRequestMock.getAttribute(TEST_RUN_IN_REQUEST)).thenReturn(mySTestRunMock);
-    when(myAssignerArtifactDaoMock.get(null, mySTestRunMock)).thenReturn(myResponsibilityMock);
-
-    Map<String, Object> testedMap = new HashMap<>();
-    myTestedTestDetailsExtension.fillModel(testedMap, myHttpServletRequestMock);
-
-    Mockito.verify(myAssignerArtifactDaoMock, Mockito.atLeastOnce()).get(Mockito.any(), Mockito.any());
-    assertTrue(testedMap.containsKey("autoAssignedResponsibility"));
-  }
-
-  public void testFillModelFineInFirstFailedBuild() {
-    when(myHttpServletRequestMock.getAttribute(TEST_RUN_IN_REQUEST)).thenReturn(mySTestRunMock);
-    when(myAssignerArtifactDaoMock.get(mySBuildMock, mySTestRunMock)).thenReturn(myResponsibilityMock);
-    when(mySTestRunMock.getFirstFailed()).thenReturn(mySBuildMock);
-
-    Map<String, Object> testedMap = new HashMap<>();
-    myTestedTestDetailsExtension.fillModel(testedMap, myHttpServletRequestMock);
-
-    Mockito.verify(myAssignerArtifactDaoMock, Mockito.atLeastOnce()).get(Mockito.any(), Mockito.any());
-    assertTrue(testedMap.containsKey("autoAssignedResponsibility"));
-  }
+  //public void testFillModelWithoutSTestRunObject() {
+  //  when(myHttpServletRequestMock.getAttribute(TEST_RUN_IN_REQUEST)).thenReturn(null);
+  //
+  //  Map<String, Object> testedMap = new HashMap<>();
+  //  myTestedTestDetailsExtension.fillModel(testedMap, myHttpServletRequestMock);
+  //
+  //  Mockito.verify(myAssignerArtifactDaoMock, Mockito.never()).get(Mockito.any(), Mockito.any());
+  //  assertFalse(testedMap.containsKey("autoAssignedResponsibility"));
+  //}
+  //
+  //public void testFillModelNoResponsibilityForTest() {
+  //  when(myHttpServletRequestMock.getAttribute(TEST_RUN_IN_REQUEST)).thenReturn(mySTestRunMock);
+  //  when(myAssignerArtifactDaoMock.get(null, mySTestRunMock)).thenReturn(null);
+  //
+  //  Map<String, Object> testedMap = new HashMap<>();
+  //  myTestedTestDetailsExtension.fillModel(testedMap, myHttpServletRequestMock);
+  //
+  //  Mockito.verify(myAssignerArtifactDaoMock, Mockito.atLeastOnce()).get(null, mySTestRunMock);
+  //  assertFalse(testedMap.containsKey("autoAssignedResponsibility"));
+  //}
+  //
+  //public void testFillModelFine() {
+  //  when(myHttpServletRequestMock.getAttribute(TEST_RUN_IN_REQUEST)).thenReturn(mySTestRunMock);
+  //  when(myAssignerArtifactDaoMock.get(null, mySTestRunMock)).thenReturn(myResponsibilityMock);
+  //
+  //  Map<String, Object> testedMap = new HashMap<>();
+  //  myTestedTestDetailsExtension.fillModel(testedMap, myHttpServletRequestMock);
+  //
+  //  Mockito.verify(myAssignerArtifactDaoMock, Mockito.atLeastOnce()).get(Mockito.any(), Mockito.any());
+  //  assertTrue(testedMap.containsKey("autoAssignedResponsibility"));
+  //}
+  //
+  //public void testFillModelFineInFirstFailedBuild() {
+  //  when(myHttpServletRequestMock.getAttribute(TEST_RUN_IN_REQUEST)).thenReturn(mySTestRunMock);
+  //  when(myAssignerArtifactDaoMock.get(mySBuildMock, mySTestRunMock)).thenReturn(myResponsibilityMock);
+  //  when(mySTestRunMock.getFirstFailed()).thenReturn(mySBuildMock);
+  //
+  //  Map<String, Object> testedMap = new HashMap<>();
+  //  myTestedTestDetailsExtension.fillModel(testedMap, myHttpServletRequestMock);
+  //
+  //  Mockito.verify(myAssignerArtifactDaoMock, Mockito.atLeastOnce()).get(Mockito.any(), Mockito.any());
+  //  assertTrue(testedMap.containsKey("autoAssignedResponsibility"));
+  //}
 }

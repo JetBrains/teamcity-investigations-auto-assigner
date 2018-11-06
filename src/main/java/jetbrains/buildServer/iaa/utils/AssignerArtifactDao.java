@@ -75,7 +75,7 @@ public class AssignerArtifactDao {
     for (STestRun testRun : testRuns) {
       Responsibility responsibility = heuristicResult.getResponsibility(testRun);
       if (responsibility != null) {
-        result.add(new ResponsibilityPersistentInfo(testRun.getTestRunId(),
+        result.add(new ResponsibilityPersistentInfo(testRun.getTest().getTestNameId(),
                                                     responsibility.getUser().getId(),
                                                     responsibility.getDescription()));
       }
@@ -133,7 +133,7 @@ public class AssignerArtifactDao {
     }
 
     for (ResponsibilityPersistentInfo persistentInfo: persistentBuildInfo) {
-      if (persistentInfo.testRunId == testRun.getTestRunId()) {
+      if (persistentInfo.testNameId == testRun.getTest().getTestNameId()) {
         LOGGER.debug(String.format("%s Investigation for testRun %s was found",
                                    Utils.getLogPrefix(testRun), testRun.getTestRunId()));
         User user = myUserModel.findUserById(persistentInfo.investigatorId);
