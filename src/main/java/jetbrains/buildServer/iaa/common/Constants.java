@@ -25,6 +25,7 @@ public class Constants {
 
   // Parameter names
   public static final String DEFAULT_RESPONSIBLE = "teamcity.iaa.defaultResponsible";
+  public static final String DEFAULT_SILENT_MODE_ENABLED = "teamcity.investigationAutoAssigner.defaultSilentModeOn";
   public static final String BLACK_LIST = "teamcity.iaa.blackList";
   public final static String PARAM_WORKING_DIR = AgentRuntimeProperties.BUILD_WORKING_DIR;
 

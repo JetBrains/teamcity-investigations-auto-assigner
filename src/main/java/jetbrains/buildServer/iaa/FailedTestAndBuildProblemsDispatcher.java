@@ -17,12 +17,14 @@
 package jetbrains.buildServer.iaa;
 
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import jetbrains.buildServer.BuildProblemData;
+import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.iaa.common.FailedBuildInfo;
 import jetbrains.buildServer.iaa.processing.FailedTestAndBuildProblemsProcessor;
 import jetbrains.buildServer.iaa.utils.CustomParameters;
@@ -104,6 +106,12 @@ public class FailedTestAndBuildProblemsDispatcher {
   }
 
   private static boolean shouldIgnore(@NotNull SBuild build) {
-    return build.isPersonal();
+    return build.isPersonal() || (CustomParameters.isDefaultSilentModeDisabled() && checkFeatureDisabled(build));
+  }
+
+  private static boolean checkFeatureDisabled(@NotNull SBuild build) {
+    Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
+
+    return descriptors.isEmpty();
   }
 }
