@@ -59,13 +59,12 @@ public class AutoAssignerDetailsController extends BaseController {
                                   @NotNull final HttpServletResponse response) {
     final long buildId = Long.parseLong(request.getParameter("buildId"));
     final int testId = Integer.parseInt(request.getParameter("testId"));
-    final ModelAndView modelAndView = new ModelAndView( myDynamicTestDetailsExtensionPath);
 
     final SBuild build = myServer.findBuildInstanceById(buildId);
-    if (build == null) return modelAndView;
+    if (build == null) return null;
 
     STestRun sTestRun = build.getBuildStatistics(ALL_TESTS_NO_DETAILS).findTestByTestRunId(testId);
-    if (sTestRun == null) return modelAndView;
+    if (sTestRun == null) return null;
 
     final FirstFailedInFixedInCalculator.FFIData ffiData = myStatisticsProvider.calculateFFIData(sTestRun);
 
@@ -73,10 +72,12 @@ public class AutoAssignerDetailsController extends BaseController {
     Responsibility responsibility = myAssignerArtifactDao.get(firstFailedBuild, sTestRun);
 
     if (responsibility != null) {
+      final ModelAndView modelAndView = new ModelAndView( myDynamicTestDetailsExtensionPath);
       modelAndView.getModel().put("autoAssignedResponsibility", responsibility);
       modelAndView.getModel().put("myCssPath", request.getContextPath() + myCssPath);
+      return modelAndView;
     }
 
-    return modelAndView;
+    return null;
   }
 }
