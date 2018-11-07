@@ -93,7 +93,12 @@ public class FailedTestAndBuildProblemsDispatcher {
     }
   }
 
-  private void processBrokenBuild(final FailedBuildInfo failedBuildInfo, final Long buildKey) {
+  private synchronized void processBrokenBuild(final FailedBuildInfo failedBuildInfo, final Long buildKey) {
+    if (!myFailedBuilds.containsKey(buildKey)) {
+      LOGGER.debug("Build #" + buildKey + " was already processed and removed.");
+      return;
+    }
+
     boolean shouldRemove = failedBuildInfo.getBuild().isFinished();
     myProcessor.processBuild(failedBuildInfo);
 
