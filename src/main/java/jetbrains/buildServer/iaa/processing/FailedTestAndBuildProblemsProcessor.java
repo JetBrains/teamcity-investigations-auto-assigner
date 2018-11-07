@@ -72,27 +72,55 @@ public class FailedTestAndBuildProblemsProcessor {
 
     List<BuildProblem> allBuildProblems = ((BuildEx)sBuild).getBuildProblems();
     List<STestRun> allFailedTests = requestBrokenTestsWithStats(sBuild);
-
-    LOGGER.debug("Build #" + sBuild.getBuildId() + ": has " + allBuildProblems.size() +
-                 " build problems and " + allFailedTests.size() + " failed tests.");
-
-    List<BuildProblem> applicableBuildProblems =
-      myBuildProblemsFilter.apply(failedBuildInfo, sProject, allBuildProblems);
+    List<BuildProblem> applicableProblems = myBuildProblemsFilter.apply(failedBuildInfo, sProject, allBuildProblems);
     List<STestRun> applicableFailedTests = myFailedTestFilter.apply(failedBuildInfo, sProject, allFailedTests);
-
-    LOGGER.debug("Build #" + sBuild.getBuildId() + ": found " + applicableBuildProblems.size() +
-                 " applicable build problems and " + applicableFailedTests.size() + " applicable failed tests.");
+    logProblemsNumber(sBuild, applicableFailedTests, applicableProblems);
 
     HeuristicResult heuristicsResult =
-      myResponsibleUserFinder.findResponsibleUser(sBuild, sProject, applicableBuildProblems, applicableFailedTests);
+      myResponsibleUserFinder.findResponsibleUser(sBuild, sProject, applicableProblems, applicableFailedTests);
+
+    List<STestRun> testsForAssign = myFailedTestFilter.applyBeforeAssign(failedBuildInfo, sProject, allFailedTests);
+    List<BuildProblem> problemsForAssign =
+      myBuildProblemsFilter.applyBeforeAssign(failedBuildInfo, sProject, allBuildProblems);
+    logChangedProblemsNumber(sBuild, applicableFailedTests, testsForAssign, applicableProblems, problemsForAssign);
 
     boolean silentModeOn = myCustomParameters.isSilentModeOn(sBuild);
-
-    myAssignerArtifactDao.appendHeuristicsResult(sBuild, applicableFailedTests, heuristicsResult);
-    myFailedTestAssigner.assign(heuristicsResult, sProject, applicableFailedTests, silentModeOn);
-    myBuildProblemsAssigner.assign(heuristicsResult, sProject, applicableBuildProblems, silentModeOn);
+    myAssignerArtifactDao.appendHeuristicsResult(sBuild, testsForAssign, heuristicsResult);
+    myFailedTestAssigner.assign(heuristicsResult, sProject, testsForAssign, silentModeOn);
+    myBuildProblemsAssigner.assign(heuristicsResult, sProject, problemsForAssign, silentModeOn);
 
     failedBuildInfo.addHeuristicsResult(heuristicsResult);
+  }
+
+  private void logProblemsNumber(SBuild sBuild,
+                                 final List<STestRun> afterFilteringTests,
+                                 final List<BuildProblem> afterFilteringProblems) {
+    if (!LOGGER.isDebugEnabled()) {
+      return;
+    }
+
+    LOGGER.debug("Build #" + sBuild.getBuildId() + ": found " + afterFilteringProblems.size() +
+                 " applicable build problems and " + afterFilteringTests.size() + " applicable failed tests.");
+  }
+
+  private void logChangedProblemsNumber(SBuild sBuild,
+                                        final List<STestRun> beforeFilteringTests,
+                                        final List<STestRun> afterFilteringTests,
+                                        final List<BuildProblem> beforeFilteringProblems,
+                                        final List<BuildProblem> afterFilteringProblems) {
+    if (!LOGGER.isDebugEnabled()) {
+      return;
+    }
+
+    if (beforeFilteringTests.size() != afterFilteringTests.size()) {
+      LOGGER.debug("Build #" + sBuild.getBuildId() + ": number of applicable tests changed because " +
+                   (beforeFilteringTests.size() - afterFilteringTests.size()) + " became not applicable");
+    }
+    if (beforeFilteringProblems.size() != afterFilteringProblems.size()) {
+      LOGGER.debug("Build #" + sBuild.getBuildId() + ": number of applicable problems changed because " +
+                   (beforeFilteringProblems.size() - beforeFilteringProblems.size()) + " became not applicable");
+    }
+
   }
 
   private List<STestRun> requestBrokenTestsWithStats(final SBuild build) {

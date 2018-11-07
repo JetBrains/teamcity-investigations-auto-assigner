@@ -66,6 +66,17 @@ class BuildProblemsFilter {
     return filteredBuildProblems;
   }
 
+
+  List<BuildProblem> applyBeforeAssign(final FailedBuildInfo failedBuildInfo,
+                                              final SProject sProject,
+                                              final List<BuildProblem> allBuildProblems) {
+    SBuild sBuild = failedBuildInfo.getBuild();
+
+    return allBuildProblems.stream()
+                           .filter(buildProblem -> isApplicable(sProject, sBuild, buildProblem))
+                           .collect(Collectors.toList());
+  }
+
   private boolean isApplicable(@NotNull final SProject project,
                                @NotNull final SBuild sBuild,
                                @NotNull final BuildProblem problem) {

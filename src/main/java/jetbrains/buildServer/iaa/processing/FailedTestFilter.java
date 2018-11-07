@@ -60,6 +60,16 @@ class FailedTestFilter {
     return filteredTestRuns;
   }
 
+  List<STestRun> applyBeforeAssign(final FailedBuildInfo failedBuildInfo,
+                                   final SProject sProject,
+                                   final List<STestRun> testRuns) {
+    SBuild sBuild = failedBuildInfo.getBuild();
+
+    return testRuns.stream()
+                   .filter(testRun -> isApplicable(sProject, sBuild, testRun))
+                   .collect(Collectors.toList());
+  }
+
   private boolean isApplicable(@NotNull final SProject project,
                                @NotNull final SBuild sBuild,
                                @NotNull final STestRun testRun) {
