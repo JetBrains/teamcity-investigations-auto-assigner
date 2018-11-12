@@ -19,6 +19,7 @@ package jetbrains.buildServer.iaa;
 import java.util.Map;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.serverSide.BuildFeature;
+import jetbrains.buildServer.util.StringUtil;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,10 +59,10 @@ public class AutoAssignerBuildFeature extends BuildFeature {
     final String userName = params.get(Constants.DEFAULT_RESPONSIBLE);
     final String usersToIgnore = params.get(Constants.USERS_TO_IGNORE);
     StringBuilder sb = new StringBuilder();
-    if (userName != null && !userName.isEmpty()){
+    if (StringUtil.isNotEmpty(userName)){
       sb.append("Default responsible: [").append(userName).append("]").append("\n");
     }
-    if (usersToIgnore != null && !usersToIgnore.isEmpty()){
+    if (StringUtil.isNotEmpty(usersToIgnore)){
       sb.append("Users to ignore: [").append(usersToIgnore).append("]");
     }
     return sb.toString().trim();
