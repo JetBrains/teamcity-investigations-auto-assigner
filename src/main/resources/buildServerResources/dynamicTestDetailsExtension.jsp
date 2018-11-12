@@ -33,7 +33,7 @@
       <strong>Suggested investigation assignment:</strong>
     </div>
     <div>
-      ${userName} ${shownDescription}.
+      <bs:out value='${userName}'/> ${shownDescription}.
       <authz:authorize projectId="${projectId}" allPermissions="ASSIGN_INVESTIGATION">
         <jsp:attribute name="ifAccessGranted">
           <br>
