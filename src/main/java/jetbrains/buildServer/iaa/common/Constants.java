@@ -16,8 +16,6 @@
 
 package jetbrains.buildServer.iaa.common;
 
-import jetbrains.buildServer.agent.AgentRuntimeProperties;
-
 public class Constants {
   // Plugin's ids
   public static final String BUILD_FEATURE_TYPE = "investigations-auto-assigner";
@@ -27,11 +25,9 @@ public class Constants {
   public static final String DEFAULT_RESPONSIBLE = "teamcity.iaa.defaultResponsible";
   public static final String DEFAULT_SILENT_MODE_ENABLED = "teamcity.investigationAutoAssigner.defaultSilentModeOn";
   public static final String BLACK_LIST = "teamcity.iaa.blackList";
-  public final static String PARAM_WORKING_DIR = AgentRuntimeProperties.BUILD_WORKING_DIR;
 
   //Message constants
-  public static final String REASON_PREFIX_ASSIGN = "You were chosen as probable responsible because you";
-  public static final String REASON_PREFIX_REPRESENT = "was chosen as probable responsible because the user";
+  static final String REASON_PREFIX_ASSIGN = "You were chosen as probable responsible because you";
 
   //Constants
   public static final String TC_COMPILATION_ERROR_TYPE = "TC_COMPILATION_ERROR";
