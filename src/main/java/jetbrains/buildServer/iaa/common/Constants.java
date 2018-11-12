@@ -30,9 +30,6 @@ public class Constants {
   public static final String PROCESSING_DELAY_IN_SECONDS = "teamcity.investigationAutoAssigner.processingDelayInSeconds";
   public static final String MAX_TESTS_PER_BUILD_NUMBER = "teamcity.investigationAutoAssigner.maxTestsPerBuildNumber";
 
-  //Message constants
-  static final String REASON_PREFIX_ASSIGN = "You were chosen as probable responsible because you";
-
   //Constants
   public static final String TC_COMPILATION_ERROR_TYPE = "TC_COMPILATION_ERROR";
   public final static String TEAMCITY_DIRECTORY = ".teamcity";
