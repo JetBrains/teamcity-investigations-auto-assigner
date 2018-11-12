@@ -80,7 +80,14 @@ public class AutoAssignerDetailsController extends BaseController {
 
     if (responsibility != null) {
       final ModelAndView modelAndView = new ModelAndView( myDynamicTestDetailsExtensionPath);
-      modelAndView.getModel().put("autoAssignedResponsibility", responsibility);
+      modelAndView.getModel().put("userId", responsibility.getUser().getId());
+      modelAndView.getModel().put("userName", responsibility.getUser().getDescriptiveName());
+      String shownDescription = responsibility.getDescription();
+      if (firstFailedBuild != null && firstFailedBuild.getBuildId() != buildId && shownDescription.endsWith("build")) {
+        shownDescription = shownDescription + " with the first test failure";
+      }
+      modelAndView.getModel().put("shownDescription", shownDescription);
+      modelAndView.getModel().put("investigationDescription", responsibility.getDescription());
       modelAndView.getModel().put("buildId", buildId);
       modelAndView.getModel().put("projectId", build.getProjectId());
       modelAndView.getModel().put("test", sTestRun.getTest());

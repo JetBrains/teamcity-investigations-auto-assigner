@@ -61,7 +61,7 @@ public class OneCommitterHeuristic implements Heuristic {
 
 
     User responsible = committers.iterator().next();
-    Responsibility responsibility = new Responsibility(responsible, "is the only committer to the build");
+    Responsibility responsibility = new Responsibility(responsible, "was the only committer to the build");
     heuristicContext.getTestRuns().forEach(sTestRun -> result.addResponsibility(sTestRun, responsibility));
 
     heuristicContext.getBuildProblems()

@@ -91,7 +91,7 @@ public class PreviousResponsibleHeuristic implements Heuristic {
       if (responsibleUser != null) {
         String buildProblemType = buildProblem.getBuildProblemData().getType();
 
-        String description = String.format("who was previously responsible for the problem %s`", buildProblemType);
+        String description = String.format("was previously responsible for the problem %s`", buildProblemType);
         result.addResponsibility(buildProblem, new Responsibility(responsibleUser, description));
       }
     }

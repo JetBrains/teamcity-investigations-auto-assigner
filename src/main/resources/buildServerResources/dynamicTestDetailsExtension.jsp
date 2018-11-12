@@ -10,11 +10,14 @@
   <%--@elvariable id="buildId" type="java.lang.String"--%>
   <%--@elvariable id="projectId" type="java.lang.String"--%>
   <%--@elvariable id="testGroupId" type="java.lang.String"--%>
+  <%--@elvariable id="userId" type="java.lang.String"--%>
+  <%--@elvariable id="userName" type="java.lang.String"--%>
+  <%--@elvariable id="shownDescription" type="java.lang.String"--%>
+  <%--@elvariable id="investigationDescription" type="java.lang.String"--%>
   <%--@elvariable id="test" type="jetbrains.buildServer.serverSide.STest"--%>
-  <%--@elvariable id="autoAssignedResponsibility" type="jetbrains.buildServer.iaa.common.Responsibility"--%>
-  <c:if test="${not empty autoAssignedResponsibility}">
+  <c:if test="${not empty userId}">
     <c:set var="autoassignerComment">
-      Investigation was assigned to ${autoAssignedResponsibility.user.username} who ${autoAssignedResponsibility.description}.
+      Investigation was assigned to ${userName} who ${investigationDescription}.
     </c:set>
     <c:set var="escapedComment">
       '<bs:escapeForJs text="${autoassignerComment}" forHTMLAttribute="${true}"/>'
@@ -23,16 +26,17 @@
       {
         comment: ${escapedComment},
         responsibilityRemovalMethod: 0,
-        investigatorId: ${autoAssignedResponsibility.user.getId()}
+        investigatorId: ${userId}
       }
     </c:set>
     <div>
-      <strong>Investigation auto-assigner:</strong>
+      <strong>Suggested investigation assignment:</strong>
     </div>
     <div>
-      <strong>${autoAssignedResponsibility.user.username}</strong> ${autoAssignedResponsibility.description}.
+      ${userName} ${shownDescription}.
       <authz:authorize projectId="${projectId}" allPermissions="ASSIGN_INVESTIGATION">
         <jsp:attribute name="ifAccessGranted">
+          <br>
           <a href="#" title="Assign investigation..."
              onclick="return BS.BulkInvestigateMuteTestDialog.showForTest('${test.testNameId}', '${buildId}', null, '${test.projectExternalId}', false, ${optionalArgs});">Assign investigation...</a>
         </jsp:attribute >
