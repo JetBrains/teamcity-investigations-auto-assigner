@@ -59,10 +59,10 @@ public class AutoAssignerBuildFeature extends BuildFeature {
     final String userName = params.get(Constants.DEFAULT_RESPONSIBLE);
     final String usersToIgnore = params.get(Constants.USERS_TO_IGNORE);
     StringBuilder sb = new StringBuilder();
-    if (StringUtil.isNotEmpty(userName)){
+    if (StringUtil.isNotEmpty(userName)) {
       sb.append("Default responsible: [").append(userName).append("]").append("\n");
     }
-    if (StringUtil.isNotEmpty(usersToIgnore)){
+    if (StringUtil.isNotEmpty(usersToIgnore)) {
       sb.append("Users to ignore: [").append(usersToIgnore).append("]");
     }
     return sb.toString().trim();
