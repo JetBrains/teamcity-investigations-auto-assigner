@@ -59,10 +59,17 @@ public class InvestigationsManager {
   public boolean checkUnderInvestigation(@NotNull final SProject project,
                                          @NotNull final SBuild sBuild,
                                          @NotNull final STest test) {
+    return getInvestigation(project, sBuild, test) != null;
+  }
+
+  @Nullable
+  public TestNameResponsibilityEntry getInvestigation(@NotNull final SProject project,
+                                                      @NotNull final SBuild sBuild,
+                                                      @NotNull final STest test) {
     for (TestNameResponsibilityEntry entry : test.getAllResponsibilities()) {
-      if (isActiveOrAlreadyFixed(sBuild, entry) && belongSameProjectOrParent(entry.getProject(), project)) return true;
+      if (isActiveOrAlreadyFixed(sBuild, entry) && belongSameProjectOrParent(entry.getProject(), project)) return entry;
     }
-    return false;
+    return null;
   }
 
   private boolean isActiveOrAlreadyFixed(@NotNull final SBuild sBuild, @NotNull final ResponsibilityEntry entry) {

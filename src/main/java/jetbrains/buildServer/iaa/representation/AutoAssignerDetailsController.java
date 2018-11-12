@@ -22,10 +22,11 @@ import jetbrains.buildServer.controllers.BaseController;
 import jetbrains.buildServer.iaa.common.Responsibility;
 import jetbrains.buildServer.iaa.utils.AssignerArtifactDao;
 import jetbrains.buildServer.iaa.utils.FlakyTestDetector;
-import jetbrains.buildServer.serverSide.SBuild;
-import jetbrains.buildServer.serverSide.SBuildServer;
-import jetbrains.buildServer.serverSide.STestRun;
+import jetbrains.buildServer.iaa.utils.InvestigationsManager;
+import jetbrains.buildServer.responsibility.TestNameResponsibilityEntry;
+import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.stat.FirstFailedInFixedInCalculator;
+import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.openapi.WebControllerManager;
 import org.jetbrains.annotations.NotNull;
@@ -40,6 +41,7 @@ public class AutoAssignerDetailsController extends BaseController {
   private final AssignerArtifactDao myAssignerArtifactDao;
   private final String myDynamicTestDetailsExtensionPath;
   private final String myCssPath;
+  @NotNull private final InvestigationsManager myInvestigationsManager;
   private final FlakyTestDetector myFlakyTestDetector;
 
   public AutoAssignerDetailsController(final SBuildServer server,
@@ -47,13 +49,15 @@ public class AutoAssignerDetailsController extends BaseController {
                                        @NotNull final AssignerArtifactDao assignerArtifactDao,
                                        @NotNull final WebControllerManager controllerManager,
                                        @NotNull final PluginDescriptor descriptor,
-                                       @NotNull final FlakyTestDetector flakyTestDetector) {
+                                       @NotNull final FlakyTestDetector flakyTestDetector,
+                                       @NotNull final InvestigationsManager investigationsManager) {
     super(server);
     myStatisticsProvider = statisticsProvider;
     myAssignerArtifactDao = assignerArtifactDao;
     myFlakyTestDetector = flakyTestDetector;
     myDynamicTestDetailsExtensionPath = descriptor.getPluginResourcesPath("dynamicTestDetailsExtension.jsp");
     myCssPath = descriptor.getPluginResourcesPath("testDetailsExtension.css");
+    myInvestigationsManager = investigationsManager;
     controllerManager.registerController("/autoAssignerController.html", this);
   }
 
@@ -78,7 +82,7 @@ public class AutoAssignerDetailsController extends BaseController {
     @Nullable SBuild firstFailedBuild = ffiData.getFirstFailedIn();
     Responsibility responsibility = myAssignerArtifactDao.get(firstFailedBuild, sTestRun);
 
-    if (responsibility != null) {
+    if (responsibility != null && !isAlreadyAssignedToSameUser(build, sTestRun.getTest(), responsibility.getUser())) {
       final ModelAndView modelAndView = new ModelAndView( myDynamicTestDetailsExtensionPath);
       modelAndView.getModel().put("userId", responsibility.getUser().getId());
       modelAndView.getModel().put("userName", responsibility.getUser().getDescriptiveName());
@@ -96,5 +100,22 @@ public class AutoAssignerDetailsController extends BaseController {
     }
 
     return null;
+  }
+
+  private boolean isAlreadyAssignedToSameUser(SBuild sBuild, STest sTest, User user) {
+    SBuildType sBuildType = sBuild.getBuildType();
+    if (sBuildType == null) {
+      return false;
+    }
+
+    SProject sProject = sBuildType.getProject();
+
+    @Nullable
+    TestNameResponsibilityEntry investigationEntry = myInvestigationsManager.getInvestigation(sProject, sBuild, sTest);
+    if (investigationEntry == null) {
+      return false;
+    }
+
+    return investigationEntry.getResponsibleUser().getId() == user.getId();
   }
 }
