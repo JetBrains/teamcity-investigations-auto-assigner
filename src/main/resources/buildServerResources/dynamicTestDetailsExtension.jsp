@@ -1,5 +1,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="bs" tagdir="/WEB-INF/tags" %>
+<%@ taglib prefix="authz" tagdir="/WEB-INF/tags/authz" %>
 <style type="text/css">
   <%--@elvariable id="myCssPath" type="java.lang.String"--%>
   @import "${myCssPath}";
@@ -7,6 +8,7 @@
 <div class="investigations-auto-assigner-results">
 
   <%--@elvariable id="buildId" type="java.lang.String"--%>
+  <%--@elvariable id="projectId" type="java.lang.String"--%>
   <%--@elvariable id="testGroupId" type="java.lang.String"--%>
   <%--@elvariable id="test" type="jetbrains.buildServer.serverSide.STest"--%>
   <%--@elvariable id="autoAssignedResponsibility" type="jetbrains.buildServer.iaa.common.Responsibility"--%>
@@ -29,8 +31,12 @@
     </div>
     <div>
       <strong>${autoAssignedResponsibility.user.username}</strong> ${autoAssignedResponsibility.description}.
-      <a href="#" title="Assign investigation..."
-         onclick="return BS.BulkInvestigateMuteTestDialog.showForTest('${test.testNameId}', '${buildId}', null, '${test.projectExternalId}', false, ${optionalArgs});">Assign investigation...</a>
+      <authz:authorize projectId="${projectId}" allPermissions="ASSIGN_INVESTIGATION">
+        <jsp:attribute name="ifAccessGranted">
+          <a href="#" title="Assign investigation..."
+             onclick="return BS.BulkInvestigateMuteTestDialog.showForTest('${test.testNameId}', '${buildId}', null, '${test.projectExternalId}', false, ${optionalArgs});">Assign investigation...</a>
+        </jsp:attribute >
+      </authz:authorize>
     </div>
   </c:if>
 </div>
