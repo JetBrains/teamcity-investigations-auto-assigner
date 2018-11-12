@@ -60,15 +60,11 @@ public class AutoAssignerBuildFeature extends BuildFeature {
     StringBuilder sb = new StringBuilder();
     if (userName != null && !userName.isEmpty()){
       sb.append("Default responsible: [").append(userName).append("]").append("\n");
-    } else {
-      sb.append("Default responsible is not specified").append("\n");
     }
     if (usersToIgnore != null && !usersToIgnore.isEmpty()){
       sb.append("Users to ignore: [").append(usersToIgnore).append("]");
-    } else {
-      sb.append("Users to ignore are not specified");
     }
-    return sb.toString();
+    return sb.toString().trim();
   }
 
   @Override
