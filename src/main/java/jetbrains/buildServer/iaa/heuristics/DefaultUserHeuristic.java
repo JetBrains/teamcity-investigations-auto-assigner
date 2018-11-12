@@ -73,7 +73,7 @@ public class DefaultUserHeuristic implements Heuristic {
       return result;
     }
 
-    Responsibility responsibility = new Responsibility(responsibleUser, "is the default responsible user");
+    Responsibility responsibility = new Responsibility(responsibleUser, "was the default responsible for the builds");
     heuristicContext.getBuildProblems()
                     .forEach(buildProblem -> result.addResponsibility(buildProblem, responsibility));
     heuristicContext.getTestRuns().forEach(testRun -> result.addResponsibility(testRun, responsibility));

@@ -38,9 +38,8 @@ public class Responsibility {
   }
 
   public String getAssignDescription() {
-    return String.format("%s: %s %s",
-                         Constants.BUILD_FEATURE_DISPLAY_NAME,
-                         Constants.REASON_PREFIX_ASSIGN,
+    return String.format("Investigation was automatically assigned to %s who %s.",
+                         myUser.getDescriptiveName(),
                          myDescription);
   }
 

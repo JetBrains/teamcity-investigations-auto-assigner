@@ -22,11 +22,11 @@ import org.testng.annotations.Test;
 @Test
 public class ResponsibilityPersistentInfoTest extends BaseTestCase {
   public void TestFields() {
-    int testRunId = 239;
+    long testNameId = 238L;
     long testInvestigatorId = 239L;
     String testDescription = "testDescription";
-    ResponsibilityPersistentInfo rp = new ResponsibilityPersistentInfo(testRunId, testInvestigatorId, testDescription);
-    assertEquals(testRunId, rp.testRunId);
+    ResponsibilityPersistentInfo rp = new ResponsibilityPersistentInfo(testNameId, testInvestigatorId, testDescription);
+    assertEquals(testNameId, rp.testNameId);
     assertEquals(testInvestigatorId, rp.investigatorId);
     assertEquals(testDescription, rp.description);
   }

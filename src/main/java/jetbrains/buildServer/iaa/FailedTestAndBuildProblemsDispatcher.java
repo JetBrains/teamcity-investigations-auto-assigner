@@ -72,6 +72,14 @@ public class FailedTestAndBuildProblemsDispatcher {
       }
 
       @Override
+      public void buildFinished(@NotNull SRunningBuild build) {
+        FailedBuildInfo failedBuildInfo = myFailedBuilds.get(build.getBuildId());
+        if (failedBuildInfo != null) {
+          processBrokenBuild(failedBuildInfo, build.getBuildId());
+        }
+      }
+
+      @Override
       public void serverShutdown() {
         ThreadUtil.shutdownGracefully(myDaemon, "Investigator-Auto-Assigner Daemon");
       }
@@ -85,7 +93,12 @@ public class FailedTestAndBuildProblemsDispatcher {
     }
   }
 
-  private void processBrokenBuild(final FailedBuildInfo failedBuildInfo, final Long buildKey) {
+  private synchronized void processBrokenBuild(final FailedBuildInfo failedBuildInfo, final Long buildKey) {
+    if (!myFailedBuilds.containsKey(buildKey)) {
+      LOGGER.debug("Build #" + buildKey + " was already processed and removed.");
+      return;
+    }
+
     boolean shouldRemove = failedBuildInfo.getBuild().isFinished();
     myProcessor.processBuild(failedBuildInfo);
 
@@ -98,7 +111,7 @@ public class FailedTestAndBuildProblemsDispatcher {
   }
 
   private static boolean shouldIgnore(@NotNull SBuild build) {
-    return checkFeatureDisabled(build) || build.isPersonal();
+    return build.isPersonal() || (!CustomParameters.isDefaultSilentModeEnabled(build) && checkFeatureDisabled(build));
   }
 
   private static boolean checkFeatureDisabled(@NotNull SBuild build) {

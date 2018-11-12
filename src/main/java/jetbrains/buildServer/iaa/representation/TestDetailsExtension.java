@@ -16,46 +16,20 @@
 
 package jetbrains.buildServer.iaa.representation;
 
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 import jetbrains.buildServer.iaa.common.Constants;
-import jetbrains.buildServer.iaa.common.Responsibility;
-import jetbrains.buildServer.iaa.utils.AssignerArtifactDao;
-import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.web.openapi.PagePlaces;
 import jetbrains.buildServer.web.openapi.PlaceId;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.openapi.SimplePageExtension;
 import org.jetbrains.annotations.NotNull;
 
-import static jetbrains.buildServer.iaa.common.Constants.TEST_RUN_IN_REQUEST;
-
 public class TestDetailsExtension extends SimplePageExtension {
-  private final AssignerArtifactDao myAssignerArtifactDao;
-  private final String myCssPath;
 
   public TestDetailsExtension(@NotNull final PagePlaces pagePlaces,
-                              @NotNull final PluginDescriptor descriptor,
-                              @NotNull final AssignerArtifactDao assignerArtifactDao) {
+                              @NotNull final PluginDescriptor descriptor) {
     super(pagePlaces,
           PlaceId.TEST_DETAILS_BLOCK,
           Constants.BUILD_FEATURE_TYPE,
           descriptor.getPluginResourcesPath("testDetailsExtension.jsp"));
-    myAssignerArtifactDao = assignerArtifactDao;
-    myCssPath = descriptor.getPluginResourcesPath("testDetailsExtension.css");
-  }
-
-  @Override
-  public void fillModel(@NotNull final Map<String, Object> model, @NotNull final HttpServletRequest request) {
-    final Object testRunObject = request.getAttribute(TEST_RUN_IN_REQUEST);
-    model.put("myCssPath", request.getContextPath() + myCssPath);
-
-    if (testRunObject instanceof STestRun) {
-      STestRun sTestRun = (STestRun)testRunObject;
-      Responsibility responsibility = myAssignerArtifactDao.get(sTestRun);
-      if (responsibility != null) {
-        model.put("autoAssignedResponsibility", responsibility);
-      }
-    }
   }
 }

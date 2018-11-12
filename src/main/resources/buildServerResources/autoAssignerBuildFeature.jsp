@@ -29,24 +29,21 @@
   </th>
   <td>
     <props:textProperty name="<%= Constants.DEFAULT_RESPONSIBLE%>" className="longField textProperty_max-width js_max-width"/>
+    <bs:projectData type="UserList" sourceFieldId="<%= Constants.DEFAULT_RESPONSIBLE%>"
+                    targetFieldId="<%= Constants.DEFAULT_RESPONSIBLE%>" popupTitle="Select user name"
+                    selectionMode="single" />
     <span class="smallNote">Username of a user to whom an investigation is assigned if no other possible investigator is found.</span>
   </td>
 </tr>
 <tr>
   <th>
-    <label for="<%= Constants.BLACK_LIST%>">Users to ignore:</label>
+    <label for="<%= Constants.USERS_TO_IGNORE%>">Users to ignore:</label>
   </th>
   <td>
-    <props:textProperty name="<%= Constants.BLACK_LIST%>" className="longField textProperty_max-width js_max-width"/>
+    <props:textProperty name="<%= Constants.USERS_TO_IGNORE%>" className="longField textProperty_max-width js_max-width"/>
+    <bs:projectData type="UserList" sourceFieldId="<%= Constants.USERS_TO_IGNORE%>"
+                    targetFieldId="<%= Constants.USERS_TO_IGNORE%>" popupTitle="Select user names"
+                    selectionMode="multiple" />
     <span class="smallNote">The comma-separated list of usernames to exclude from auto-assignment of investigation.</span>
-  </td>
-</tr>
-<tr>
-  <th>
-    <label for="<%= Constants.SILENT_MODE_ON%>">Enable silent mode:</label>
-  </th>
-  <td>
-    <props:checkboxProperty name="<%= Constants.SILENT_MODE_ON%>"/>Do not assign investigations<br/>
-    <span class="smallNote">Responsibilities won't be assigned in TeamCity. Only log messages about possible investigators.</span>
   </td>
 </tr>

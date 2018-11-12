@@ -36,14 +36,14 @@ See [Wiki](https://github.com/JetBrains/teamcity-investigations-auto-assigner/wi
 To avoid TeamCity server performance degradation, 
 the extension checks builds for new build problems and failed tests and processes them regularly, 
 with a configurable interval. The default is every 120 seconds, which can be changed
-via the `teamcity.autoassigner.processingDelayInSeconds` 
+via the `teamcity.investigationAutoAssigner.processingDelayInSeconds` 
 [TeamCity property](https://confluence.jetbrains.com/display/TCDL/Configuring+TeamCity+Server+Startup+Properties).
 *Restart the server for the changes to take effect.*
  
 2. **Limitation of processed failed tests and build problems:** 
 Currently there is a configurable limit of the number of the processed build problems 
 and failed tests. The default is 100, which can be changed via 
-the `autoassigner.maxTestsPerBuildNumber` [build parameter](https://confluence.jetbrains.com/display/TCDL/Configuring+Build+Parameters).
+the `teamcity.investigationAutoAssigner.maxTestsPerBuildNumber` [build parameter](https://confluence.jetbrains.com/display/TCDL/Configuring+Build+Parameters).
 *The changes will be applied to the build run with the parameter.*
 
 ## Feedback

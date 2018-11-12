@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--suppress AutowiredDependenciesInspection -->
 <beans
-        xmlns="http://www.springframework.org/schema/beans"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
-        default-autowire="constructor"
-        >
+    xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
+    default-autowire="constructor"
+>
   <!-- declare all beans you like Spring Dependency Injection to create -->
   <!-- see http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html -->
 
@@ -38,6 +38,9 @@
   <bean id="previousResponsibleHeuristic" class="jetbrains.buildServer.iaa.heuristics.PreviousResponsibleHeuristic"/>
   <bean id="assignerArtifactDao" class="jetbrains.buildServer.iaa.utils.AssignerArtifactDao"/>
   <bean id="emailReporter" class="jetbrains.buildServer.iaa.utils.EmailReporter"/>
+  <bean class="jetbrains.buildServer.iaa.utils.UserListFetcher"/>
+  <bean id="autoAssignerDetailsController"
+        class="jetbrains.buildServer.iaa.representation.AutoAssignerDetailsController"/>
   <bean class="jetbrains.buildServer.iaa.representation.TestDetailsExtension"
         init-method="register"
         destroy-method="unregister"/>

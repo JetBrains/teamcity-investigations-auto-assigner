@@ -28,7 +28,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class CustomParameters {
   private final static Integer MINIMAL_PROCESSING_DELAY = 5;
-  private final static Integer DEFAULT_PROCESSING_DELAY_IN_SECONDS = 120;
+  private final static Integer DEFAULT_PROCESSING_DELAY_IN_SECONDS = 10 * 60;
 
   @NotNull
   public static List<String> getDefaultResponsible(final SBuild build) {
@@ -48,12 +48,17 @@ public class CustomParameters {
       return Collections.emptyList();
     }
 
-    String usersToIgnore = sBuildFeature.getParameters().get(Constants.BLACK_LIST);
+    String usersToIgnore = sBuildFeature.getParameters().get(Constants.USERS_TO_IGNORE);
     if (usersToIgnore == null) {
       return Collections.emptyList();
     }
 
     return Arrays.stream(usersToIgnore.split(",")).map(String::trim).collect(Collectors.toList());
+  }
+
+  public static boolean isDefaultSilentModeEnabled(final SBuild build) {
+    return Boolean.valueOf(build.getBuildOwnParameters().getOrDefault(Constants.DEFAULT_SILENT_MODE_ENABLED, "true")) &&
+           Boolean.valueOf(TeamCityProperties.getProperty(Constants.DEFAULT_SILENT_MODE_ENABLED, "true"));
   }
 
   @Nullable
@@ -64,13 +69,13 @@ public class CustomParameters {
   }
 
   public static int getProcessingDelayInSeconds() {
-    int value = TeamCityProperties
-      .getInteger("teamcity.autoassigner.processingDelayInSeconds", DEFAULT_PROCESSING_DELAY_IN_SECONDS);
+    int value =
+      TeamCityProperties.getInteger(Constants.PROCESSING_DELAY_IN_SECONDS, DEFAULT_PROCESSING_DELAY_IN_SECONDS);
     return value < MINIMAL_PROCESSING_DELAY ? MINIMAL_PROCESSING_DELAY : value;
   }
 
   public static Integer getMaxTestsPerBuildThreshold(SBuild build) {
-    return parseThreshold(build.getBuildOwnParameters().get("autoassigner.maxTestsPerBuildNumber"));
+    return parseThreshold(build.getBuildOwnParameters().get(Constants.MAX_TESTS_PER_BUILD_NUMBER));
   }
 
   private static int parseThreshold(@Nullable String value) {
@@ -85,14 +90,11 @@ public class CustomParameters {
 
   public boolean isSilentModeOn(@NotNull SBuild build) {
     Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
-    if (descriptors.isEmpty()) throw new IllegalStateException("Descriptors should not be empty");
-
-    final Optional<SBuildFeatureDescriptor> sBuildFeatureOptional = descriptors.stream().findFirst();
-    return Boolean.valueOf(sBuildFeatureOptional.get().getParameters().get(Constants.SILENT_MODE_ON));
+    return descriptors.isEmpty();
   }
 
   @Nullable
   String getEmailForEmailReporter() {
-    return TeamCityProperties.getPropertyOrNull("teamcity.autoassigner.reporter.email");
+    return TeamCityProperties.getPropertyOrNull(Constants.INTERNAL_REPORTER_EMAIL);
   }
 }

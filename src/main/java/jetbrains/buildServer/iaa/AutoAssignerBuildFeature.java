@@ -16,8 +16,10 @@
 
 package jetbrains.buildServer.iaa;
 
+import java.util.Map;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.serverSide.BuildFeature;
+import jetbrains.buildServer.util.StringUtil;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,6 +51,21 @@ public class AutoAssignerBuildFeature extends BuildFeature {
   @Override
   public String getEditParametersUrl() {
     return myEditUrl;
+  }
+
+  @NotNull
+  @Override
+  public String describeParameters(@NotNull Map<String, String> params) {
+    final String userName = params.get(Constants.DEFAULT_RESPONSIBLE);
+    final String usersToIgnore = params.get(Constants.USERS_TO_IGNORE);
+    StringBuilder sb = new StringBuilder();
+    if (StringUtil.isNotEmpty(userName)) {
+      sb.append("Default responsible: ").append(userName).append("\n");
+    }
+    if (StringUtil.isNotEmpty(usersToIgnore)) {
+      sb.append("Users to ignore: ").append(usersToIgnore);
+    }
+    return sb.toString().trim();
   }
 
   @Override
