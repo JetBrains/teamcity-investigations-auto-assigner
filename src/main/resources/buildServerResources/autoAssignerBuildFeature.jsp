@@ -37,12 +37,12 @@
 </tr>
 <tr>
   <th>
-    <label for="<%= Constants.BLACK_LIST%>">Users to ignore:</label>
+    <label for="<%= Constants.USERS_TO_IGNORE%>">Users to ignore:</label>
   </th>
   <td>
-    <props:textProperty name="<%= Constants.BLACK_LIST%>" className="longField textProperty_max-width js_max-width"/>
-    <bs:projectData type="UserList" sourceFieldId="<%= Constants.BLACK_LIST%>"
-                    targetFieldId="<%= Constants.BLACK_LIST%>" popupTitle="Select user names"
+    <props:textProperty name="<%= Constants.USERS_TO_IGNORE%>" className="longField textProperty_max-width js_max-width"/>
+    <bs:projectData type="UserList" sourceFieldId="<%= Constants.USERS_TO_IGNORE%>"
+                    targetFieldId="<%= Constants.USERS_TO_IGNORE%>" popupTitle="Select user names"
                     selectionMode="multiple" />
     <span class="smallNote">The comma-separated list of usernames to exclude from auto-assignment of investigation.</span>
   </td>

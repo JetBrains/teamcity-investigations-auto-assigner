@@ -48,7 +48,7 @@ public class CustomParameters {
       return Collections.emptyList();
     }
 
-    String usersToIgnore = sBuildFeature.getParameters().get(Constants.BLACK_LIST);
+    String usersToIgnore = sBuildFeature.getParameters().get(Constants.USERS_TO_IGNORE);
     if (usersToIgnore == null) {
       return Collections.emptyList();
     }
@@ -69,13 +69,13 @@ public class CustomParameters {
   }
 
   public static int getProcessingDelayInSeconds() {
-    int value = TeamCityProperties
-      .getInteger("teamcity.autoassigner.processingDelayInSeconds", DEFAULT_PROCESSING_DELAY_IN_SECONDS);
+    int value =
+      TeamCityProperties.getInteger(Constants.PROCESSING_DELAY_IN_SECONDS, DEFAULT_PROCESSING_DELAY_IN_SECONDS);
     return value < MINIMAL_PROCESSING_DELAY ? MINIMAL_PROCESSING_DELAY : value;
   }
 
   public static Integer getMaxTestsPerBuildThreshold(SBuild build) {
-    return parseThreshold(build.getBuildOwnParameters().get("autoassigner.maxTestsPerBuildNumber"));
+    return parseThreshold(build.getBuildOwnParameters().get(Constants.MAX_TESTS_PER_BUILD_NUMBER));
   }
 
   private static int parseThreshold(@Nullable String value) {
@@ -95,6 +95,6 @@ public class CustomParameters {
 
   @Nullable
   String getEmailForEmailReporter() {
-    return TeamCityProperties.getPropertyOrNull("teamcity.autoassigner.reporter.email");
+    return TeamCityProperties.getPropertyOrNull(Constants.INTERNAL_REPORTER_EMAIL);
   }
 }

@@ -56,7 +56,7 @@ public class AutoAssignerBuildFeature extends BuildFeature {
   @Override
   public String describeParameters(@NotNull Map<String, String> params) {
     final String userName = params.get(Constants.DEFAULT_RESPONSIBLE);
-    final String usersToIgnore = params.get(Constants.BLACK_LIST);
+    final String usersToIgnore = params.get(Constants.USERS_TO_IGNORE);
     StringBuilder sb = new StringBuilder();
     if (userName != null && !userName.isEmpty()){
       sb.append("Default responsible: [").append(userName).append("]").append("\n");

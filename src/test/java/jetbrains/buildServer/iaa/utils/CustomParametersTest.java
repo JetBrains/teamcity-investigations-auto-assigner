@@ -49,14 +49,14 @@ public class CustomParametersTest extends BaseTestCase {
     Mockito.when(sBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE))
            .thenReturn(Collections.singletonList(sBuildFeatureDescriptor));
     Map<String, String> params = new HashMap<>();
-    params.put(Constants.BLACK_LIST, "username1");
+    params.put(Constants.USERS_TO_IGNORE, "username1");
     Mockito.when(sBuildFeatureDescriptor.getParameters()).thenReturn(params);
     assertListEquals(CustomParameters.getBlackList(sBuildMock), "username1");
 
-    params.put(Constants.BLACK_LIST, "username2 ");
+    params.put(Constants.USERS_TO_IGNORE, "username2 ");
     assertListEquals(CustomParameters.getBlackList(sBuildMock), "username2");
 
-    params.put(Constants.BLACK_LIST, "  username3    ");
+    params.put(Constants.USERS_TO_IGNORE, "  username3    ");
     assertListEquals(CustomParameters.getBlackList(sBuildMock), "username3");
   }
 
@@ -67,7 +67,7 @@ public class CustomParametersTest extends BaseTestCase {
     Mockito.when(sBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE))
            .thenReturn(Collections.singletonList(sBuildFeatureDescriptor));
     Map<String, String> params = new HashMap<>();
-    params.put(Constants.BLACK_LIST, "username1, username2, username3");
+    params.put(Constants.USERS_TO_IGNORE, "username1, username2, username3");
     Mockito.when(sBuildFeatureDescriptor.getParameters()).thenReturn(params);
     assertListEquals(CustomParameters.getBlackList(sBuildMock), "username1", "username2", "username3");
   }

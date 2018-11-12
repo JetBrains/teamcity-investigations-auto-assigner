@@ -22,9 +22,13 @@ public class Constants {
   public static final String BUILD_FEATURE_DISPLAY_NAME = "Investigations Auto Assigner";
 
   // Parameter names
-  public static final String DEFAULT_RESPONSIBLE = "teamcity.iaa.defaultResponsible";
+  public static final String DEFAULT_RESPONSIBLE = "teamcity.investigationAutoAssigner.internal.defaultResponsible";
+  public static final String USERS_TO_IGNORE = "teamcity.investigationAutoAssigner.internal.usersToIgnore";
+  public static final String INTERNAL_REPORTER_EMAIL = "teamcity.investigationAutoAssigner.internal.reporterEmail";
+
   public static final String DEFAULT_SILENT_MODE_ENABLED = "teamcity.investigationAutoAssigner.defaultSilentModeOn";
-  public static final String BLACK_LIST = "teamcity.iaa.blackList";
+  public static final String PROCESSING_DELAY_IN_SECONDS = "teamcity.investigationAutoAssigner.processingDelayInSeconds";
+  public static final String MAX_TESTS_PER_BUILD_NUMBER = "teamcity.investigationAutoAssigner.maxTestsPerBuildNumber";
 
   //Message constants
   static final String REASON_PREFIX_ASSIGN = "You were chosen as probable responsible because you";
