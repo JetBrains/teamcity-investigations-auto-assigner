@@ -56,14 +56,9 @@ public class CustomParameters {
     return Arrays.stream(usersToIgnore.split(",")).map(String::trim).collect(Collectors.toList());
   }
 
-  public static boolean isDefaultSilentModeDisabled(final SBuild build) {
-    boolean isDisabledInBuild =
-      !Boolean.valueOf(build.getBuildOwnParameters().getOrDefault(Constants.DEFAULT_SILENT_MODE_ENABLED, "true"));
-    if (isDisabledInBuild) {
-      return true;
-    }
-
-    return !Boolean.valueOf(TeamCityProperties.getProperty(Constants.DEFAULT_SILENT_MODE_ENABLED, "true"));
+  public static boolean isDefaultSilentModeEnabled(final SBuild build) {
+    return Boolean.valueOf(build.getBuildOwnParameters().getOrDefault(Constants.DEFAULT_SILENT_MODE_ENABLED, "true")) &&
+           Boolean.valueOf(TeamCityProperties.getProperty(Constants.DEFAULT_SILENT_MODE_ENABLED, "true"));
   }
 
   @Nullable
