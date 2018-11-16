@@ -1,6 +1,6 @@
 <%@ include file="/include-internal.jsp" %>
 <%@ taglib prefix="props" tagdir="/WEB-INF/tags/props" %>
-<%@ page import="jetbrains.buildServer.iaa.common.Constants" %>
+<%@ page import="jetbrains.buildServer.investigationsAutoAssigner.common.Constants" %>
 <jsp:useBean id="buildForm" type="jetbrains.buildServer.controllers.admin.projects.BuildTypeForm" scope="request"/>
 
 <script type="text/javascript">

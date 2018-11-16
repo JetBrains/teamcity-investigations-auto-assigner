@@ -9,19 +9,19 @@
   <!-- declare all beans you like Spring Dependency Injection to create -->
   <!-- see http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html -->
 
-  <bean class="jetbrains.buildServer.iaa.FailedTestAndBuildProblemsDispatcher"/>
+  <bean class="jetbrains.buildServer.investigationsAutoAssigner.FailedTestAndBuildProblemsDispatcher"/>
 
-  <bean class="jetbrains.buildServer.iaa.AutoAssignerBuildFeature"/>
-  <bean class="jetbrains.buildServer.iaa.processing.FailedTestAndBuildProblemsProcessor"/>
-  <bean class="jetbrains.buildServer.iaa.processing.FailedTestFilter"/>
-  <bean class="jetbrains.buildServer.iaa.processing.BuildProblemsFilter"/>
-  <bean class="jetbrains.buildServer.iaa.utils.BuildProblemUtils"/>
-  <bean class="jetbrains.buildServer.iaa.processing.FailedTestAssigner"/>
-  <bean class="jetbrains.buildServer.iaa.processing.BuildProblemsAssigner"/>
-  <bean class="jetbrains.buildServer.iaa.utils.InvestigationsManager"/>
-  <bean class="jetbrains.buildServer.iaa.utils.FlakyTestDetector"/>
-  <bean class="jetbrains.buildServer.iaa.utils.ProblemTextExtractor"/>
-  <bean class="jetbrains.buildServer.iaa.processing.ResponsibleUserFinder">
+  <bean class="jetbrains.buildServer.investigationsAutoAssigner.AutoAssignerBuildFeature"/>
+  <bean class="jetbrains.buildServer.investigationsAutoAssigner.processing.FailedTestAndBuildProblemsProcessor"/>
+  <bean class="jetbrains.buildServer.investigationsAutoAssigner.processing.FailedTestFilter"/>
+  <bean class="jetbrains.buildServer.investigationsAutoAssigner.processing.BuildProblemsFilter"/>
+  <bean class="jetbrains.buildServer.investigationsAutoAssigner.utils.BuildProblemUtils"/>
+  <bean class="jetbrains.buildServer.investigationsAutoAssigner.processing.FailedTestAssigner"/>
+  <bean class="jetbrains.buildServer.investigationsAutoAssigner.processing.BuildProblemsAssigner"/>
+  <bean class="jetbrains.buildServer.investigationsAutoAssigner.utils.InvestigationsManager"/>
+  <bean class="jetbrains.buildServer.investigationsAutoAssigner.utils.FlakyTestDetector"/>
+  <bean class="jetbrains.buildServer.investigationsAutoAssigner.utils.ProblemTextExtractor"/>
+  <bean class="jetbrains.buildServer.investigationsAutoAssigner.processing.ResponsibleUserFinder">
     <constructor-arg index="0">
       <list>
         <ref bean="oneCommitterHeuristic"/>
@@ -31,17 +31,17 @@
       </list>
     </constructor-arg>
   </bean>
-  <bean id="oneCommitterHeuristic" class="jetbrains.buildServer.iaa.heuristics.OneCommitterHeuristic"/>
-  <bean id="customParameters" class="jetbrains.buildServer.iaa.utils.CustomParameters"/>
-  <bean id="brokenFileHeuristic" class="jetbrains.buildServer.iaa.heuristics.BrokenFileHeuristic"/>
-  <bean id="defaultUserHeuristic" class="jetbrains.buildServer.iaa.heuristics.DefaultUserHeuristic"/>
-  <bean id="previousResponsibleHeuristic" class="jetbrains.buildServer.iaa.heuristics.PreviousResponsibleHeuristic"/>
-  <bean id="assignerArtifactDao" class="jetbrains.buildServer.iaa.utils.AssignerArtifactDao"/>
-  <bean id="emailReporter" class="jetbrains.buildServer.iaa.utils.EmailReporter"/>
-  <bean class="jetbrains.buildServer.iaa.representation.AssignInvestigationController"/>
+  <bean id="oneCommitterHeuristic" class="jetbrains.buildServer.investigationsAutoAssigner.heuristics.OneCommitterHeuristic"/>
+  <bean id="customParameters" class="jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters"/>
+  <bean id="brokenFileHeuristic" class="jetbrains.buildServer.investigationsAutoAssigner.heuristics.BrokenFileHeuristic"/>
+  <bean id="defaultUserHeuristic" class="jetbrains.buildServer.investigationsAutoAssigner.heuristics.DefaultUserHeuristic"/>
+  <bean id="previousResponsibleHeuristic" class="jetbrains.buildServer.investigationsAutoAssigner.heuristics.PreviousResponsibleHeuristic"/>
+  <bean id="assignerArtifactDao" class="jetbrains.buildServer.investigationsAutoAssigner.utils.AssignerArtifactDao"/>
+  <bean id="emailReporter" class="jetbrains.buildServer.investigationsAutoAssigner.utils.EmailReporter"/>
+  <bean class="jetbrains.buildServer.investigationsAutoAssigner.representation.AssignInvestigationController"/>
   <bean id="autoAssignerDetailsController"
-        class="jetbrains.buildServer.iaa.representation.AutoAssignerDetailsController"/>
-  <bean class="jetbrains.buildServer.iaa.representation.TestDetailsExtension"
+        class="jetbrains.buildServer.investigationsAutoAssigner.representation.AutoAssignerDetailsController"/>
+  <bean class="jetbrains.buildServer.investigationsAutoAssigner.representation.TestDetailsExtension"
         init-method="register"
         destroy-method="unregister"/>
 </beans>

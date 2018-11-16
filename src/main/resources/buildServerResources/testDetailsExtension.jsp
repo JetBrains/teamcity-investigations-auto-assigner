@@ -1,4 +1,4 @@
-<%-- Referenced from jetbrains.buildServer.iaa.representation.TestDetailsExtension --%>
+<%-- Referenced from jetbrains.buildServer.investigationsAutoAssigner.representation.TestDetailsExtension --%>
 <%@ include file="/include.jsp" %>
 <%@ taglib prefix="util" uri="/WEB-INF/functions/util" %>
 
