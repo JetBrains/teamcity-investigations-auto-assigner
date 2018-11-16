@@ -18,19 +18,24 @@ package jetbrains.buildServer.iaa.common;
 
 public class Constants {
   // Plugin's ids
-  public static final String BUILD_FEATURE_TYPE = "investigations-auto-assigner";
-  public static final String BUILD_FEATURE_DISPLAY_NAME = "Investigations Auto Assigner";
+  public static final String BUILD_FEATURE_TYPE = "InvestigationAutoAssigner";
+  public static final String BUILD_FEATURE_DISPLAY_NAME = "Investigation Auto Assigner";
 
-  // Parameter names
-  public static final String DEFAULT_RESPONSIBLE = "teamcity.investigationAutoAssigner.internal.defaultResponsible";
-  public static final String USERS_TO_IGNORE = "teamcity.investigationAutoAssigner.internal.usersToIgnore";
-  public static final String INTERNAL_REPORTER_EMAIL = "teamcity.investigationAutoAssigner.internal.reporterEmail";
+   // Build feature parameters
+  public static final String DEFAULT_RESPONSIBLE = "defaultAssignee.username";
+  public static final String USERS_TO_IGNORE = "excludeAssignees.usernames";
+  
+  // Build configuration parameter and internal property
+  public static final String DEFAULT_SILENT_MODE_ENABLED = "teamcity.investigationAutoAssigner.enabledByDefault";
+  
+  // Server internal properties (debug use only)
+  public static final String INTERNAL_REPORTER_EMAIL = "teamcity.investigationAutoAssigner.copyReport.emailAddress";
+  public static final String PROCESSING_DELAY_IN_SECONDS = "teamcity.investigationAutoAssigner.scheduledTaskInterval.seconds";
+  
+  // Build parameter
+  public static final String MAX_TESTS_PER_BUILD_NUMBER = "teamcity.investigationAutoAssigner.maxTestsFailuresToProcessPerBuild";
 
-  public static final String DEFAULT_SILENT_MODE_ENABLED = "teamcity.investigationAutoAssigner.defaultSilentModeOn";
-  public static final String PROCESSING_DELAY_IN_SECONDS = "teamcity.investigationAutoAssigner.processingDelayInSeconds";
-  public static final String MAX_TESTS_PER_BUILD_NUMBER = "teamcity.investigationAutoAssigner.maxTestsPerBuildNumber";
-
-  //Constants
+  //TeamCity API constants
   public static final String TC_COMPILATION_ERROR_TYPE = "TC_COMPILATION_ERROR";
   public final static String TEAMCITY_DIRECTORY = ".teamcity";
   public final static String TEST_RUN_IN_REQUEST = "loadedTestRun";
