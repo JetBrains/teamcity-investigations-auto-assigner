@@ -38,7 +38,6 @@
   <bean id="previousResponsibleHeuristic" class="jetbrains.buildServer.iaa.heuristics.PreviousResponsibleHeuristic"/>
   <bean id="assignerArtifactDao" class="jetbrains.buildServer.iaa.utils.AssignerArtifactDao"/>
   <bean id="emailReporter" class="jetbrains.buildServer.iaa.utils.EmailReporter"/>
-  <bean class="jetbrains.buildServer.iaa.utils.UserListFetcher"/>
   <bean id="autoAssignerDetailsController"
         class="jetbrains.buildServer.iaa.representation.AutoAssignerDetailsController"/>
   <bean class="jetbrains.buildServer.iaa.representation.TestDetailsExtension"

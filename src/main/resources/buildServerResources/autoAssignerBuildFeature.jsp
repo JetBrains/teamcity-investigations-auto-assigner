@@ -29,9 +29,6 @@
   </th>
   <td>
     <props:textProperty name="<%= Constants.DEFAULT_RESPONSIBLE%>" className="longField textProperty_max-width js_max-width"/>
-    <bs:projectData type="UserList" sourceFieldId="<%= Constants.DEFAULT_RESPONSIBLE%>"
-                    targetFieldId="<%= Constants.DEFAULT_RESPONSIBLE%>" popupTitle="Select user name"
-                    selectionMode="single" />
     <span class="smallNote">Username of a user to whom an investigation is assigned if no other possible investigator is found.</span>
   </td>
 </tr>
@@ -41,9 +38,6 @@
   </th>
   <td>
     <props:textProperty name="<%= Constants.USERS_TO_IGNORE%>" className="longField textProperty_max-width js_max-width"/>
-    <bs:projectData type="UserList" sourceFieldId="<%= Constants.USERS_TO_IGNORE%>"
-                    targetFieldId="<%= Constants.USERS_TO_IGNORE%>" popupTitle="Select user names"
-                    selectionMode="multiple" />
     <span class="smallNote">The comma-separated list of usernames to exclude from auto-assignment of investigation.</span>
   </td>
 </tr>
