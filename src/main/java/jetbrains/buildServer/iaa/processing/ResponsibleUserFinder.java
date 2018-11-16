@@ -44,7 +44,7 @@ public class ResponsibleUserFinder {
     }
 
     HeuristicResult result = new HeuristicResult();
-    List<String> usernamesBlackList = CustomParameters.getBlackList(sBuild);
+    List<String> usernamesBlackList = CustomParameters.getUsersToIgnore(sBuild);
     for (Heuristic heuristic : myOrderedHeuristics) {
       HeuristicContext heuristicContext =
         new HeuristicContext(sBuild, sProject, buildProblems, testRuns, usernamesBlackList);

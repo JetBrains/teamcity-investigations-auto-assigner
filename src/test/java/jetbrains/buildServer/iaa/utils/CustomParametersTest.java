@@ -36,13 +36,13 @@ public class CustomParametersTest extends BaseTestCase {
     super.setUp();
   }
 
-  public void getBlackListTestNoDescriptor() {
+  public void getUsersToIgnoreTestNoDescriptor() {
     SBuild sBuildMock = Mockito.mock(SBuild.class);
     Mockito.when(sBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE)).thenReturn(Collections.emptyList());
-    assertListEquals(CustomParameters.getBlackList(sBuildMock));
+    assertListEquals(CustomParameters.getUsersToIgnore(sBuildMock));
   }
 
-  public void getBlackListTestHasOneInList() {
+  public void getUsersToIgnoreTestHasOneInList() {
     SBuild sBuildMock = Mockito.mock(SBuild.class);
     SBuildFeatureDescriptor sBuildFeatureDescriptor =
       Mockito.mock(jetbrains.buildServer.serverSide.SBuildFeatureDescriptor.class);
@@ -51,24 +51,24 @@ public class CustomParametersTest extends BaseTestCase {
     Map<String, String> params = new HashMap<>();
     params.put(Constants.USERS_TO_IGNORE, "username1");
     Mockito.when(sBuildFeatureDescriptor.getParameters()).thenReturn(params);
-    assertListEquals(CustomParameters.getBlackList(sBuildMock), "username1");
+    assertListEquals(CustomParameters.getUsersToIgnore(sBuildMock), "username1");
 
     params.put(Constants.USERS_TO_IGNORE, "username2 ");
-    assertListEquals(CustomParameters.getBlackList(sBuildMock), "username2");
+    assertListEquals(CustomParameters.getUsersToIgnore(sBuildMock), "username2");
 
     params.put(Constants.USERS_TO_IGNORE, "  username3    ");
-    assertListEquals(CustomParameters.getBlackList(sBuildMock), "username3");
+    assertListEquals(CustomParameters.getUsersToIgnore(sBuildMock), "username3");
   }
 
-  public void getBlackListTestHasTwo() {
+  public void getUsersToIgnoreTestHasTwo() {
     SBuild sBuildMock = Mockito.mock(SBuild.class);
     SBuildFeatureDescriptor sBuildFeatureDescriptor =
       Mockito.mock(jetbrains.buildServer.serverSide.SBuildFeatureDescriptor.class);
     Mockito.when(sBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE))
            .thenReturn(Collections.singletonList(sBuildFeatureDescriptor));
     Map<String, String> params = new HashMap<>();
-    params.put(Constants.USERS_TO_IGNORE, "username1, username2, username3");
+    params.put(Constants.USERS_TO_IGNORE, "username1\nusername2\nusername3");
     Mockito.when(sBuildFeatureDescriptor.getParameters()).thenReturn(params);
-    assertListEquals(CustomParameters.getBlackList(sBuildMock), "username1", "username2", "username3");
+    assertListEquals(CustomParameters.getUsersToIgnore(sBuildMock), "username1", "username2", "username3");
   }
 }

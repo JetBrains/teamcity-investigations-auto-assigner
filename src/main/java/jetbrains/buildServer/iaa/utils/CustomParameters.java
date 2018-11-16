@@ -42,7 +42,7 @@ public class CustomParameters {
   }
 
   @NotNull
-  public static List<String> getBlackList(final SBuild build) {
+  public static List<String> getUsersToIgnore(final SBuild build) {
     final SBuildFeatureDescriptor sBuildFeature = getBuildFeatureDescriptor(build);
     if (sBuildFeature == null) {
       return Collections.emptyList();
@@ -53,7 +53,7 @@ public class CustomParameters {
       return Collections.emptyList();
     }
 
-    return Arrays.stream(usersToIgnore.split(",")).map(String::trim).collect(Collectors.toList());
+    return Arrays.stream(usersToIgnore.split("\n")).map(String::trim).collect(Collectors.toList());
   }
 
   public static boolean isDefaultSilentModeEnabled(final SBuild build) {

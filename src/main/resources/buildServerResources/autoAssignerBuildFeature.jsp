@@ -37,7 +37,8 @@
     <label for="<%= Constants.USERS_TO_IGNORE%>">Users to ignore:</label>
   </th>
   <td>
-    <props:textProperty name="<%= Constants.USERS_TO_IGNORE%>" className="longField textProperty_max-width js_max-width"/>
+    <props:multilineProperty name="<%= Constants.USERS_TO_IGNORE%>" cols="58" rows="6" linkTitle="Edit users to ignore"
+                             expanded="true" className="longField"/>
     <span class="smallNote">The comma-separated list of usernames to exclude from auto-assignment of investigation.</span>
   </td>
 </tr>

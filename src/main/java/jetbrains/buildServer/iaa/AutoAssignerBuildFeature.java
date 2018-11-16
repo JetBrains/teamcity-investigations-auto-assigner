@@ -16,6 +16,7 @@
 
 package jetbrains.buildServer.iaa;
 
+import java.util.Arrays;
 import java.util.Map;
 import jetbrains.buildServer.iaa.common.Constants;
 import jetbrains.buildServer.serverSide.BuildFeature;
@@ -63,7 +64,8 @@ public class AutoAssignerBuildFeature extends BuildFeature {
       sb.append("Default responsible: ").append(userName).append("\n");
     }
     if (StringUtil.isNotEmpty(usersToIgnore)) {
-      sb.append("Users to ignore: ").append(usersToIgnore);
+      String usersToIgnoreOneLine = StringUtil.join(", ", Arrays.asList(usersToIgnore.split("\n")));
+      sb.append("Users to ignore: ").append(usersToIgnoreOneLine);
     }
     return sb.toString().trim();
   }
