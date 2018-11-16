@@ -58,6 +58,7 @@ public class FailedTestAndBuildProblemsDispatcher {
             CustomParameters.getProcessingDelayInSeconds(),
             CustomParameters.getProcessingDelayInSeconds(),
             TimeUnit.SECONDS);
+    FailedTestAndBuildProblemsDispatcher instance = this;
 
     buildServerListenerEventDispatcher.addListener(new BuildServerAdapter() {
       @Override
@@ -75,7 +76,7 @@ public class FailedTestAndBuildProblemsDispatcher {
       public void buildFinished(@NotNull SRunningBuild build) {
         FailedBuildInfo failedBuildInfo = myFailedBuilds.get(build.getBuildId());
         if (failedBuildInfo != null) {
-          processBrokenBuild(failedBuildInfo, build.getBuildId());
+          myDaemon.execute(() -> instance.processBrokenBuild(failedBuildInfo, build.getBuildId()));
         }
       }
 
