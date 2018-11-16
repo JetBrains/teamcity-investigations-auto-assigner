@@ -24,27 +24,39 @@
     </c:set>
     <c:set var="optionalArgs">
       {
-        comment: ${escapedComment},
-        responsibilityRemovalMethod: 0,
-        investigatorId: ${userId}
+      comment: ${escapedComment},
+      responsibilityRemovalMethod: 0,
+      investigatorId: ${userId}
       }
     </c:set>
     <div>
       <authz:authorize projectId="${projectId}" allPermissions="ASSIGN_INVESTIGATION">
         <jsp:attribute name="ifAccessGranted">
-          <span class="btn-group investigations-auto-assigner-btn-group" >
+          <span class="btn-group investigations-auto-assigner-btn-group">
             <button class="btn btn_mini action investigations-auto-assigner-btn" type="button"
-                    onclick="return BS.BulkInvestigateMuteTestDialog.showForTest('${test.testNameId}', '${buildId}', null, '${test.projectExternalId}', false, ${optionalArgs});"
+                    onclick="return BS.ajaxUpdater('empty-div', 'assignInvestigation.html',
+                        {
+                          method: 'put',
+                          parameters: {
+                          userId : ${userId},
+                          testNameId: ${test.testNameId},
+                          buildId: ${buildId},
+                          description: ${escapedComment}
+                        },
+                        evalScripts: true,
+                        onComplete: BS.reload(true)
+                        });"
                     title="Assign investigation">Assign investigation to ${userName}</button><button
               class="btn btn_mini btn_append investigations-auto-assigner-btn-append" type="button"
-                     onclick="return BS.BulkInvestigateMuteTestDialog.showForTest('${test.testNameId}', '${buildId}', null, '${test.projectExternalId}', false, ${optionalArgs});"
-                     title="Custom investigation assignment">...</button>
+              onclick="return BS.BulkInvestigateMuteTestDialog.showForTest('${test.testNameId}', '${buildId}', null, '${test.projectExternalId}', false, ${optionalArgs});"
+              title="Custom investigation assignment">...</button>
           </span>
-        </jsp:attribute >
+        </jsp:attribute>
       </authz:authorize>
       <div class="investigations-auto-assigner-description">
         <bs:out value='${userName}'/> ${shownDescription}.
       </div>
+      <div id="empty-div"></div>
     </div>
   </c:if>
 </div>
