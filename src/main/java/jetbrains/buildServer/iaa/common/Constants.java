@@ -29,7 +29,7 @@ public class Constants {
   public static final String DEFAULT_SILENT_MODE_ENABLED = "teamcity.investigationAutoAssigner.enabledByDefault";
   
   // Server internal properties (debug use only)
-  public static final String INTERNAL_REPORTER_EMAIL = "teamcity.investigationAutoAssigner.copyReport.emailAddress";
+  public static final String INTERNAL_REPORTER_EMAIL = "teamcity.investigationAutoAssigner.debugEmailAddress";
   public static final String PROCESSING_DELAY_IN_SECONDS = "teamcity.investigationAutoAssigner.scheduledTaskInterval.seconds";
   
   // Build parameter
