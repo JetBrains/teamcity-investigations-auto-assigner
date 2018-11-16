@@ -71,8 +71,7 @@ public class PreviousResponsibleHeuristic implements Heuristic {
       }
 
       if (responsibleUser != null) {
-        String description = String.format("assigned as responsible for the test: `%s` in build `%s` previous time",
-                                           sTest.getName(), sBuild.getFullName());
+        String description = String.format("was previously responsible for the test %s", sTest.getName());
 
         result.addResponsibility(sTestRun, new Responsibility(responsibleUser, description));
       }
