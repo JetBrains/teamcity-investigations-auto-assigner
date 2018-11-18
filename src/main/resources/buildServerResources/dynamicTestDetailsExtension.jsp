@@ -38,8 +38,8 @@
                         {
                           method: 'put',
                           parameters: {
-                          userId : ${userId},
-                          testNameId: ${test.testNameId},
+                          userId : '${userId}',
+                          testNameId: '${test.testNameId}',
                           buildId: ${buildId},
                           description: ${escapedComment}
                         },
