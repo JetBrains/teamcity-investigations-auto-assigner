@@ -17,6 +17,8 @@
 package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
@@ -39,7 +41,7 @@ public class FailedTestFilter {
   private final FlakyTestDetector myFlakyTestDetector;
 
   public FailedTestFilter(@NotNull FlakyTestDetector flakyTestDetector,
-                   @NotNull final InvestigationsManager investigationsManager) {
+                          @NotNull final InvestigationsManager investigationsManager) {
     myFlakyTestDetector = flakyTestDetector;
     myInvestigationsManager = investigationsManager;
   }
@@ -47,12 +49,13 @@ public class FailedTestFilter {
   List<STestRun> apply(final FailedBuildInfo failedBuildInfo, final SProject sProject, final List<STestRun> testRuns) {
     SBuild sBuild = failedBuildInfo.getBuild();
     Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
-
-    List<STestRun> filteredTestRuns = testRuns.stream()
-                                              .filter(failedBuildInfo::checkNotProcessed)
-                                              .filter(testRun -> isApplicable(sProject, sBuild, testRun))
-                                              .limit(threshold - failedBuildInfo.processed)
-                                              .collect(Collectors.toList());
+    List<STestRun> orderedTestRuns = new ArrayList<>(testRuns);
+    orderedTestRuns.sort(Comparator.comparingInt(STestRun::getOrderId));
+    List<STestRun> filteredTestRuns = orderedTestRuns.stream()
+                                                     .filter(failedBuildInfo::checkNotProcessed)
+                                                     .filter(testRun -> isApplicable(sProject, sBuild, testRun))
+                                                     .limit(threshold - failedBuildInfo.processed)
+                                                     .collect(Collectors.toList());
 
     failedBuildInfo.addProcessedTestRuns(testRuns);
     failedBuildInfo.processed += filteredTestRuns.size();
