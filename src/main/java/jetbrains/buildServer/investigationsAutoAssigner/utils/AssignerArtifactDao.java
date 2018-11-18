@@ -154,8 +154,13 @@ public class AssignerArtifactDao {
 
       try (BufferedReader reader = Files.newBufferedReader(resultsFilePath)) {
         persistentBuildInfo = myGson.fromJson(reader, ResponsibilityPersistentInfo[].class);
-        LOGGER.debug(String.format("%s Read %s stored investigations",
-                                   Utils.getLogPrefix(testRun), persistentBuildInfo.length));
+        if (persistentBuildInfo == null) {
+          LOGGER.warn(String.format("%s: Json format is incorrect", Utils.getLogPrefix(testRun)));
+          return null;
+        } else {
+          LOGGER.debug(String.format("%s Read %s stored investigations",
+                                     Utils.getLogPrefix(testRun), persistentBuildInfo.length));
+        }
       }
     } catch (IOException ex) {
       LOGGER.error(String.format("%s An error occurs during reading of file with results",
