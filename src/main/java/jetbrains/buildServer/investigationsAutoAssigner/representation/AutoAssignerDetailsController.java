@@ -72,9 +72,9 @@ public class AutoAssignerDetailsController extends BaseController {
     if (build == null) return null;
 
     STestRun sTestRun = build.getBuildStatistics(ALL_TESTS_NO_DETAILS).findTestByTestRunId(testId);
-    if (sTestRun == null) return null;
-
-    if (myFlakyTestDetector.isFlaky(sTestRun.getTest().getTestNameId())) {
+    if (sTestRun == null ||
+        myFlakyTestDetector.isFlaky(sTestRun.getTest().getTestNameId()) ||
+        isUnderInvestigation(build, sTestRun.getTest())) {
       return null;
     }
     final FirstFailedInFixedInCalculator.FFIData ffiData = myStatisticsProvider.calculateFFIData(sTestRun);
@@ -82,8 +82,8 @@ public class AutoAssignerDetailsController extends BaseController {
     @Nullable SBuild firstFailedBuild = ffiData.getFirstFailedIn();
     Responsibility responsibility = myAssignerArtifactDao.get(firstFailedBuild, sTestRun);
 
-    if (responsibility != null && !isAlreadyAssignedToSameUser(build, sTestRun.getTest(), responsibility.getUser())) {
-      final ModelAndView modelAndView = new ModelAndView( myDynamicTestDetailsExtensionPath);
+    if (responsibility != null) {
+      final ModelAndView modelAndView = new ModelAndView(myDynamicTestDetailsExtensionPath);
       modelAndView.getModel().put("userId", responsibility.getUser().getId());
       modelAndView.getModel().put("userName", responsibility.getUser().getDescriptiveName());
       String shownDescription = responsibility.getDescription();
@@ -102,20 +102,14 @@ public class AutoAssignerDetailsController extends BaseController {
     return null;
   }
 
-  private boolean isAlreadyAssignedToSameUser(SBuild sBuild, STest sTest, User user) {
+  private boolean isUnderInvestigation(SBuild sBuild, STest sTest) {
     SBuildType sBuildType = sBuild.getBuildType();
-    if (sBuildType == null) {
-      return false;
-    }
-
+    if (sBuildType == null) return false;
     SProject sProject = sBuildType.getProject();
 
     @Nullable
     TestNameResponsibilityEntry investigationEntry = myInvestigationsManager.getInvestigation(sProject, sBuild, sTest);
-    if (investigationEntry == null) {
-      return false;
-    }
 
-    return investigationEntry.getResponsibleUser().getId() == user.getId();
+    return investigationEntry != null;
   }
 }
