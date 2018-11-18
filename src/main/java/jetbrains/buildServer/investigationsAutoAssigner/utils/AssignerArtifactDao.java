@@ -49,15 +49,17 @@ public class AssignerArtifactDao {
                                      @NotNull List<STestRun> testRuns,
                                      @NotNull HeuristicResult heuristicResult) {
     try {
+      List<ResponsibilityPersistentInfo> infoToAdd = new ArrayList<>(getPersistentInfoList(testRuns, heuristicResult));
+      if (infoToAdd.isEmpty()) return;
+
       Path resultsFilePath = this.getAssignerResultFilePath(build);
       List<ResponsibilityPersistentInfo> previouslyAdded = readPreviouslyAdded(resultsFilePath);
-      List<ResponsibilityPersistentInfo> infoToAdd = new ArrayList<>(previouslyAdded);
+      infoToAdd.addAll(previouslyAdded);
       LOGGER.debug(String.format("Build %s :: Read %s previously added investigations",
                                  build.getBuildId(), previouslyAdded.size()));
-      infoToAdd.addAll(getPersistentInfoList(testRuns, heuristicResult));
 
       try (BufferedWriter writer =
-             Files.newBufferedWriter(getAssignerResultFilePath(build), StandardCharsets.UTF_8)) {
+             Files.newBufferedWriter(resultsFilePath, StandardCharsets.UTF_8)) {
         myGson.toJson(infoToAdd, writer);
         LOGGER.debug(String.format("Build %s :: Wrote %s new found investigations",
                                    build.getBuildId(), infoToAdd.size() - previouslyAdded.size()));
@@ -83,9 +85,10 @@ public class AssignerArtifactDao {
     return result;
   }
 
+  @NotNull
   private List<ResponsibilityPersistentInfo> readPreviouslyAdded(Path resultsFilePath) throws IOException {
 
-    if (Files.exists(resultsFilePath)) {
+    if (Files.exists(resultsFilePath) && Files.size(resultsFilePath) != 0) {
       try (BufferedReader reader = Files.newBufferedReader(resultsFilePath)) {
         return Arrays.asList(myGson.fromJson(reader, ResponsibilityPersistentInfo[].class));
       }
@@ -96,6 +99,21 @@ public class AssignerArtifactDao {
 
   @NotNull
   private Path getAssignerResultFilePath(@NotNull final SBuild build) throws IOException {
+    Path resultPath = getAssignerResultFilePath(build, true);
+    if (resultPath == null) {
+      throw new IllegalStateException("The path for artifact supposed to be created");
+    }
+
+    return resultPath;
+  }
+
+  @Nullable
+  private Path getAssignerResultFilePathIfExist(@NotNull final SBuild build) throws IOException {
+    return getAssignerResultFilePath(build, false);
+  }
+
+  @Nullable
+  private Path getAssignerResultFilePath(@NotNull final SBuild build, boolean createIfNotExist) throws IOException {
     Path artifactDirectoryPath = build.getArtifactsDirectory().toPath();
     Path teamcityDirectoryPath = artifactDirectoryPath.resolve(Constants.TEAMCITY_DIRECTORY);
     if (!Files.exists(teamcityDirectoryPath)) {
@@ -104,10 +122,23 @@ public class AssignerArtifactDao {
 
     Path autoAssignerDirectoryPath = teamcityDirectoryPath.resolve(Constants.BUILD_FEATURE_TYPE);
     if (!Files.exists(autoAssignerDirectoryPath)) {
-      Files.createDirectory(autoAssignerDirectoryPath);
+      if (createIfNotExist) {
+        Files.createDirectory(autoAssignerDirectoryPath);
+      } else {
+        return null;
+      }
     }
 
-    return autoAssignerDirectoryPath.resolve("results.json");
+    Path resultsPath = autoAssignerDirectoryPath.resolve("results.json");
+    if (!Files.exists(resultsPath)) {
+      if (createIfNotExist) {
+        Files.createFile(resultsPath);
+      } else {
+        return null;
+      }
+    }
+
+    return resultsPath;
   }
 
   @Nullable
@@ -115,9 +146,9 @@ public class AssignerArtifactDao {
     ResponsibilityPersistentInfo[] persistentBuildInfo;
     try {
       Path resultsFilePath = firstFailedBuild != null ?
-                             this.getAssignerResultFilePath(firstFailedBuild) :
-                             this.getAssignerResultFilePath(testRun.getBuild());
-      if (!Files.exists(resultsFilePath)) {
+                             this.getAssignerResultFilePathIfExist(firstFailedBuild) :
+                             this.getAssignerResultFilePathIfExist(testRun.getBuild());
+      if (resultsFilePath == null) {
         return null;
       }
 
@@ -132,7 +163,7 @@ public class AssignerArtifactDao {
       throw new RuntimeException("An error occurs during reading of file with results");
     }
 
-    for (ResponsibilityPersistentInfo persistentInfo: persistentBuildInfo) {
+    for (ResponsibilityPersistentInfo persistentInfo : persistentBuildInfo) {
       if (persistentInfo.testNameId == testRun.getTest().getTestNameId()) {
         LOGGER.debug(String.format("%s Investigation for testRun %s was found",
                                    Utils.getLogPrefix(testRun), testRun.getTestRunId()));
