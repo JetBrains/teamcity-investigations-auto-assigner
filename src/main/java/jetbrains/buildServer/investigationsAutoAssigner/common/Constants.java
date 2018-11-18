@@ -16,6 +16,9 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.common;
 
+import jetbrains.buildServer.ArtifactsConstants;
+import jetbrains.buildServer.BuildProblemTypes;
+
 public class Constants {
   // Plugin's ids
   public static final String BUILD_FEATURE_TYPE = "investigations-auto-assigner";
@@ -31,8 +34,8 @@ public class Constants {
   public static final String MAX_TESTS_PER_BUILD_NUMBER = "teamcity.investigationAutoAssigner.maxTestsPerBuildNumber";
 
   //Constants
-  public static final String TC_COMPILATION_ERROR_TYPE = "TC_COMPILATION_ERROR";
-  public final static String TEAMCITY_DIRECTORY = ".teamcity";
+  public static final String TC_COMPILATION_ERROR_TYPE = BuildProblemTypes.TC_COMPILATION_ERROR_TYPE;
+  public final static String TEAMCITY_DIRECTORY = ArtifactsConstants.TEAMCITY_ARTIFACTS_DIR;
   public final static String TEST_RUN_IN_REQUEST = "loadedTestRun";
 
 }
