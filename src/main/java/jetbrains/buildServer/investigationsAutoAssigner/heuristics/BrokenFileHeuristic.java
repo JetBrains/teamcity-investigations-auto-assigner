@@ -41,7 +41,7 @@ public class BrokenFileHeuristic implements Heuristic {
   private static final Logger LOGGER = Logger.getInstance(BrokenFileHeuristic.class.getName());
   private final ProblemTextExtractor myProblemTextExtractor;
 
-  BrokenFileHeuristic(ProblemTextExtractor problemTextExtractor) {
+  public BrokenFileHeuristic(ProblemTextExtractor problemTextExtractor) {
     myProblemTextExtractor = problemTextExtractor;
   }
 

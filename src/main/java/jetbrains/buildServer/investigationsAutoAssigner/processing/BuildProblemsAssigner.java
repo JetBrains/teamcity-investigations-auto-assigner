@@ -32,12 +32,12 @@ import jetbrains.buildServer.serverSide.problems.BuildProblemInfo;
 import jetbrains.buildServer.util.Dates;
 import org.jetbrains.annotations.NotNull;
 
-class BuildProblemsAssigner {
+public class BuildProblemsAssigner {
 
   private static final Logger LOGGER = Logger.getInstance(BuildProblemsAssigner.class.getName());
   @NotNull private final BuildProblemResponsibilityFacade myBuildProblemResponsibilityFacade;
 
-  BuildProblemsAssigner(@NotNull final BuildProblemResponsibilityFacade buildProblemResponsibilityFacade) {
+  public BuildProblemsAssigner(@NotNull final BuildProblemResponsibilityFacade buildProblemResponsibilityFacade) {
     myBuildProblemResponsibilityFacade = buildProblemResponsibilityFacade;
   }
 

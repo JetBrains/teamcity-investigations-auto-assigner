@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 @Component
-class BuildProblemsFilter {
+public class BuildProblemsFilter {
 
   private static final Logger LOGGER = Logger.getInstance(BuildProblemsFilter.class.getName());
   private final BuildProblemUtils myBuildProblemUtils;
@@ -42,7 +42,7 @@ class BuildProblemsFilter {
     Collections.unmodifiableSet(Collections.singleton(Constants.TC_COMPILATION_ERROR_TYPE));
 
 
-  BuildProblemsFilter(@NotNull final InvestigationsManager investigationsManager,
+  public BuildProblemsFilter(@NotNull final InvestigationsManager investigationsManager,
                       @NotNull final BuildProblemUtils buildProblemUtils) {
     myInvestigationsManager = investigationsManager;
     myBuildProblemUtils = buildProblemUtils;

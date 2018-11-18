@@ -41,7 +41,7 @@ public class InvestigationsManager {
   @NotNull private final AuditLogProvider myAuditLogProvider;
   @NotNull private final ResponsibilityFacadeEx myResponsibilityFacade;
 
-  InvestigationsManager(@NotNull final AuditLogProvider auditLogProvider,
+  public InvestigationsManager(@NotNull final AuditLogProvider auditLogProvider,
                         @NotNull final ResponsibilityFacadeEx responsibilityFacade) {
     this.myAuditLogProvider = auditLogProvider;
     myResponsibilityFacade = responsibilityFacade;

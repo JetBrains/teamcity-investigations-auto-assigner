@@ -36,7 +36,7 @@ public class PreviousResponsibleHeuristic implements Heuristic {
   private static final Logger LOGGER = Logger.getInstance(PreviousResponsibleHeuristic.class.getName());
   private InvestigationsManager myInvestigationsManager;
 
-  PreviousResponsibleHeuristic(InvestigationsManager investigationsManager) {
+  public PreviousResponsibleHeuristic(InvestigationsManager investigationsManager) {
     myInvestigationsManager = investigationsManager;
   }
 

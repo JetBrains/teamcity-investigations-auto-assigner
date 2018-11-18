@@ -30,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 public class ResponsibleUserFinder {
   private List<Heuristic> myOrderedHeuristics;
 
-  ResponsibleUserFinder(@NotNull final List<Heuristic> orderedHeuristics) {
+  public ResponsibleUserFinder(@NotNull final List<Heuristic> orderedHeuristics) {
     myOrderedHeuristics = orderedHeuristics;
   }
 

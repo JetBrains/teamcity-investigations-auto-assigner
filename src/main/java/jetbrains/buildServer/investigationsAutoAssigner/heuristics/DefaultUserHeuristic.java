@@ -35,7 +35,7 @@ public class DefaultUserHeuristic implements Heuristic {
 
   @NotNull private UserModelEx myUserModel;
 
-  DefaultUserHeuristic(@NotNull final UserModelEx userModel) {
+  public DefaultUserHeuristic(@NotNull final UserModelEx userModel) {
     myUserModel = userModel;
   }
 

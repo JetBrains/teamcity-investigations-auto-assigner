@@ -32,13 +32,13 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 @Component
-class FailedTestFilter {
+public class FailedTestFilter {
 
   private static final Logger LOGGER = Logger.getInstance(FailedTestFilter.class.getName());
   private final InvestigationsManager myInvestigationsManager;
   private final FlakyTestDetector myFlakyTestDetector;
 
-  FailedTestFilter(@NotNull FlakyTestDetector flakyTestDetector,
+  public FailedTestFilter(@NotNull FlakyTestDetector flakyTestDetector,
                    @NotNull final InvestigationsManager investigationsManager) {
     myFlakyTestDetector = flakyTestDetector;
     myInvestigationsManager = investigationsManager;

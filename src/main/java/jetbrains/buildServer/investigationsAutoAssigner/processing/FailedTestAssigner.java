@@ -32,11 +32,11 @@ import jetbrains.buildServer.tests.TestName;
 import jetbrains.buildServer.util.Dates;
 import org.jetbrains.annotations.NotNull;
 
-class FailedTestAssigner {
+public class FailedTestAssigner {
   @NotNull private final TestNameResponsibilityFacade myTestNameResponsibilityFacade;
   private static final Logger LOGGER = Logger.getInstance(FailedTestAssigner.class.getName());
 
-  FailedTestAssigner(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade) {
+  public FailedTestAssigner(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade) {
     myTestNameResponsibilityFacade = testNameResponsibilityFacade;
   }
 
