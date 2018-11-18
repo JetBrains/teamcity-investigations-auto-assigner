@@ -17,11 +17,11 @@
 package jetbrains.buildServer.investigationsAutoAssigner.utils;
 
 class ResponsibilityPersistentInfo {
-  long testNameId;
-  long investigatorId;
+  String testNameId;
+  String investigatorId;
   String description;
 
-  ResponsibilityPersistentInfo(long testNameId, long investigatorId, String description) {
+  ResponsibilityPersistentInfo(String testNameId, String investigatorId, String description) {
     this.testNameId = testNameId;
     this.investigatorId = investigatorId;
     this.description = description;

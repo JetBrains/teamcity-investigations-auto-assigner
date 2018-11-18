@@ -22,8 +22,8 @@ import org.testng.annotations.Test;
 @Test
 public class ResponsibilityPersistentInfoTest extends BaseTestCase {
   public void TestFields() {
-    long testNameId = 238L;
-    long testInvestigatorId = 239L;
+    String testNameId = "238";
+    String testInvestigatorId = "239";
     String testDescription = "testDescription";
     ResponsibilityPersistentInfo rp = new ResponsibilityPersistentInfo(testNameId, testInvestigatorId, testDescription);
     assertEquals(testNameId, rp.testNameId);
