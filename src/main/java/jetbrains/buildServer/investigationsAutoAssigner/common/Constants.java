@@ -37,5 +37,6 @@ public class Constants {
   public static final String TC_COMPILATION_ERROR_TYPE = BuildProblemTypes.TC_COMPILATION_ERROR_TYPE;
   public final static String TEAMCITY_DIRECTORY = ArtifactsConstants.TEAMCITY_ARTIFACTS_DIR;
   public final static String TEST_RUN_IN_REQUEST = "loadedTestRun";
+  public final static int DEFAULT_TEST_COUNT_THRESHOLD = 100;
 
 }

@@ -74,17 +74,19 @@ public class CustomParameters {
     return value < MINIMAL_PROCESSING_DELAY ? MINIMAL_PROCESSING_DELAY : value;
   }
 
-  public static Integer getMaxTestsPerBuildThreshold(SBuild build) {
-    return parseThreshold(build.getBuildOwnParameters().get(Constants.MAX_TESTS_PER_BUILD_NUMBER));
-  }
-
-  private static int parseThreshold(@Nullable String value) {
-    final int DEFAULT_TEST_COUNT_THRESHOLD = 100;
-    if (value == null) {
-      return DEFAULT_TEST_COUNT_THRESHOLD;
+  public static int getMaxTestsPerBuildThreshold(SBuild build) {
+    @Nullable
+    String maxTestsPerBuildNumber = build.getBuildOwnParameters().get(Constants.MAX_TESTS_PER_BUILD_NUMBER);
+    if (StringUtil.isNotEmpty(maxTestsPerBuildNumber)) {
+      return parseThreshold(maxTestsPerBuildNumber);
     }
 
-    int parsedValue = StringUtil.parseInt(value, DEFAULT_TEST_COUNT_THRESHOLD);
+    return parseThreshold(TeamCityProperties.getProperty(Constants.MAX_TESTS_PER_BUILD_NUMBER,
+                                                         String.valueOf(Constants.DEFAULT_TEST_COUNT_THRESHOLD)));
+  }
+
+  private static int parseThreshold(@NotNull String value) {
+    int parsedValue = StringUtil.parseInt(value, Constants.DEFAULT_TEST_COUNT_THRESHOLD);
     return parsedValue >= 0 ? parsedValue : Integer.MAX_VALUE;
   }
 
