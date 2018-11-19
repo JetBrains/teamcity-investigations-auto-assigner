@@ -21,17 +21,22 @@ import jetbrains.buildServer.BuildProblemTypes;
 
 public class Constants {
   // Plugin's ids
-  public static final String BUILD_FEATURE_TYPE = "investigations-auto-assigner";
+  public static final String BUILD_FEATURE_TYPE = "InvestigationsAutoAssigner";
   public static final String BUILD_FEATURE_DISPLAY_NAME = "Investigations Auto Assigner";
 
-  // Parameter names
-  public static final String DEFAULT_RESPONSIBLE = "teamcity.investigationAutoAssigner.internal.defaultResponsible";
-  public static final String USERS_TO_IGNORE = "teamcity.investigationAutoAssigner.internal.usersToIgnore";
-  public static final String INTERNAL_REPORTER_EMAIL = "teamcity.investigationAutoAssigner.internal.reporterEmail";
+  // Build feature parameters
+  public static final String DEFAULT_RESPONSIBLE = "defaultAssignee.username";
+  public static final String USERS_TO_IGNORE = "excludeAssignees.usernames";
 
-  public static final String DEFAULT_SILENT_MODE_ENABLED = "teamcity.investigationAutoAssigner.defaultSilentModeOn";
-  public static final String PROCESSING_DELAY_IN_SECONDS = "teamcity.investigationAutoAssigner.processingDelayInSeconds";
-  public static final String MAX_TESTS_PER_BUILD_NUMBER = "teamcity.investigationAutoAssigner.maxTestsPerBuildNumber";
+  // Build configuration parameter and internal property
+  public static final String DEFAULT_SILENT_MODE_ENABLED = "teamcity.investigationsAutoAssigner.suggestions.enabledByDefault";
+  public static final String MAX_TESTS_PER_BUILD_NUMBER = "teamcity.investigationsAutoAssigner.maxTestsFailuresToProcessPerBuild";
+
+  // Server internal properties
+  public static final String PROCESSING_DELAY_IN_SECONDS = "teamcity.investigationsAutoAssigner.scheduledTaskInterval.seconds";
+
+  // Server internal properties (debug use only)
+  public static final String INTERNAL_REPORTER_EMAIL = "teamcity.investigationsAutoAssigner.debugEmailAddress";
 
   //Constants
   public static final String TC_COMPILATION_ERROR_TYPE = BuildProblemTypes.TC_COMPILATION_ERROR_TYPE;
