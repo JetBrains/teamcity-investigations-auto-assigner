@@ -30,6 +30,7 @@ import jetbrains.buildServer.investigationsAutoAssigner.processing.FailedTestAnd
 import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.EmailReporter;
 import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.util.NamedThreadFactory;
 import jetbrains.buildServer.util.ThreadUtil;
 import jetbrains.buildServer.util.executors.ExecutorsFactory;
 import org.jetbrains.annotations.NotNull;
@@ -59,7 +60,6 @@ public class FailedTestAndBuildProblemsDispatcher {
             CustomParameters.getProcessingDelayInSeconds(),
             TimeUnit.SECONDS);
     FailedTestAndBuildProblemsDispatcher instance = this;
-
     buildServerListenerEventDispatcher.addListener(new BuildServerAdapter() {
       @Override
       public void buildProblemsChanged(@NotNull SBuild sBuild,
@@ -76,7 +76,7 @@ public class FailedTestAndBuildProblemsDispatcher {
       public void buildFinished(@NotNull SRunningBuild build) {
         FailedBuildInfo failedBuildInfo = myFailedBuilds.get(build.getBuildId());
         if (failedBuildInfo != null) {
-          myDaemon.execute(() -> instance.processBrokenBuild(failedBuildInfo, build.getBuildId()));
+          myDaemon.execute(() -> instance.processFinishedBuild(failedBuildInfo, build.getBuildId()));
         }
       }
 
@@ -88,10 +88,23 @@ public class FailedTestAndBuildProblemsDispatcher {
   }
 
   private void processBrokenBuildsOneThread() {
+    NamedThreadFactory.executeWithNewThreadName(String.format("%s: Processing %s builds",
+                                                              Constants.BUILD_FEATURE_TYPE,
+                                                              myFailedBuilds.size()), this::processBrokenBuilds);
+  }
+
+  private void processBrokenBuilds() {
     for (Map.Entry<Long, FailedBuildInfo> entry : myFailedBuilds.entrySet()) {
       FailedBuildInfo failedBuildInfo = entry.getValue();
       processBrokenBuild(failedBuildInfo, entry.getKey());
     }
+  }
+
+  private void processFinishedBuild(@NotNull final FailedBuildInfo failedBuildInfo,
+                                    @NotNull final Long buildKey) {
+    NamedThreadFactory.executeWithNewThreadName(
+      String.format("%s: Processing finished build %s ", Constants.BUILD_FEATURE_TYPE, myFailedBuilds.size()),
+      () -> this.processBrokenBuild(failedBuildInfo, buildKey));
   }
 
   private synchronized void processBrokenBuild(final FailedBuildInfo failedBuildInfo, final Long buildKey) {
