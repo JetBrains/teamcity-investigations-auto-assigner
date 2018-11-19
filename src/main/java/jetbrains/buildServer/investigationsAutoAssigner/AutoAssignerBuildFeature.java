@@ -74,4 +74,7 @@ public class AutoAssignerBuildFeature extends BuildFeature {
   public boolean isMultipleFeaturesPerBuildTypeAllowed() {
     return false;
   }
+
+  @Override
+  public boolean isRequiresAgent() { return false; }
 }
