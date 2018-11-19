@@ -88,9 +88,9 @@ public class FailedTestAndBuildProblemsDispatcher {
   }
 
   private void processBrokenBuildsOneThread() {
-    NamedThreadFactory.executeWithNewThreadName(String.format("%s: Processing %s builds",
-                                                              Constants.BUILD_FEATURE_TYPE,
-                                                              myFailedBuilds.size()), this::processBrokenBuilds);
+    String description = String.format("Investigations auto-assigner: processing %s builds in background",
+                                       myFailedBuilds.size());
+    NamedThreadFactory.executeWithNewThreadName(description, this::processBrokenBuilds);
   }
 
   private void processBrokenBuilds() {
@@ -102,9 +102,9 @@ public class FailedTestAndBuildProblemsDispatcher {
 
   private void processFinishedBuild(@NotNull final FailedBuildInfo failedBuildInfo,
                                     @NotNull final Long buildKey) {
-    NamedThreadFactory.executeWithNewThreadName(
-      String.format("%s: Processing finished build %s ", Constants.BUILD_FEATURE_TYPE, myFailedBuilds.size()),
-      () -> this.processBrokenBuild(failedBuildInfo, buildKey));
+    String description = String.format("Investigations auto-assigner: processing finished build %s in background",
+                                       buildKey);
+    NamedThreadFactory.executeWithNewThreadName(description, () -> this.processBrokenBuild(failedBuildInfo, buildKey));
   }
 
   private synchronized void processBrokenBuild(final FailedBuildInfo failedBuildInfo, final Long buildKey) {
