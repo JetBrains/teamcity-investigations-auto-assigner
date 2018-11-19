@@ -16,17 +16,19 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.representation;
 
+import java.util.Collection;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import jetbrains.buildServer.controllers.BaseController;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.AssignerArtifactDao;
+import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.FlakyTestDetector;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.InvestigationsManager;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityEntry;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.stat.FirstFailedInFixedInCalculator;
-import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.openapi.WebControllerManager;
 import org.jetbrains.annotations.NotNull;
@@ -69,7 +71,9 @@ public class AutoAssignerDetailsController extends BaseController {
     final int testId = Integer.parseInt(request.getParameter("testId"));
 
     final SBuild build = myServer.findBuildInstanceById(buildId);
-    if (build == null) return null;
+    if (build == null || (!CustomParameters.isDefaultSilentModeEnabled(build) && checkFeatureDisabled(build))) {
+      return null;
+    }
 
     STestRun sTestRun = build.getBuildStatistics(ALL_TESTS_NO_DETAILS).findTestByTestRunId(testId);
     if (sTestRun == null ||
@@ -100,6 +104,11 @@ public class AutoAssignerDetailsController extends BaseController {
     }
 
     return null;
+  }
+
+  private static boolean checkFeatureDisabled(@NotNull SBuild build) {
+    Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
+    return descriptors.isEmpty();
   }
 
   private boolean isUnderInvestigation(SBuild sBuild, STest sTest) {
