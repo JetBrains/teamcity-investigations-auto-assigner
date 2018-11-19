@@ -54,7 +54,7 @@ public class FailedTestAndBuildProblemsDispatcher {
     myProcessor = processor;
     myEmailReporter = emailReporter;
     myFailedBuilds = new ConcurrentHashMap<>();
-    myDaemon = ExecutorsFactory.newFixedScheduledDaemonExecutor("Investigator-Auto-Assigner-", 1);
+    myDaemon = ExecutorsFactory.newFixedScheduledDaemonExecutor(Constants.BUILD_FEATURE_TYPE, 1);
     myDaemon.scheduleWithFixedDelay(this::processBrokenBuildsOneThread,
             CustomParameters.getProcessingDelayInSeconds(),
             CustomParameters.getProcessingDelayInSeconds(),
