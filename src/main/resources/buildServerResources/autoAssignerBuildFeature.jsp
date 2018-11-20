@@ -39,6 +39,6 @@
   <td>
     <props:multilineProperty name="<%= Constants.USERS_TO_IGNORE%>" cols="58" rows="6" linkTitle="Edit users to ignore"
                              expanded="true" className="longField"/>
-    <span class="smallNote">The comma-separated list of usernames to exclude from auto-assignment of investigation.</span>
+    <span class="smallNote">The newline-separated list of usernames to exclude from investigation auto-assignment.</span>
   </td>
 </tr>
