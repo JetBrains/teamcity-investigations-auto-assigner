@@ -128,7 +128,7 @@ public class AssignerArtifactDao {
       throw new RuntimeException("TeamCity directory does not exist");
     }
 
-    Path autoAssignerDirectoryPath = teamcityDirectoryPath.resolve(Constants.BUILD_FEATURE_TYPE);
+    Path autoAssignerDirectoryPath = teamcityDirectoryPath.resolve(Constants.ARTIFACT_DIRECTORY);
     if (!Files.exists(autoAssignerDirectoryPath)) {
       if (createIfNotExist) {
         Files.createDirectory(autoAssignerDirectoryPath);
@@ -137,7 +137,7 @@ public class AssignerArtifactDao {
       }
     }
 
-    Path resultsPath = autoAssignerDirectoryPath.resolve("suggestions.json");
+    Path resultsPath = autoAssignerDirectoryPath.resolve(Constants.ARTIFACT_FILENAME);
     if (!Files.exists(resultsPath)) {
       if (createIfNotExist) {
         Files.createFile(resultsPath);

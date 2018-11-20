@@ -43,5 +43,6 @@ public class Constants {
   public final static String TEAMCITY_DIRECTORY = ArtifactsConstants.TEAMCITY_ARTIFACTS_DIR;
   public final static String TEST_RUN_IN_REQUEST = "loadedTestRun";
   public final static int DEFAULT_TEST_COUNT_THRESHOLD = 100;
-
+  public final static String ARTIFACT_DIRECTORY = "investigationsAutoAssigner";
+  public static final String ARTIFACT_FILENAME = "suggestions.json";
 }
