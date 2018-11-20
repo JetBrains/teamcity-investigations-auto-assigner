@@ -24,23 +24,26 @@
     </c:set>
     <c:set var="optionalArgs">
       {
-        comment: ${escapedComment},
-        responsibilityRemovalMethod: 0,
-        investigatorId: ${userId}
+      comment: ${escapedComment},
+      responsibilityRemovalMethod: 0,
+      investigatorId: ${userId}
       }
     </c:set>
     <div>
-      <strong>Suggested investigation assignment:</strong>
-    </div>
-    <div>
-      <bs:out value='${userName}'/> ${shownDescription}.
       <authz:authorize projectId="${projectId}" allPermissions="ASSIGN_INVESTIGATION">
         <jsp:attribute name="ifAccessGranted">
-          <br>
-          <a href="#" title="Assign investigation..."
-             onclick="return BS.BulkInvestigateMuteTestDialog.showForTest('${test.testNameId}', '${buildId}', null, '${test.projectExternalId}', false, ${optionalArgs});">Assign investigation...</a>
-        </jsp:attribute >
+          <span class="btn-group investigations-auto-assigner-btn-group">
+            <button
+                class="btn btn_mini action investigations-auto-assigner-btn" type="button"
+                onclick="return BS.BulkInvestigateMuteTestDialog.showForTest('${test.testNameId}', '${buildId}', null, '${test.projectExternalId}', false, ${optionalArgs});"
+                title="Custom investigation assignment">Assign investigation to ${userName}...</button>
+          </span>
+        </jsp:attribute>
       </authz:authorize>
+      <div class="investigations-auto-assigner-description">
+        <bs:out value='${userName}'/> ${shownDescription}.
+      </div>
+      <div id="empty-div"></div>
     </div>
   </c:if>
 </div>

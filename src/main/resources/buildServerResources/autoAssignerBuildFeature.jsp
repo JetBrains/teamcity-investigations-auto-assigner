@@ -1,6 +1,6 @@
 <%@ include file="/include-internal.jsp" %>
 <%@ taglib prefix="props" tagdir="/WEB-INF/tags/props" %>
-<%@ page import="jetbrains.buildServer.iaa.common.Constants" %>
+<%@ page import="jetbrains.buildServer.investigationsAutoAssigner.common.Constants" %>
 <jsp:useBean id="buildForm" type="jetbrains.buildServer.controllers.admin.projects.BuildTypeForm" scope="request"/>
 
 <script type="text/javascript">
@@ -29,9 +29,6 @@
   </th>
   <td>
     <props:textProperty name="<%= Constants.DEFAULT_RESPONSIBLE%>" className="longField textProperty_max-width js_max-width"/>
-    <bs:projectData type="UserList" sourceFieldId="<%= Constants.DEFAULT_RESPONSIBLE%>"
-                    targetFieldId="<%= Constants.DEFAULT_RESPONSIBLE%>" popupTitle="Select user name"
-                    selectionMode="single" />
     <span class="smallNote">Username of a user to whom an investigation is assigned if no other possible investigator is found.</span>
   </td>
 </tr>
@@ -40,10 +37,8 @@
     <label for="<%= Constants.USERS_TO_IGNORE%>">Users to ignore:</label>
   </th>
   <td>
-    <props:textProperty name="<%= Constants.USERS_TO_IGNORE%>" className="longField textProperty_max-width js_max-width"/>
-    <bs:projectData type="UserList" sourceFieldId="<%= Constants.USERS_TO_IGNORE%>"
-                    targetFieldId="<%= Constants.USERS_TO_IGNORE%>" popupTitle="Select user names"
-                    selectionMode="multiple" />
-    <span class="smallNote">The comma-separated list of usernames to exclude from auto-assignment of investigation.</span>
+    <props:multilineProperty name="<%= Constants.USERS_TO_IGNORE%>" cols="58" rows="6" linkTitle="Edit users to ignore"
+                             expanded="true" className="longField"/>
+    <span class="smallNote">The newline-separated list of usernames to exclude from investigation auto-assignment.</span>
   </td>
 </tr>

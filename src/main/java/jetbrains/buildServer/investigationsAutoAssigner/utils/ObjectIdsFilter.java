@@ -14,33 +14,22 @@
  * limitations under the License.
  */
 
-.investigations-auto-assigner-results {
-  max-width: 500px;
-  padding: 0.5em 1em;
-  border-width: 0;
-  margin-top: 0.5em;
-  margin-bottom: 0.5em;
-  display: block;
-}
+package jetbrains.buildServer.investigationsAutoAssigner.utils;
 
-.investigations-auto-assigner-btn-group {
-  margin-bottom: 4px;
-}
+import java.util.Set;
+import jetbrains.buildServer.serverSide.audit.AuditLogAction;
+import jetbrains.buildServer.serverSide.audit.AuditLogFilter;
+import org.jetbrains.annotations.NotNull;
 
-.investigations-auto-assigner-btn-group {
-  margin-bottom: 4px;
-}
+class ObjectIdsFilter implements AuditLogFilter {
+  @NotNull
+  private final Set<String> myObjectIds;
 
-.investigations-auto-assigner-btn {
-  padding: 2px 8px 2px 8px;
-}
+  ObjectIdsFilter(@NotNull Set<String> objectIds) {
+    this.myObjectIds = objectIds;
+  }
 
-.investigations-auto-assigner-btn-append {
-  padding: 2px 0 2px 0;
-}
-
-.investigations-auto-assigner-description {
-  font-size: 12px;
-  line-height: 16px;
-  color: #737577;
+  public boolean accept(@NotNull AuditLogAction action) {
+    return this.myObjectIds.contains(action.getObjectId());
+  }
 }
