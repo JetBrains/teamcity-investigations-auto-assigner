@@ -49,13 +49,12 @@ public class FailedTestFilter {
   List<STestRun> apply(final FailedBuildInfo failedBuildInfo, final SProject sProject, final List<STestRun> testRuns) {
     SBuild sBuild = failedBuildInfo.getBuild();
     Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
-    List<STestRun> orderedTestRuns = new ArrayList<>(testRuns);
-    orderedTestRuns.sort(Comparator.comparingInt(STestRun::getOrderId));
-    List<STestRun> filteredTestRuns = orderedTestRuns.stream()
-                                                     .filter(failedBuildInfo::checkNotProcessed)
-                                                     .filter(testRun -> isApplicable(sProject, sBuild, testRun))
-                                                     .limit(threshold - failedBuildInfo.processed)
-                                                     .collect(Collectors.toList());
+    List<STestRun> filteredTestRuns = testRuns.stream()
+                                              .sorted(Comparator.comparingInt(STestRun::getOrderId))
+                                              .filter(failedBuildInfo::checkNotProcessed)
+                                              .filter(testRun -> isApplicable(sProject, sBuild, testRun))
+                                              .limit(threshold - failedBuildInfo.processed)
+                                              .collect(Collectors.toList());
 
     failedBuildInfo.addProcessedTestRuns(testRuns);
     failedBuildInfo.processed += filteredTestRuns.size();
