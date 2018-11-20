@@ -16,18 +16,14 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.utils;
 
-import jetbrains.buildServer.BaseTestCase;
-import org.testng.annotations.Test;
+import java.util.List;
 
-@Test
-public class ResponsibilityPersistentInfoTest extends BaseTestCase {
-  public void TestFields() {
-    String testNameId = "238";
-    String testInvestigatorId = "239";
-    String testReason = "testReason";
-    ResponsibilityPersistentInfo rp = new ResponsibilityPersistentInfo(testNameId, testInvestigatorId, testReason);
-    assertEquals(testNameId, rp.testNameId);
-    assertEquals(testInvestigatorId, rp.investigatorId);
-    assertEquals(testReason, rp.reason);
+class ArtifactContent {
+  String serverUUID;
+  List<ResponsibilityPersistentInfo> suggestions;
+
+  ArtifactContent(String serverUUID, List<ResponsibilityPersistentInfo> suggestions) {
+    this.serverUUID = serverUUID;
+    this.suggestions = suggestions;
   }
 }

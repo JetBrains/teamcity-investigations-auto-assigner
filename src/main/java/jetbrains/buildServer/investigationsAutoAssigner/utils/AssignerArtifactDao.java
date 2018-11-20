@@ -30,6 +30,7 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.STestRun;
+import jetbrains.buildServer.serverSide.impl.ServerSettingsImpl;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.users.UserModelEx;
 import org.jetbrains.annotations.NotNull;
@@ -37,12 +38,15 @@ import org.jetbrains.annotations.Nullable;
 
 public class AssignerArtifactDao {
   private final Gson myGson;
+  private final ServerSettingsImpl mySettings;
   private UserModelEx myUserModel;
   private static final Logger LOGGER = Logger.getInstance(AssignerArtifactDao.class.getName());
 
-  public AssignerArtifactDao(@NotNull final UserModelEx userModel) {
+  public AssignerArtifactDao(@NotNull final UserModelEx userModel,
+                             @NotNull final ServerSettingsImpl settings) {
     myUserModel = userModel;
     myGson = new Gson();
+    mySettings = settings;
   }
 
   public void appendHeuristicsResult(@NotNull SBuild build,
@@ -60,7 +64,8 @@ public class AssignerArtifactDao {
 
       try (BufferedWriter writer =
              Files.newBufferedWriter(resultsFilePath, StandardCharsets.UTF_8)) {
-        myGson.toJson(infoToAdd, writer);
+        ArtifactContent artifactContent = new ArtifactContent(mySettings.getServerUUID(), infoToAdd);
+        myGson.toJson(artifactContent, writer);
         LOGGER.debug(String.format("Build %s :: Wrote %s new found investigations",
                                    build.getBuildId(), infoToAdd.size() - previouslyAdded.size()));
       }
@@ -90,7 +95,10 @@ public class AssignerArtifactDao {
 
     if (Files.exists(resultsFilePath) && Files.size(resultsFilePath) != 0) {
       try (BufferedReader reader = Files.newBufferedReader(resultsFilePath)) {
-        return Arrays.asList(myGson.fromJson(reader, ResponsibilityPersistentInfo[].class));
+        ArtifactContent artifactContent = myGson.fromJson(reader, ArtifactContent.class);
+        if (artifactContent != null) {
+          return artifactContent.suggestions;
+        }
       }
     }
 
@@ -129,7 +137,7 @@ public class AssignerArtifactDao {
       }
     }
 
-    Path resultsPath = autoAssignerDirectoryPath.resolve("results.json");
+    Path resultsPath = autoAssignerDirectoryPath.resolve("suggestions.json");
     if (!Files.exists(resultsPath)) {
       if (createIfNotExist) {
         Files.createFile(resultsPath);
@@ -143,7 +151,7 @@ public class AssignerArtifactDao {
 
   @Nullable
   public Responsibility get(@Nullable SBuild firstFailedBuild, @NotNull STestRun testRun) {
-    ResponsibilityPersistentInfo[] persistentBuildInfo;
+    ArtifactContent artifactContent;
     try {
       Path resultsFilePath = firstFailedBuild != null ?
                              this.getAssignerResultFilePathIfExist(firstFailedBuild) :
@@ -153,13 +161,17 @@ public class AssignerArtifactDao {
       }
 
       try (BufferedReader reader = Files.newBufferedReader(resultsFilePath)) {
-        persistentBuildInfo = myGson.fromJson(reader, ResponsibilityPersistentInfo[].class);
-        if (persistentBuildInfo == null) {
+        artifactContent = myGson.fromJson(reader, ArtifactContent.class);
+        if (artifactContent == null || artifactContent.suggestions == null) {
           LOGGER.warn(String.format("%s: Json format is incorrect", Utils.getLogPrefix(testRun)));
+          return null;
+        } else if (artifactContent.serverUUID == null ||
+                   !artifactContent.serverUUID.equals(mySettings.getServerUUID())) {
+          LOGGER.warn(String.format("%s: Server UUIDs don't match", Utils.getLogPrefix(testRun)));
           return null;
         } else {
           LOGGER.debug(String.format("%s Read %s stored investigations",
-                                     Utils.getLogPrefix(testRun), persistentBuildInfo.length));
+                                     Utils.getLogPrefix(testRun), artifactContent.suggestions.size()));
         }
       }
     } catch (IOException ex) {
@@ -168,7 +180,7 @@ public class AssignerArtifactDao {
       throw new RuntimeException("An error occurs during reading of file with results");
     }
 
-    for (ResponsibilityPersistentInfo persistentInfo : persistentBuildInfo) {
+    for (ResponsibilityPersistentInfo persistentInfo : artifactContent.suggestions) {
       if (persistentInfo.testNameId.equals(String.valueOf(testRun.getTest().getTestNameId()))) {
         LOGGER.debug(String.format("%s Investigation for testRun %s was found",
                                    Utils.getLogPrefix(testRun), testRun.getTestRunId()));
@@ -177,7 +189,7 @@ public class AssignerArtifactDao {
           LOGGER.warn(String.format("%s User with id %s was not found in our model.", Utils.getLogPrefix(testRun),
                                     persistentInfo.investigatorId));
         }
-        return user != null ? new Responsibility(user, persistentInfo.description) : null;
+        return user != null ? new Responsibility(user, persistentInfo.reason) : null;
       }
     }
 

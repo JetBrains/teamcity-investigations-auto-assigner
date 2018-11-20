@@ -19,11 +19,11 @@ package jetbrains.buildServer.investigationsAutoAssigner.utils;
 class ResponsibilityPersistentInfo {
   String testNameId;
   String investigatorId;
-  String description;
+  String reason;
 
-  ResponsibilityPersistentInfo(String testNameId, String investigatorId, String description) {
+  ResponsibilityPersistentInfo(String testNameId, String investigatorId, String reason) {
     this.testNameId = testNameId;
     this.investigatorId = investigatorId;
-    this.description = description;
+    this.reason = reason;
   }
 }
