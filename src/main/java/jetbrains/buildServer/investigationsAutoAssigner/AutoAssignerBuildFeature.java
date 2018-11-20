@@ -24,13 +24,11 @@ import jetbrains.buildServer.util.StringUtil;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class AutoAssignerBuildFeature extends BuildFeature {
 
   private final String myEditUrl;
 
-  @Autowired
   public AutoAssignerBuildFeature(
     @NotNull final PluginDescriptor descriptor) {
     myEditUrl = descriptor.getPluginResourcesPath("autoAssignerBuildFeature.jsp");
