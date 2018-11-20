@@ -59,7 +59,7 @@ public class AutoAssignerBuildFeature extends BuildFeature {
     final String usersToIgnore = params.get(Constants.USERS_TO_IGNORE);
     StringBuilder sb = new StringBuilder();
     if (StringUtil.isNotEmpty(userName)) {
-      sb.append("Default investigator: ").append(userName).append("\n");
+      sb.append("Default assignee: ").append(userName).append("\n");
     }
     if (StringUtil.isNotEmpty(usersToIgnore)) {
       String usersToIgnoreOneLine = StringUtil.join(", ", Arrays.asList(usersToIgnore.split("\n")));

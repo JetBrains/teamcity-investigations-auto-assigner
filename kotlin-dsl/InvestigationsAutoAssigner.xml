@@ -13,12 +13,12 @@
     </description>
   </function>
   <params>
-    <param name="defaultAssignee.username" dslName="defaultInvestigator">
+    <param name="defaultAssignee.username" dslName="defaultAssignee">
       <description>
         Username of a user to whom an investigation is assigned if no other possible investigator is found.
       </description>
     </param>
-    <param name="excludeAssignees.usernames" dslName="usersToIgnore">
+    <param name="excludeAssignees.usernames" dslName="excludeUsers">
       <description>
         The newline-separated list of usernames to exclude from investigation auto-assignment.
       </description>

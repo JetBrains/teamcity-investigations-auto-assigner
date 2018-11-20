@@ -25,7 +25,7 @@
 </tr>
 <tr>
   <th>
-    <label for="<%= Constants.DEFAULT_RESPONSIBLE%>">Default investigator username:</label>
+    <label for="<%= Constants.DEFAULT_RESPONSIBLE%>">Default assignee:</label>
   </th>
   <td>
     <props:textProperty name="<%= Constants.DEFAULT_RESPONSIBLE%>" className="longField textProperty_max-width js_max-width"/>
