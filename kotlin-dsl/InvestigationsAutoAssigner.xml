@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dsl-extension kind="buildFeature" type="InvestigationsAutoAssigner" generateDslJar="true">
+  <class name="InvestigationsAutoAssigner">
+    <description>
+      A [build feature](https://github.com/JetBrains/teamcity-investigations-auto-assigner) assigning
+      investigations of build failures automatically based on heuristics
+    </description>
+  </class>
+  <function name="investigationsAutoAssigner">
+    <description>
+      Configures Investigations Auto Assigner behaviour.
+      @see InvestigationsAutoAssigner
+    </description>
+  </function>
+  <params>
+    <param name="defaultAssignee.username" dslName="defaultInvestigator">
+      <description>
+        Username of a user to whom an investigation is assigned if no other possible investigator is found.
+      </description>
+    </param>
+    <param name="excludeAssignees.usernames" dslName="usersToIgnore">
+      <description>
+        The newline-separated list of usernames to exclude from investigation auto-assignment.
+      </description>
+    </param>
+  </params>
+</dsl-extension>
