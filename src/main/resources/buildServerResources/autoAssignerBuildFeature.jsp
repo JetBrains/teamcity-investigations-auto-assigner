@@ -7,7 +7,7 @@
   BS.AutoAssignerFeature = {
     showHomePage: function () {
       var winSize = BS.Util.windowSize();
-      BS.Util.popupWindow('https://github.com/JetBrains/teamcity-investigations-auto-assigner/wiki', 'Investigations Auto Assigner',
+      BS.Util.popupWindow('https://confluence.jetbrains.com/display/TCD18/Investigations+Auto+Assigner', 'Investigations Auto Assigner',
         {width: 0.9 * winSize[0], height: 0.9 * winSize[1]});
       BS.stopPropagation(event);
     }
@@ -29,7 +29,7 @@
   </th>
   <td>
     <props:textProperty name="<%= Constants.DEFAULT_RESPONSIBLE%>" className="longField textProperty_max-width js_max-width"/>
-    <span class="smallNote">Username of a user to whom an investigation is assigned if no other possible investigator is found.</span>
+    <span class="smallNote">Username of a user to assign the investigation to if no other assignee can be found.</span>
   </td>
 </tr>
 <tr>
