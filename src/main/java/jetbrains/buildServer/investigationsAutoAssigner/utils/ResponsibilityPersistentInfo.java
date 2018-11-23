@@ -16,7 +16,7 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.utils;
 
-class ResponsibilityPersistentInfo {
+public class ResponsibilityPersistentInfo {
   String testNameId;
   String investigatorId;
   String reason;
