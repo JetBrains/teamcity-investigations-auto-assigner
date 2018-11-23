@@ -149,24 +149,24 @@ public class EmailReporterTest extends BaseTestCase {
                          myResponsibility2.getUser().getUsername(),
                          myResponsibility2.getDescription());
   }
-}
 
-class EmailSenderMock implements EmailSender {
+  private class EmailSenderMock implements EmailSender {
 
-  boolean called = false;
-  String usedAddress;
-  String usedSubject;
-  String usedHtml;
+    boolean called = false;
+    String usedAddress;
+    String usedSubject;
+    String usedHtml;
 
-  @Override
-  public void send(@NotNull final String address,
-                   @NotNull final String subject,
-                   @NotNull final String plainText,
-                   @Nullable final String html) {
-    called = true;
-    usedAddress = address;
-    usedSubject = subject;
-    usedHtml = html;
+    @Override
+    public void send(@NotNull final String address,
+                     @NotNull final String subject,
+                     @NotNull final String plainText,
+                     @Nullable final String html) {
+      called = true;
+      usedAddress = address;
+      usedSubject = subject;
+      usedHtml = html;
+    }
   }
 }
 
