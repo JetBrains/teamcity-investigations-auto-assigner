@@ -16,37 +16,33 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.utils;
 
-import com.google.gson.Gson;
 import com.intellij.openapi.diagnostic.Logger;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
-import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
+import java.util.ArrayList;
+import java.util.List;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
+import jetbrains.buildServer.investigationsAutoAssigner.persistent.SuggestionsDao;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.STestRun;
-import jetbrains.buildServer.serverSide.impl.ServerSettingsImpl;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.users.UserModelEx;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AssignerArtifactDao {
-  private final Gson myGson;
-  private final ServerSettingsImpl mySettings;
   private UserModelEx myUserModel;
+  private SuggestionsDao mySuggestionsDao;
+  private AssignerResultsFilePath myAssignerResultsFilePath;
   private static final Logger LOGGER = Logger.getInstance(AssignerArtifactDao.class.getName());
 
   public AssignerArtifactDao(@NotNull final UserModelEx userModel,
-                             @NotNull final ServerSettingsImpl settings) {
+                             @NotNull final SuggestionsDao suggestionsDao,
+                             @NotNull final AssignerResultsFilePath assignerResultsFilePath) {
     myUserModel = userModel;
-    myGson = new Gson();
-    mySettings = settings;
+    mySuggestionsDao = suggestionsDao;
+    myAssignerResultsFilePath = assignerResultsFilePath;
   }
 
   public void appendHeuristicsResult(@NotNull SBuild build,
@@ -56,24 +52,22 @@ public class AssignerArtifactDao {
       List<ResponsibilityPersistentInfo> infoToAdd = new ArrayList<>(getPersistentInfoList(testRuns, heuristicResult));
       if (infoToAdd.isEmpty()) return;
 
-      Path resultsFilePath = this.getAssignerResultFilePath(build);
-      List<ResponsibilityPersistentInfo> previouslyAdded = readPreviouslyAdded(resultsFilePath);
+      Path resultsFilePath = myAssignerResultsFilePath.get(build);
+
+      List<ResponsibilityPersistentInfo> previouslyAdded = mySuggestionsDao.read(resultsFilePath);
       infoToAdd.addAll(previouslyAdded);
       LOGGER.debug(String.format("Build %s :: Read %s previously added investigations",
                                  build.getBuildId(), previouslyAdded.size()));
 
-      try (BufferedWriter writer =
-             Files.newBufferedWriter(resultsFilePath, StandardCharsets.UTF_8)) {
-        ArtifactContent artifactContent = new ArtifactContent(mySettings.getServerUUID(), infoToAdd);
-        myGson.toJson(artifactContent, writer);
-        LOGGER.debug(String.format("Build %s :: Wrote %s new found investigations",
-                                   build.getBuildId(), infoToAdd.size() - previouslyAdded.size()));
-      }
+      mySuggestionsDao.write(resultsFilePath, infoToAdd);
+      LOGGER.debug(String.format("Build %s :: Wrote %s new found investigations",
+                                 build.getBuildId(), infoToAdd.size() - previouslyAdded.size()));
     } catch (IOException ex) {
       LOGGER.error(String.format("Build %s :: An error occurs during appending results", build.getBuildId()), ex);
       throw new RuntimeException("An error occurs during appending results");
     }
   }
+
 
   @NotNull
   private List<ResponsibilityPersistentInfo> getPersistentInfoList(@NotNull final List<STestRun> testRuns,
@@ -90,97 +84,22 @@ public class AssignerArtifactDao {
     return result;
   }
 
-  @NotNull
-  private List<ResponsibilityPersistentInfo> readPreviouslyAdded(Path resultsFilePath) throws IOException {
-
-    if (Files.exists(resultsFilePath) && Files.size(resultsFilePath) != 0) {
-      try (BufferedReader reader = Files.newBufferedReader(resultsFilePath)) {
-        ArtifactContent artifactContent = myGson.fromJson(reader, ArtifactContent.class);
-        if (artifactContent != null) {
-          return artifactContent.suggestions;
-        }
-      }
-    }
-
-    return Collections.emptyList();
-  }
-
-  @NotNull
-  private Path getAssignerResultFilePath(@NotNull final SBuild build) throws IOException {
-    Path resultPath = getAssignerResultFilePath(build, true);
-    if (resultPath == null) {
-      throw new IllegalStateException("The path for artifact supposed to be created");
-    }
-
-    return resultPath;
-  }
-
-  @Nullable
-  private Path getAssignerResultFilePathIfExist(@NotNull final SBuild build) throws IOException {
-    return getAssignerResultFilePath(build, false);
-  }
-
-  @Nullable
-  private Path getAssignerResultFilePath(@NotNull final SBuild build, boolean createIfNotExist) throws IOException {
-    Path artifactDirectoryPath = build.getArtifactsDirectory().toPath();
-    Path teamcityDirectoryPath = artifactDirectoryPath.resolve(Constants.TEAMCITY_DIRECTORY);
-    if (!Files.exists(teamcityDirectoryPath)) {
-      throw new RuntimeException("TeamCity directory does not exist");
-    }
-
-    Path autoAssignerDirectoryPath = teamcityDirectoryPath.resolve(Constants.ARTIFACT_DIRECTORY);
-    if (!Files.exists(autoAssignerDirectoryPath)) {
-      if (createIfNotExist) {
-        Files.createDirectory(autoAssignerDirectoryPath);
-      } else {
-        return null;
-      }
-    }
-
-    Path resultsPath = autoAssignerDirectoryPath.resolve(Constants.ARTIFACT_FILENAME);
-    if (!Files.exists(resultsPath)) {
-      if (createIfNotExist) {
-        Files.createFile(resultsPath);
-      } else {
-        return null;
-      }
-    }
-
-    return resultsPath;
-  }
-
   @Nullable
   public Responsibility get(@Nullable SBuild firstFailedBuild, @NotNull STestRun testRun) {
-    ArtifactContent artifactContent;
+    List<ResponsibilityPersistentInfo> suggestions;
     try {
       Path resultsFilePath = firstFailedBuild != null ?
-                             this.getAssignerResultFilePathIfExist(firstFailedBuild) :
-                             this.getAssignerResultFilePathIfExist(testRun.getBuild());
-      if (resultsFilePath == null) {
-        return null;
-      }
+                             myAssignerResultsFilePath.getIfExist(firstFailedBuild) :
+                             myAssignerResultsFilePath.getIfExist(testRun.getBuild());
 
-      try (BufferedReader reader = Files.newBufferedReader(resultsFilePath)) {
-        artifactContent = myGson.fromJson(reader, ArtifactContent.class);
-        if (artifactContent == null || artifactContent.suggestions == null) {
-          LOGGER.warn(String.format("%s: Json format is incorrect", Utils.getLogPrefix(testRun)));
-          return null;
-        } else if (artifactContent.serverUUID == null ||
-                   !artifactContent.serverUUID.equals(mySettings.getServerUUID())) {
-          LOGGER.warn(String.format("%s: Server UUIDs don't match", Utils.getLogPrefix(testRun)));
-          return null;
-        } else {
-          LOGGER.debug(String.format("%s Read %s stored investigations",
-                                     Utils.getLogPrefix(testRun), artifactContent.suggestions.size()));
-        }
-      }
+      suggestions = mySuggestionsDao.read(resultsFilePath);
     } catch (IOException ex) {
       LOGGER.error(String.format("%s An error occurs during reading of file with results",
                                  Utils.getLogPrefix(testRun)), ex);
       throw new RuntimeException("An error occurs during reading of file with results");
     }
 
-    for (ResponsibilityPersistentInfo persistentInfo : artifactContent.suggestions) {
+    for (ResponsibilityPersistentInfo persistentInfo : suggestions) {
       if (persistentInfo.testNameId.equals(String.valueOf(testRun.getTest().getTestNameId()))) {
         LOGGER.debug(String.format("%s Investigation for testRun %s was found",
                                    Utils.getLogPrefix(testRun), testRun.getTestRunId()));
