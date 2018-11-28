@@ -139,7 +139,8 @@ public class BrokenFileHeuristic implements Heuristic {
   @NotNull
   private static List<String> getPatterns(@NotNull final String filePath) {
     final List<String> parts = new ArrayList<>();
-    parts.add(FileUtil.getNameWithoutExtension(new File(filePath)));
+    String withoutExtension = FileUtil.getNameWithoutExtension(new File(filePath));
+    if (withoutExtension.length() != 0) parts.add(withoutExtension);
 
     String path = getParentPath(filePath);
     if (path != null) {
@@ -150,7 +151,9 @@ public class BrokenFileHeuristic implements Heuristic {
       }
     }
 
-    return Arrays.asList(join(parts, "."), join(parts, "/"), join(parts, "\\"));
+    return parts.isEmpty() ?
+           Collections.emptyList() :
+           Arrays.asList(join(parts, "."), join(parts, "/"), join(parts, "\\"));
   }
 
   // we do not use File#getParentFile() instead because we must not take current
