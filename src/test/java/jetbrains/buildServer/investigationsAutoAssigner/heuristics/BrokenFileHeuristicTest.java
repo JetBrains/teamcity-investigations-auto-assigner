@@ -154,6 +154,20 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
     Assert.assertEquals(responsibility.getUser(), myUser);
   }
 
+  public void TestGitIgnoreCase() {
+    when(myProblemTextExtractor.getBuildProblemText(any())).thenReturn("I contain ./no/file/here");
+    VcsFileModification mod = Mockito.mock(VcsFileModification.class);
+    when(myVcsModification.getChanges()).thenReturn(Collections.singletonList(mod));
+    when(mod.getRelativeFileName()).thenReturn(".gitignore");
+
+    when(myVcsModification.getCommitters()).thenReturn(Collections.singletonList(myUser));
+    when(myVcsModification2.getCommitters()).thenReturn(Collections.singletonList(mySecondUser));
+
+    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
+
+    Assert.assertTrue(heuristicResult.isEmpty());
+  }
+
   public void TestManyCommitters() {
     when(myProblemTextExtractor.getBuildProblemText(any())).thenReturn("I contain ./path1/path1/path1/filename" +
                                                                        "and ./path4/path4/path4/filename4");
