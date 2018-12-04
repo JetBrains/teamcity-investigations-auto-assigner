@@ -16,6 +16,7 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.persistent;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -45,7 +46,7 @@ public class AssignerResultsFilePath {
     Path artifactDirectoryPath = build.getArtifactsDirectory().toPath();
     Path teamcityDirectoryPath = artifactDirectoryPath.resolve(Constants.TEAMCITY_DIRECTORY);
     if (!Files.exists(teamcityDirectoryPath)) {
-      throw new RuntimeException("TeamCity directory does not exist");
+      throw new FileNotFoundException("TeamCity directory does not exist");
     }
 
     Path autoAssignerDirectoryPath = teamcityDirectoryPath.resolve(Constants.ARTIFACT_DIRECTORY);
