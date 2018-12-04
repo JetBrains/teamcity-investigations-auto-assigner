@@ -34,7 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.mockito.Mockito;
 import org.testng.Assert;
-import org.testng.annotations.BeforeTest;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class AssignerArtifactDaoTest {
@@ -53,7 +53,7 @@ public class AssignerArtifactDaoTest {
   private MySuggestedDaoChecker mySuggestedDaoChecker;
   private AssignerArtifactDao myAssignerArtifactDaoForTest;
 
-  @BeforeTest
+  @BeforeMethod
   public void setUp() throws IOException {
     myUserModelEx = Mockito.mock(UserModelEx.class);
     myUser = Mockito.mock(UserEx.class);
