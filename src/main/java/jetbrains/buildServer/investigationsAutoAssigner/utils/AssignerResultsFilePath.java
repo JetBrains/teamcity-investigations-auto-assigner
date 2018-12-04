@@ -41,7 +41,7 @@ public class AssignerResultsFilePath {
   }
 
   @Nullable
-  public Path get(@NotNull final SBuild build, boolean createIfNotExist) throws IOException {
+  private Path get(@NotNull final SBuild build, boolean createIfNotExist) throws IOException {
     Path artifactDirectoryPath = build.getArtifactsDirectory().toPath();
     Path teamcityDirectoryPath = artifactDirectoryPath.resolve(Constants.TEAMCITY_DIRECTORY);
     if (!Files.exists(teamcityDirectoryPath)) {
