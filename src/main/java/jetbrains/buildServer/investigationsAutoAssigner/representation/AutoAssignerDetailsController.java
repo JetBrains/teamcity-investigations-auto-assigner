@@ -75,8 +75,13 @@ public class AutoAssignerDetailsController extends BaseController {
       return null;
     }
 
+    @Nullable
+    Branch branch = build.getBranch();
+    boolean isDefaultBranch = branch == null || branch.isDefaultBranch();
+
     STestRun sTestRun = build.getBuildStatistics(ALL_TESTS_NO_DETAILS).findTestByTestRunId(testId);
-    if (sTestRun == null ||
+    if (!isDefaultBranch ||
+        sTestRun == null ||
         myFlakyTestDetector.isFlaky(sTestRun.getTest().getTestNameId()) ||
         isUnderInvestigation(build, sTestRun.getTest())) {
       return null;

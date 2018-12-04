@@ -34,6 +34,7 @@ import jetbrains.buildServer.util.NamedThreadFactory;
 import jetbrains.buildServer.util.ThreadUtil;
 import jetbrains.buildServer.util.executors.ExecutorsFactory;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class FailedTestAndBuildProblemsDispatcher {
 
@@ -125,7 +126,12 @@ public class FailedTestAndBuildProblemsDispatcher {
   }
 
   private static boolean shouldIgnore(@NotNull SBuild build) {
-    return build.isPersonal() || (!CustomParameters.isDefaultSilentModeEnabled(build) && checkFeatureDisabled(build));
+    @Nullable
+    Branch branch = build.getBranch();
+    boolean isDefaultBranch = branch == null || branch.isDefaultBranch();
+
+    return build.isPersonal() || !isDefaultBranch ||
+           (!CustomParameters.isDefaultSilentModeEnabled(build) && checkFeatureDisabled(build));
   }
 
   private static boolean checkFeatureDisabled(@NotNull SBuild build) {
