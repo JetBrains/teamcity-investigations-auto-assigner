@@ -20,7 +20,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
-import jetbrains.buildServer.investigationsAutoAssigner.utils.AssignerArtifactDao;
+import jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerArtifactDao;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;

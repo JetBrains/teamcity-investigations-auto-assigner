@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package jetbrains.buildServer.investigationsAutoAssigner.utils;
+package jetbrains.buildServer.investigationsAutoAssigner.persistent;
 
-public class ResponsibilityPersistentInfo {
+class ResponsibilityPersistentInfo {
   String testNameId;
   String investigatorId;
   String reason;

@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package jetbrains.buildServer.investigationsAutoAssigner.utils;
+package jetbrains.buildServer.investigationsAutoAssigner.persistent;
 
 import jetbrains.buildServer.BaseTestCase;
+import jetbrains.buildServer.investigationsAutoAssigner.persistent.ResponsibilityPersistentInfo;
 import org.testng.annotations.Test;
 
 @Test

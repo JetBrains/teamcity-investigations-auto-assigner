@@ -19,7 +19,7 @@ package jetbrains.buildServer.investigationsAutoAssigner.representation;
 import javax.servlet.http.HttpServletRequest;
 import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
-import jetbrains.buildServer.investigationsAutoAssigner.utils.AssignerArtifactDao;
+import jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerArtifactDao;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.web.openapi.PagePlaces;

@@ -36,7 +36,7 @@
   <bean id="brokenFileHeuristic" class="jetbrains.buildServer.investigationsAutoAssigner.heuristics.BrokenFileHeuristic"/>
   <bean id="defaultUserHeuristic" class="jetbrains.buildServer.investigationsAutoAssigner.heuristics.DefaultUserHeuristic"/>
   <bean id="previousResponsibleHeuristic" class="jetbrains.buildServer.investigationsAutoAssigner.heuristics.PreviousResponsibleHeuristic"/>
-  <bean class="jetbrains.buildServer.investigationsAutoAssigner.utils.AssignerArtifactDao"/>
+  <bean class="jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerArtifactDao"/>
   <bean id="emailReporter" class="jetbrains.buildServer.investigationsAutoAssigner.utils.EmailReporter"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.representation.AssignInvestigationController"/>
   <bean id="autoAssignerDetailsController"
@@ -45,5 +45,5 @@
         init-method="register"
         destroy-method="unregister"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.persistent.SuggestionsDao"/>
-  <bean class="jetbrains.buildServer.investigationsAutoAssigner.utils.AssignerResultsFilePath"/>
+  <bean class="jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerResultsFilePath"/>
 </beans>

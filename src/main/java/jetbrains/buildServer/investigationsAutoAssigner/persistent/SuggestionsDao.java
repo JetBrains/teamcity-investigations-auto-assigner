@@ -26,7 +26,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
-import jetbrains.buildServer.investigationsAutoAssigner.utils.ResponsibilityPersistentInfo;
 import jetbrains.buildServer.serverSide.ServerSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

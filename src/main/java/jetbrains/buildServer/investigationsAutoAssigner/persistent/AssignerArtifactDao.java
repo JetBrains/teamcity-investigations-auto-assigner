@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package jetbrains.buildServer.investigationsAutoAssigner.utils;
+package jetbrains.buildServer.investigationsAutoAssigner.persistent;
 
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.IOException;
@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
-import jetbrains.buildServer.investigationsAutoAssigner.persistent.SuggestionsDao;
+import jetbrains.buildServer.investigationsAutoAssigner.utils.Utils;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.users.User;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package jetbrains.buildServer.investigationsAutoAssigner.utils;
+package jetbrains.buildServer.investigationsAutoAssigner.persistent;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -23,6 +23,9 @@ import java.util.Collections;
 import java.util.List;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
+import jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerArtifactDao;
+import jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerResultsFilePath;
+import jetbrains.buildServer.investigationsAutoAssigner.persistent.ResponsibilityPersistentInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.SuggestionsDao;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.STest;
@@ -71,15 +74,17 @@ public class AssignerArtifactDaoTest {
     Mockito.when(myUser.getId()).thenReturn(239L);
     Mockito.when(userModelEx.findUserById(myUser.getId())).thenReturn(myUser);
     Mockito.when(assignerResultsFilePath.get(mySBuild)).thenReturn(myPath);
+    mySuggestedDaoChecker = new MySuggestedDaoChecker();
     myAssignerArtifactDaoForTest =
-      new AssignerArtifactDao(userModelEx, new MySuggestedDaoChecker(), assignerResultsFilePath);
+      new AssignerArtifactDao(userModelEx, mySuggestedDaoChecker, assignerResultsFilePath);
   }
 
   @Test
   public void testAppendHeuristicsResultNoOldNoNew() {
     mySuggestedDaoChecker.mockReadResult(Collections.emptyList());
 
-    myAssignerArtifactDaoForTest.appendHeuristicsResult(mySBuild, Arrays.asList(mySTestRun, mySTestRun2), myHeuristicResult);
+    myAssignerArtifactDaoForTest
+      .appendHeuristicsResult(mySBuild, Arrays.asList(mySTestRun, mySTestRun2), myHeuristicResult);
 
     Assert.assertFalse(mySuggestedDaoChecker.wasCalled);
   }
@@ -90,7 +95,8 @@ public class AssignerArtifactDaoTest {
     myHeuristicResult.addResponsibility(mySTestRun, new Responsibility(myUser, description));
     mySuggestedDaoChecker.mockReadResult(Collections.emptyList());
 
-    myAssignerArtifactDaoForTest.appendHeuristicsResult(mySBuild, Arrays.asList(mySTestRun, mySTestRun2), myHeuristicResult);
+    myAssignerArtifactDaoForTest
+      .appendHeuristicsResult(mySBuild, Arrays.asList(mySTestRun, mySTestRun2), myHeuristicResult);
 
     Assert.assertEquals(mySuggestedDaoChecker.setResultsFilePath, myPath);
     Assert.assertEquals(mySuggestedDaoChecker.setInfoToAdd.get(0).investigatorId, String.valueOf(myUser.getId()));
@@ -106,7 +112,8 @@ public class AssignerArtifactDaoTest {
     ResponsibilityPersistentInfo info = new ResponsibilityPersistentInfo(testNameId, investigatorId, reason);
     mySuggestedDaoChecker.mockReadResult(Collections.singletonList(info));
 
-    myAssignerArtifactDaoForTest.appendHeuristicsResult(mySBuild, Arrays.asList(mySTestRun, mySTestRun2), myHeuristicResult);
+    myAssignerArtifactDaoForTest
+      .appendHeuristicsResult(mySBuild, Arrays.asList(mySTestRun, mySTestRun2), myHeuristicResult);
 
     Assert.assertFalse(mySuggestedDaoChecker.wasCalled);
   }
@@ -122,7 +129,8 @@ public class AssignerArtifactDaoTest {
     String description = "any description";
     myHeuristicResult.addResponsibility(mySTestRun, new Responsibility(myUser, description));
 
-    myAssignerArtifactDaoForTest.appendHeuristicsResult(mySBuild, Arrays.asList(mySTestRun, mySTestRun2), myHeuristicResult);
+    myAssignerArtifactDaoForTest
+      .appendHeuristicsResult(mySBuild, Arrays.asList(mySTestRun, mySTestRun2), myHeuristicResult);
 
     Assert.assertEquals(mySuggestedDaoChecker.setResultsFilePath, myPath);
     Assert.assertEquals(mySuggestedDaoChecker.setInfoToAdd.size(), 2);

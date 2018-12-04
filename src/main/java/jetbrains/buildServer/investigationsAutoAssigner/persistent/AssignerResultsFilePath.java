@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package jetbrains.buildServer.investigationsAutoAssigner.utils;
+package jetbrains.buildServer.investigationsAutoAssigner.persistent;
 
 import java.io.IOException;
 import java.nio.file.Files;
