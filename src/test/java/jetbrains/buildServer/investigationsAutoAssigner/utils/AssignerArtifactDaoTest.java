@@ -39,46 +39,40 @@ import org.testng.annotations.Test;
 
 public class AssignerArtifactDaoTest {
 
-  private UserModelEx myUserModelEx;
   private SBuild mySBuild;
   private HeuristicResult myHeuristicResult;
   private STestRun mySTestRun;
   private STestRun mySTestRun2;
   private UserEx myUser;
   private STest mySTest;
-  private STest mySTest2;
-  private AssignerResultsFilePath myAssignerResultsFilePath;
   private Path myPath;
-  private ServerSettings myServerSettingsImpl;
   private MySuggestedDaoChecker mySuggestedDaoChecker;
   private AssignerArtifactDao myAssignerArtifactDaoForTest;
 
   @BeforeMethod
   public void setUp() throws IOException {
-    myUserModelEx = Mockito.mock(UserModelEx.class);
+    final UserModelEx userModelEx = Mockito.mock(UserModelEx.class);
     myUser = Mockito.mock(UserEx.class);
     mySBuild = Mockito.mock(SBuild.class);
     myHeuristicResult = new HeuristicResult();
     mySTestRun = Mockito.mock(STestRun.class);
     mySTest = Mockito.mock(STest.class);
-    mySTest2 = Mockito.mock(STest.class);
+    final STest STest2 = Mockito.mock(STest.class);
     mySTestRun2 = Mockito.mock(STestRun.class);
     myPath = Mockito.mock(Path.class);
-    myServerSettingsImpl = Mockito.mock(ServerSettings.class);
-    myAssignerResultsFilePath = Mockito.mock(AssignerResultsFilePath.class);
+    final AssignerResultsFilePath assignerResultsFilePath = Mockito.mock(AssignerResultsFilePath.class);
 
     Mockito.when(mySTestRun.getTest()).thenReturn(mySTest);
     Mockito.when(mySTestRun.getTestRunId()).thenReturn(1);
-    Mockito.when(mySTestRun2.getTest()).thenReturn(mySTest2);
+    Mockito.when(mySTestRun2.getTest()).thenReturn(STest2);
     Mockito.when(mySTestRun.getTestRunId()).thenReturn(2);
     Mockito.when(mySTest.getTestNameId()).thenReturn(111L);
-    Mockito.when(mySTest2.getTestNameId()).thenReturn(112L);
+    Mockito.when(STest2.getTestNameId()).thenReturn(112L);
     Mockito.when(myUser.getId()).thenReturn(239L);
-    Mockito.when(myUserModelEx.findUserById(myUser.getId())).thenReturn(myUser);
-    Mockito.when(myAssignerResultsFilePath.get(mySBuild)).thenReturn(myPath);
-    mySuggestedDaoChecker = new MySuggestedDaoChecker(myServerSettingsImpl);
+    Mockito.when(userModelEx.findUserById(myUser.getId())).thenReturn(myUser);
+    Mockito.when(assignerResultsFilePath.get(mySBuild)).thenReturn(myPath);
     myAssignerArtifactDaoForTest =
-      new AssignerArtifactDao(myUserModelEx, mySuggestedDaoChecker, myAssignerResultsFilePath);
+      new AssignerArtifactDao(userModelEx, new MySuggestedDaoChecker(), assignerResultsFilePath);
   }
 
   @Test
@@ -148,8 +142,8 @@ public class AssignerArtifactDaoTest {
     boolean wasCalled = false;
     private List<ResponsibilityPersistentInfo> myReadResult;
 
-    MySuggestedDaoChecker(@NotNull final ServerSettings settings) {
-      super(settings);
+    MySuggestedDaoChecker() {
+      super(Mockito.mock(ServerSettings.class));
     }
 
 
