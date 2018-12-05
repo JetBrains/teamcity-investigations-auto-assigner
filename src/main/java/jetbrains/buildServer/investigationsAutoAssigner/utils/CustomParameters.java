@@ -101,11 +101,6 @@ public class CustomParameters {
     return parsedValue >= 0 ? parsedValue : Integer.MAX_VALUE;
   }
 
-  public boolean isSilentModeOn(@NotNull SBuild build) {
-    Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
-    return descriptors.isEmpty();
-  }
-
   @Nullable
   String getEmailForEmailReporter() {
     return TeamCityProperties.getPropertyOrNull(Constants.INTERNAL_REPORTER_EMAIL);
