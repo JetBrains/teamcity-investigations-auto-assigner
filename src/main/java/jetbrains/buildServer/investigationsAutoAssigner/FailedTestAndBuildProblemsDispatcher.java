@@ -130,13 +130,8 @@ public class FailedTestAndBuildProblemsDispatcher {
     Branch branch = build.getBranch();
     boolean isDefaultBranch = branch == null || branch.isDefaultBranch();
 
-    return build.isPersonal() || !isDefaultBranch ||
-           (!CustomParameters.isDefaultSilentModeEnabled(build) && checkFeatureDisabled(build));
-  }
-
-  private static boolean checkFeatureDisabled(@NotNull SBuild build) {
-    Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
-
-    return descriptors.isEmpty();
+    return build.isPersonal() ||
+           !isDefaultBranch ||
+           (!CustomParameters.isBuildFeatureEnabled(build) && !CustomParameters.isDefaultSilentModeEnabled(build));
   }
 }

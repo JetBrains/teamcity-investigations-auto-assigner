@@ -71,7 +71,7 @@ public class AutoAssignerDetailsController extends BaseController {
     final int testId = Integer.parseInt(request.getParameter("testId"));
 
     final SBuild build = myServer.findBuildInstanceById(buildId);
-    if (build == null || (!CustomParameters.isDefaultSilentModeEnabled(build) && checkFeatureDisabled(build))) {
+    if (build == null || !CustomParameters.isDefaultSilentModeEnabled(build)) {
       return null;
     }
 
