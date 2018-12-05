@@ -114,6 +114,6 @@ public class CustomParameters {
   public static boolean isBuildFeatureEnabled(@NotNull SBuild sBuild) {
     Collection<SBuildFeatureDescriptor> descriptors = sBuild.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
 
-    return descriptors.isEmpty();
+    return !descriptors.isEmpty();
   }
 }
