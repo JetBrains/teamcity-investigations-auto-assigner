@@ -17,7 +17,6 @@
 package jetbrains.buildServer.investigationsAutoAssigner;
 
 import com.intellij.openapi.diagnostic.Logger;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
