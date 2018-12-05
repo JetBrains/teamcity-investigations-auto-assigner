@@ -70,7 +70,7 @@ public class FailedTestAndBuildProblemsDispatcher {
           return;
         }
 
-        myFailedBuilds.putIfAbsent(sBuild.getBuildId(), new FailedBuildInfo(sBuild));
+        myFailedBuilds.computeIfAbsent(sBuild.getBuildId(), devNull -> new FailedBuildInfo(sBuild));
       }
 
       @Override
