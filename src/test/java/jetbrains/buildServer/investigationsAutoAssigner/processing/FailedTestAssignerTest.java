@@ -79,13 +79,13 @@ public class FailedTestAssignerTest extends BaseTestCase {
   }
 
   public void Test_NoTestRuns() {
-    myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, Collections.emptyList(), false);
+    myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, Collections.emptyList());
 
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.never()).setTestNameResponsibility(anyList(), any(), any());
   }
 
   public void Test_NoResponsibilitiesFound() {
-    myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, Collections.singletonList(mySTestRun1), false);
+    myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, Collections.singletonList(mySTestRun1));
 
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.never()).setTestNameResponsibility(anyList(), any(), any());
   }
@@ -94,20 +94,10 @@ public class FailedTestAssignerTest extends BaseTestCase {
     Responsibility putResponsibility = new Responsibility(myUser1, "any description");
     myHeuristicResult.addResponsibility(mySTestRun1, putResponsibility);
 
-    myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, Collections.singletonList(mySTestRun1), false);
+    myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, Collections.singletonList(mySTestRun1));
 
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.only()).setTestNameResponsibility(anyList(), any(), any());
   }
-
-  public void Test_OneResponsibilityFoundSilentModeOn() {
-    Responsibility putResponsibility = new Responsibility(myUser1, "any description");
-    myHeuristicResult.addResponsibility(mySTestRun1, putResponsibility);
-
-    myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, Collections.singletonList(mySTestRun1), true);
-
-    Mockito.verify(myTestNameResponsibilityFacade, Mockito.never()).setTestNameResponsibility(anyList(), any(), any());
-  }
-
 
   public void Test_TwoSameResponsibilitiesFound() {
     Responsibility putResponsibility = new Responsibility(myUser1, "any description");
@@ -115,7 +105,7 @@ public class FailedTestAssignerTest extends BaseTestCase {
     myHeuristicResult.addResponsibility(mySTestRun1, putResponsibility);
     myHeuristicResult.addResponsibility(mySTestRun2, putResponsibility2);
 
-    myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, Arrays.asList(mySTestRun1, mySTestRun2), false);
+    myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, Arrays.asList(mySTestRun1, mySTestRun2));
 
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.only()).setTestNameResponsibility(anyList(), any(), any());
   }
@@ -123,21 +113,21 @@ public class FailedTestAssignerTest extends BaseTestCase {
   public void Test_TwoDifferentResponsibilitiesFound() {
     myHeuristicResult.addResponsibility(mySTestRun1, new Responsibility(myUser1, "any description"));
     myHeuristicResult.addResponsibility(mySTestRun2, new Responsibility(myUser2, "any description"));
-    myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, Arrays.asList(mySTestRun1, mySTestRun2), false);
+    myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, Arrays.asList(mySTestRun1, mySTestRun2));
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.times(2)).setTestNameResponsibility(anyList(), any(), any());
 
     myHeuristicResult = new HeuristicResult();
     Mockito.clearInvocations(myTestNameResponsibilityFacade);
     myHeuristicResult.addResponsibility(mySTestRun1, new Responsibility(myUser1, "any description"));
     myHeuristicResult.addResponsibility(mySTestRun2, new Responsibility(myUser1, "any description 2"));
-    myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, Arrays.asList(mySTestRun1, mySTestRun2), false);
+    myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, Arrays.asList(mySTestRun1, mySTestRun2));
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.times(2)).setTestNameResponsibility(anyList(), any(), any());
 
     myHeuristicResult = new HeuristicResult();
     Mockito.clearInvocations(myTestNameResponsibilityFacade);
     myHeuristicResult.addResponsibility(mySTestRun1, new Responsibility(myUser1, "any description"));
     myHeuristicResult.addResponsibility(mySTestRun2, new Responsibility(myUser2, "any description 2"));
-    myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, Arrays.asList(mySTestRun1, mySTestRun2), false);
+    myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, Arrays.asList(mySTestRun1, mySTestRun2));
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.times(2)).setTestNameResponsibility(anyList(), any(), any());
   }
 }
