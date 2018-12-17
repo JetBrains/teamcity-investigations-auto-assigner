@@ -84,7 +84,8 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
     when(myChangeDescriptor2.getRelatedVcsChange()).thenReturn(myVcsModification2);
 
     List<ChangeDescriptor> descriptors = Arrays.asList(myChangeDescriptor, myChangeDescriptor2);
-    when(myBuildPromotion.getDetectedChanges(SelectPrevBuildPolicy.SINCE_LAST_BUILD, true)).thenReturn(descriptors);
+    when(myBuildPromotion.getDetectedChanges(SelectPrevBuildPolicy.SINCE_LAST_BUILD, false))
+      .thenReturn(descriptors);
 
     VcsFileModification mod1 = Mockito.mock(VcsFileModification.class);
     VcsFileModification mod2 = Mockito.mock(VcsFileModification.class);
@@ -104,7 +105,7 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
   }
 
   public void TestNoDetectedChanges() {
-    when(myBuildPromotion.getDetectedChanges(SelectPrevBuildPolicy.SINCE_LAST_BUILD, true))
+    when(myBuildPromotion.getDetectedChanges(SelectPrevBuildPolicy.SINCE_LAST_BUILD, false))
       .thenReturn(Collections.emptyList());
 
     HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);

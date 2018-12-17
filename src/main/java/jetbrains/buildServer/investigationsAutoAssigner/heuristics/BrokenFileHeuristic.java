@@ -59,7 +59,7 @@ public class BrokenFileHeuristic implements Heuristic {
     if (!(buildPromotion instanceof BuildPromotionEx)) return result;
 
     SelectPrevBuildPolicy prevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
-    List<SVcsModification> vcsChanges = ((BuildPromotionEx)buildPromotion).getDetectedChanges(prevBuildPolicy, true)
+    List<SVcsModification> vcsChanges = ((BuildPromotionEx)buildPromotion).getDetectedChanges(prevBuildPolicy, false)
                                                                           .stream()
                                                                           .map(ChangeDescriptor::getRelatedVcsChange)
                                                                           .filter(Objects::nonNull)
