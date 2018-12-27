@@ -39,6 +39,7 @@ import static com.intellij.openapi.util.text.StringUtil.join;
 public class BrokenFileHeuristic implements Heuristic {
 
   private static final Logger LOGGER = Logger.getInstance(BrokenFileHeuristic.class.getName());
+  private static final int SMALL_PATTERN_THRESHOLD = 15;
   private final ProblemTextExtractor myProblemTextExtractor;
 
   public BrokenFileHeuristic(ProblemTextExtractor problemTextExtractor) {
@@ -59,7 +60,7 @@ public class BrokenFileHeuristic implements Heuristic {
     if (!(buildPromotion instanceof BuildPromotionEx)) return result;
 
     SelectPrevBuildPolicy prevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
-    List<SVcsModification> vcsChanges = ((BuildPromotionEx)buildPromotion).getDetectedChanges(prevBuildPolicy, true)
+    List<SVcsModification> vcsChanges = ((BuildPromotionEx)buildPromotion).getDetectedChanges(prevBuildPolicy, false)
                                                                           .stream()
                                                                           .map(ChangeDescriptor::getRelatedVcsChange)
                                                                           .filter(Objects::nonNull)
@@ -140,7 +141,10 @@ public class BrokenFileHeuristic implements Heuristic {
   private static List<String> getPatterns(@NotNull final String filePath) {
     final List<String> parts = new ArrayList<>();
     String withoutExtension = FileUtil.getNameWithoutExtension(new File(filePath));
-    if (withoutExtension.length() != 0) parts.add(withoutExtension);
+    if (withoutExtension.length() == 0) {
+      return Collections.emptyList();
+    }
+    parts.add(withoutExtension);
 
     String path = getParentPath(filePath);
     if (path != null) {
@@ -151,9 +155,18 @@ public class BrokenFileHeuristic implements Heuristic {
       }
     }
 
+    if (isSmallPattern(parts)) {
+      String withExtension = FileUtil.getName(filePath);
+      parts.set(0, withExtension);
+    }
+
     return parts.isEmpty() ?
            Collections.emptyList() :
            Arrays.asList(join(parts, "."), join(parts, "/"), join(parts, "\\"));
+  }
+
+  private static boolean isSmallPattern(final List<String> parts) {
+    return join(parts, ".").length() <= SMALL_PATTERN_THRESHOLD;
   }
 
   // we do not use File#getParentFile() instead because we must not take current

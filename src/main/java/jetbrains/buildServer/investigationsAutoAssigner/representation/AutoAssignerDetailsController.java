@@ -22,7 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 import jetbrains.buildServer.controllers.BaseController;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
-import jetbrains.buildServer.investigationsAutoAssigner.utils.AssignerArtifactDao;
+import jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerArtifactDao;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.FlakyTestDetector;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.InvestigationsManager;
@@ -71,7 +71,7 @@ public class AutoAssignerDetailsController extends BaseController {
     final int testId = Integer.parseInt(request.getParameter("testId"));
 
     final SBuild build = myServer.findBuildInstanceById(buildId);
-    if (build == null || (!CustomParameters.isDefaultSilentModeEnabled(build) && checkFeatureDisabled(build))) {
+    if (build == null || !CustomParameters.isDefaultSilentModeEnabled(build)) {
       return null;
     }
 

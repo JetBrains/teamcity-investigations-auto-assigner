@@ -42,8 +42,7 @@ public class FailedTestAssigner {
 
   void assign(final HeuristicResult heuristicsResult,
               final SProject sProject,
-              final List<STestRun> sTestRuns,
-              final boolean silentModeOn) {
+              final List<STestRun> sTestRuns) {
     HashMap<Responsibility, List<TestName>> responsibilityToTestNames = new HashMap<>();
     for (STestRun sTestRun : sTestRuns) {
       Responsibility responsibility = heuristicsResult.getResponsibility(sTestRun);
@@ -53,25 +52,21 @@ public class FailedTestAssigner {
     }
 
     Set<Responsibility> uniqueResponsibilities = responsibilityToTestNames.keySet();
-
     for (Responsibility responsibility : uniqueResponsibilities) {
       if (responsibility != null) {
         List<TestName> testNameList = responsibilityToTestNames.get(responsibility);
-        String prefix = silentModeOn ? "Silently found " : "Automatically assigning";
-        LOGGER.info(String.format("%s investigation(s) to %s in %s # %s because of %s",
-                                  prefix,
+        LOGGER.info(String.format("Automatically assigning investigation(s) to %s in %s # %s because of %s",
                                   responsibility.getUser().getUsername(),
                                   sProject.describe(false),
                                   testNameList,
                                   responsibility.getAssignDescription()));
-        if (!silentModeOn) {
-          myTestNameResponsibilityFacade.setTestNameResponsibility(
-            testNameList, sProject.getProjectId(),
-            new ResponsibilityEntryEx(
-              ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
-              responsibility.getAssignDescription(), ResponsibilityEntry.RemoveMethod.WHEN_FIXED)
-          );
-        }
+
+        myTestNameResponsibilityFacade.setTestNameResponsibility(
+          testNameList, sProject.getProjectId(),
+          new ResponsibilityEntryEx(
+            ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
+            responsibility.getAssignDescription(), ResponsibilityEntry.RemoveMethod.WHEN_FIXED)
+        );
       }
     }
   }

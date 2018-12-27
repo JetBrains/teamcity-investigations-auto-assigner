@@ -67,35 +67,28 @@ public class BuildProblemsAssignerTest extends BaseTestCase {
 
   public void Test_NoBuildProblems() {
     BuildProblemsAssigner buildProblemsAssigner = new BuildProblemsAssigner(myBuildProblemResponsibilityFacade);
-    buildProblemsAssigner.assign(myHeuristicResult, mySProject, Collections.emptyList(), false);
+    buildProblemsAssigner.assign(myHeuristicResult, mySProject, Collections.emptyList());
     Mockito.verify(myBuildProblemResponsibilityFacade, Mockito.never()).setBuildProblemResponsibility(anyList(), any(), any());
   }
 
   public void Test_NoResponsibilitiesFound() {
     BuildProblemsAssigner buildProblemsAssigner = new BuildProblemsAssigner(myBuildProblemResponsibilityFacade);
-    buildProblemsAssigner.assign(myHeuristicResult, mySProject, Collections.singletonList(myBuildProblem1), false);
+    buildProblemsAssigner.assign(myHeuristicResult, mySProject, Collections.singletonList(myBuildProblem1));
     Mockito.verify(myBuildProblemResponsibilityFacade, Mockito.never()).setBuildProblemResponsibility(anyList(), any(), any());
   }
 
   public void Test_OneResponsibilityFound() {
     BuildProblemsAssigner buildProblemsAssigner = new BuildProblemsAssigner(myBuildProblemResponsibilityFacade);
     myHeuristicResult.addResponsibility(myBuildProblem1, new Responsibility(myUser1, "any description"));
-    buildProblemsAssigner.assign(myHeuristicResult, mySProject, Collections.singletonList(myBuildProblem1), false);
+    buildProblemsAssigner.assign(myHeuristicResult, mySProject, Collections.singletonList(myBuildProblem1));
     Mockito.verify(myBuildProblemResponsibilityFacade, Mockito.only()).setBuildProblemResponsibility(anyList(), any(), any());
-  }
-
-  public void Test_OneResponsibilityFoundSilentModeOn() {
-    BuildProblemsAssigner buildProblemsAssigner = new BuildProblemsAssigner(myBuildProblemResponsibilityFacade);
-    myHeuristicResult.addResponsibility(myBuildProblem1, new Responsibility(myUser1, "any description"));
-    buildProblemsAssigner.assign(myHeuristicResult, mySProject, Collections.singletonList(myBuildProblem1), true);
-    Mockito.verify(myBuildProblemResponsibilityFacade, Mockito.never()).setBuildProblemResponsibility(anyList(), any(), any());
   }
 
   public void Test_TwoSameResponsibilitiesFound() {
     BuildProblemsAssigner buildProblemsAssigner = new BuildProblemsAssigner(myBuildProblemResponsibilityFacade);
     myHeuristicResult.addResponsibility(myBuildProblem1, new Responsibility(myUser1, "any description"));
     myHeuristicResult.addResponsibility(myBuildProblem2, new Responsibility(myUser1, "any description"));
-    buildProblemsAssigner.assign(myHeuristicResult, mySProject, Arrays.asList(myBuildProblem1, myBuildProblem2), false);
+    buildProblemsAssigner.assign(myHeuristicResult, mySProject, Arrays.asList(myBuildProblem1, myBuildProblem2));
     Mockito.verify(myBuildProblemResponsibilityFacade, Mockito.only()).setBuildProblemResponsibility(anyList(), any(), any());
   }
 
@@ -103,21 +96,21 @@ public class BuildProblemsAssignerTest extends BaseTestCase {
     BuildProblemsAssigner buildProblemsAssigner = new BuildProblemsAssigner(myBuildProblemResponsibilityFacade);
     myHeuristicResult.addResponsibility(myBuildProblem1, new Responsibility(myUser1, "any description"));
     myHeuristicResult.addResponsibility(myBuildProblem2, new Responsibility(myUser2, "any description"));
-    buildProblemsAssigner.assign(myHeuristicResult, mySProject, Arrays.asList(myBuildProblem1, myBuildProblem2), false);
+    buildProblemsAssigner.assign(myHeuristicResult, mySProject, Arrays.asList(myBuildProblem1, myBuildProblem2));
     Mockito.verify(myBuildProblemResponsibilityFacade, Mockito.times(2)).setBuildProblemResponsibility(anyList(), any(), any());
 
     myHeuristicResult = new HeuristicResult();
     Mockito.clearInvocations(myBuildProblemResponsibilityFacade);
     myHeuristicResult.addResponsibility(myBuildProblem1, new Responsibility(myUser1, "any description"));
     myHeuristicResult.addResponsibility(myBuildProblem2, new Responsibility(myUser1, "any description 2"));
-    buildProblemsAssigner.assign(myHeuristicResult, mySProject, Arrays.asList(myBuildProblem1, myBuildProblem2), false);
+    buildProblemsAssigner.assign(myHeuristicResult, mySProject, Arrays.asList(myBuildProblem1, myBuildProblem2));
     Mockito.verify(myBuildProblemResponsibilityFacade, Mockito.times(2)).setBuildProblemResponsibility(anyList(), any(), any());
 
     myHeuristicResult = new HeuristicResult();
     Mockito.clearInvocations(myBuildProblemResponsibilityFacade);
     myHeuristicResult.addResponsibility(myBuildProblem1, new Responsibility(myUser1, "any description"));
     myHeuristicResult.addResponsibility(myBuildProblem2, new Responsibility(myUser2, "any description 2"));
-    buildProblemsAssigner.assign(myHeuristicResult, mySProject, Arrays.asList(myBuildProblem1, myBuildProblem2), false);
+    buildProblemsAssigner.assign(myHeuristicResult, mySProject, Arrays.asList(myBuildProblem1, myBuildProblem2));
     Mockito.verify(myBuildProblemResponsibilityFacade, Mockito.times(2)).setBuildProblemResponsibility(anyList(), any(), any());
   }
 }

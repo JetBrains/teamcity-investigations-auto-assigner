@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package jetbrains.buildServer.investigationsAutoAssigner.utils;
+package jetbrains.buildServer.investigationsAutoAssigner.persistent;
 
-import java.util.List;
+class ResponsibilityPersistentInfo {
+  String testNameId;
+  String investigatorId;
+  String reason;
 
-class ArtifactContent {
-  String serverUUID;
-  List<ResponsibilityPersistentInfo> suggestions;
-
-  ArtifactContent(String serverUUID, List<ResponsibilityPersistentInfo> suggestions) {
-    this.serverUUID = serverUUID;
-    this.suggestions = suggestions;
+  ResponsibilityPersistentInfo(String testNameId, String investigatorId, String reason) {
+    this.testNameId = testNameId;
+    this.investigatorId = investigatorId;
+    this.reason = reason;
   }
 }

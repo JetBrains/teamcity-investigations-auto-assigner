@@ -17,11 +17,9 @@
 package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
 import com.intellij.openapi.diagnostic.Logger;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
-import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
+import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.BuildProblemUtils;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
@@ -38,12 +36,12 @@ public class BuildProblemsFilter {
   private static final Logger LOGGER = Logger.getInstance(BuildProblemsFilter.class.getName());
   private final BuildProblemUtils myBuildProblemUtils;
   private InvestigationsManager myInvestigationsManager;
-  private final Set<String> supportedTypes =
-    Collections.unmodifiableSet(Collections.singleton(Constants.TC_COMPILATION_ERROR_TYPE));
+  private final Set<String> supportedTypes = Collections.unmodifiableSet(
+    new HashSet<>(Arrays.asList(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE, BuildProblemTypes.TC_EXIT_CODE_TYPE)));
 
 
   public BuildProblemsFilter(@NotNull final InvestigationsManager investigationsManager,
-                      @NotNull final BuildProblemUtils buildProblemUtils) {
+                             @NotNull final BuildProblemUtils buildProblemUtils) {
     myInvestigationsManager = investigationsManager;
     myBuildProblemUtils = buildProblemUtils;
   }
@@ -68,8 +66,8 @@ public class BuildProblemsFilter {
 
 
   List<BuildProblem> applyBeforeAssign(final FailedBuildInfo failedBuildInfo,
-                                              final SProject sProject,
-                                              final List<BuildProblem> allBuildProblems) {
+                                       final SProject sProject,
+                                       final List<BuildProblem> allBuildProblems) {
     SBuild sBuild = failedBuildInfo.getBuild();
 
     return allBuildProblems.stream()

@@ -17,7 +17,6 @@
 package jetbrains.buildServer.investigationsAutoAssigner;
 
 import com.intellij.openapi.diagnostic.Logger;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -70,7 +69,7 @@ public class FailedTestAndBuildProblemsDispatcher {
           return;
         }
 
-        myFailedBuilds.putIfAbsent(sBuild.getBuildId(), new FailedBuildInfo(sBuild));
+        myFailedBuilds.computeIfAbsent(sBuild.getBuildId(), devNull -> new FailedBuildInfo(sBuild));
       }
 
       @Override
@@ -130,13 +129,8 @@ public class FailedTestAndBuildProblemsDispatcher {
     Branch branch = build.getBranch();
     boolean isDefaultBranch = branch == null || branch.isDefaultBranch();
 
-    return build.isPersonal() || !isDefaultBranch ||
-           (!CustomParameters.isDefaultSilentModeEnabled(build) && checkFeatureDisabled(build));
-  }
-
-  private static boolean checkFeatureDisabled(@NotNull SBuild build) {
-    Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
-
-    return descriptors.isEmpty();
+    return build.isPersonal() ||
+           !isDefaultBranch ||
+           (!CustomParameters.isBuildFeatureEnabled(build) && !CustomParameters.isDefaultSilentModeEnabled(build));
   }
 }

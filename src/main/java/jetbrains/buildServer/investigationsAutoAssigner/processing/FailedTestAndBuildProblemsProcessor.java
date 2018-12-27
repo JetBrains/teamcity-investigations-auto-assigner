@@ -20,7 +20,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
-import jetbrains.buildServer.investigationsAutoAssigner.utils.AssignerArtifactDao;
+import jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerArtifactDao;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
@@ -33,7 +33,6 @@ public class FailedTestAndBuildProblemsProcessor {
   private final BuildProblemsFilter myBuildProblemsFilter;
   private final FailedTestAssigner myFailedTestAssigner;
   private final BuildProblemsAssigner myBuildProblemsAssigner;
-  @NotNull private final CustomParameters myCustomParameters;
   @NotNull private final AssignerArtifactDao myAssignerArtifactDao;
   @NotNull private ResponsibleUserFinder myResponsibleUserFinder;
 
@@ -43,14 +42,12 @@ public class FailedTestAndBuildProblemsProcessor {
                                              @NotNull final FailedTestAssigner failedTestAssigner,
                                              @NotNull final BuildProblemsFilter buildProblemsFilter,
                                              @NotNull final BuildProblemsAssigner buildProblemsAssigner,
-                                             @NotNull final CustomParameters customParameters,
                                              @NotNull final AssignerArtifactDao assignerArtifactDao) {
     myResponsibleUserFinder = responsibleUserFinder;
     myFailedTestFilter = failedTestFilter;
     myFailedTestAssigner = failedTestAssigner;
     myBuildProblemsFilter = buildProblemsFilter;
     myBuildProblemsAssigner = buildProblemsAssigner;
-    myCustomParameters = customParameters;
     myAssignerArtifactDao = assignerArtifactDao;
   }
 
@@ -84,10 +81,12 @@ public class FailedTestAndBuildProblemsProcessor {
       myBuildProblemsFilter.applyBeforeAssign(failedBuildInfo, sProject, allBuildProblems);
     logChangedProblemsNumber(sBuild, applicableFailedTests, testsForAssign, applicableProblems, problemsForAssign);
 
-    boolean silentModeOn = myCustomParameters.isSilentModeOn(sBuild);
     myAssignerArtifactDao.appendHeuristicsResult(sBuild, testsForAssign, heuristicsResult);
-    myFailedTestAssigner.assign(heuristicsResult, sProject, testsForAssign, silentModeOn);
-    myBuildProblemsAssigner.assign(heuristicsResult, sProject, problemsForAssign, silentModeOn);
+
+    if (CustomParameters.isBuildFeatureEnabled(sBuild)) {
+      myFailedTestAssigner.assign(heuristicsResult, sProject, testsForAssign);
+      myBuildProblemsAssigner.assign(heuristicsResult, sProject, problemsForAssign);
+    }
 
     failedBuildInfo.addHeuristicsResult(heuristicsResult);
   }

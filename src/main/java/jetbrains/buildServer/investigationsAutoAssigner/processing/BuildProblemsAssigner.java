@@ -43,8 +43,7 @@ public class BuildProblemsAssigner {
 
   void assign(final HeuristicResult heuristicsResult,
               final SProject sProject,
-              final List<BuildProblem> buildProblems,
-              final boolean silentModeOn) {
+              final List<BuildProblem> buildProblems) {
     HashMap<Responsibility, List<BuildProblemInfo>> responsibilityToBuildProblem = new HashMap<>();
     for (BuildProblem buildProblem : buildProblems) {
       Responsibility responsibility = heuristicsResult.getResponsibility(buildProblem);
@@ -58,23 +57,19 @@ public class BuildProblemsAssigner {
     for (Responsibility responsibility : uniqueResponsibilities) {
 
       if (responsibility != null) {
-        String prefix = silentModeOn ? "Silently found " : "Automatically assigning";
-        LOGGER.info(String.format("%s investigation to %s in %s because of %s",
-                                  prefix,
+        LOGGER.info(String.format("Automatically assigning investigation(s) to %s in %s because of %s",
                                   responsibility.getUser().getUsername(),
                                   sProject.describe(false),
                                   responsibility.getAssignDescription()));
         List<BuildProblemInfo> buildProblemList = responsibilityToBuildProblem.get(responsibility);
 
-        if (!silentModeOn) {
-          myBuildProblemResponsibilityFacade.setBuildProblemResponsibility(
-            buildProblemList,
-            sProject.getProjectId(),
-            new ResponsibilityEntryEx(
-              ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
-              responsibility.getAssignDescription(), ResponsibilityEntry.RemoveMethod.WHEN_FIXED)
-          );
-        }
+        myBuildProblemResponsibilityFacade.setBuildProblemResponsibility(
+          buildProblemList,
+          sProject.getProjectId(),
+          new ResponsibilityEntryEx(
+            ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
+            responsibility.getAssignDescription(), ResponsibilityEntry.RemoveMethod.WHEN_FIXED)
+        );
       }
     }
   }

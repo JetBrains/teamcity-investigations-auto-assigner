@@ -57,8 +57,19 @@ public class CustomParameters {
   }
 
   public static boolean isDefaultSilentModeEnabled(final SBuild build) {
-    return Boolean.valueOf(build.getBuildOwnParameters().getOrDefault(Constants.DEFAULT_SILENT_MODE_ENABLED, "true")) &&
-           Boolean.valueOf(TeamCityProperties.getProperty(Constants.DEFAULT_SILENT_MODE_ENABLED, "true"));
+    @Nullable
+    String enabledInBuild = build.getBuildOwnParameters().get(Constants.DEFAULT_SILENT_MODE_ENABLED);
+    if ("true".equals(enabledInBuild)) {
+      return true;
+    } else if ("false".equals(enabledInBuild)) {
+      return false;
+    }
+
+    if (isBuildFeatureEnabled(build)) {
+      return true;
+    }
+
+    return Boolean.valueOf(TeamCityProperties.getProperty(Constants.DEFAULT_SILENT_MODE_ENABLED, "true"));
   }
 
   @Nullable
@@ -90,13 +101,14 @@ public class CustomParameters {
     return parsedValue >= 0 ? parsedValue : Integer.MAX_VALUE;
   }
 
-  public boolean isSilentModeOn(@NotNull SBuild build) {
-    Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
-    return descriptors.isEmpty();
-  }
-
   @Nullable
   String getEmailForEmailReporter() {
     return TeamCityProperties.getPropertyOrNull(Constants.INTERNAL_REPORTER_EMAIL);
+  }
+
+  public static boolean isBuildFeatureEnabled(@NotNull SBuild sBuild) {
+    Collection<SBuildFeatureDescriptor> descriptors = sBuild.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
+
+    return !descriptors.isEmpty();
   }
 }
