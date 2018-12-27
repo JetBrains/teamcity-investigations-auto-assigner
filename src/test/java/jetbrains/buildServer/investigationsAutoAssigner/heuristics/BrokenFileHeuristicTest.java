@@ -199,4 +199,32 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
     result = myHeuristic.findResponsibleUser(heuristicContexts);
     Assert.assertFalse(result.isEmpty());
   }
+
+  public void TestSmallFilePaths() {
+    when(myProblemTextExtractor.getBuildProblemText(any())).thenReturn("I contain ./any/other/build/text");
+    VcsFileModification mod = Mockito.mock(VcsFileModification.class);
+    when(myVcsModification.getChanges()).thenReturn(Collections.singletonList(mod));
+    when(mod.getRelativeFileName()).thenReturn("build.gradle");
+
+    when(myVcsModification.getCommitters()).thenReturn(Collections.singletonList(myUser));
+    when(myVcsModification2.getCommitters()).thenReturn(Collections.singletonList(mySecondUser));
+
+    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
+
+    Assert.assertTrue(heuristicResult.isEmpty());
+  }
+
+  public void TestSmallFilePaths2() {
+    when(myProblemTextExtractor.getBuildProblemText(any())).thenReturn("I contain ./any/hmbrm/build.gradle");
+    VcsFileModification mod = Mockito.mock(VcsFileModification.class);
+    when(myVcsModification.getChanges()).thenReturn(Collections.singletonList(mod));
+    when(mod.getRelativeFileName()).thenReturn("build.gradle");
+
+    when(myVcsModification.getCommitters()).thenReturn(Collections.singletonList(myUser));
+    when(myVcsModification2.getCommitters()).thenReturn(Collections.singletonList(mySecondUser));
+
+    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
+
+    Assert.assertFalse(heuristicResult.isEmpty());
+  }
 }
