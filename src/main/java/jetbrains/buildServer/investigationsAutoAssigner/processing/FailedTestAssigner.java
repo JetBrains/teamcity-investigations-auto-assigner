@@ -46,7 +46,7 @@ public class FailedTestAssigner {
     HashMap<Responsibility, List<TestName>> responsibilityToTestNames = new HashMap<>();
     for (STestRun sTestRun : sTestRuns) {
       Responsibility responsibility = heuristicsResult.getResponsibility(sTestRun);
-      responsibilityToTestNames.putIfAbsent(responsibility, new ArrayList<>());
+      responsibilityToTestNames.computeIfAbsent(responsibility, devNull -> new ArrayList<>());
       List<TestName> testNameList = responsibilityToTestNames.get(responsibility);
       testNameList.add(sTestRun.getTest().getName());
     }
