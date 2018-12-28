@@ -65,11 +65,11 @@ public class FailedTestAndBuildProblemsDispatcher {
       public void buildProblemsChanged(@NotNull SBuild sBuild,
                                        @NotNull List<BuildProblemData> before,
                                        @NotNull List<BuildProblemData> after) {
-        if (shouldIgnore(sBuild) || !(sBuild instanceof BuildEx)) {
+        if (myFailedBuilds.containsKey(sBuild.getBuildId()) || shouldIgnore(sBuild) || !(sBuild instanceof BuildEx)) {
           return;
         }
 
-        myFailedBuilds.computeIfAbsent(sBuild.getBuildId(), devNull -> new FailedBuildInfo(sBuild));
+        myFailedBuilds.put(sBuild.getBuildId(), new FailedBuildInfo(sBuild));
       }
 
       @Override
