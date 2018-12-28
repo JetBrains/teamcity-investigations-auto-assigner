@@ -58,7 +58,7 @@ public class CustomParameters {
 
   public static boolean isDefaultSilentModeEnabled(final SBuild build) {
     @Nullable
-    String enabledInBuild = build.getBuildOwnParameters().get(Constants.DEFAULT_SILENT_MODE_ENABLED);
+    String enabledInBuild = build.getParametersProvider().get(Constants.DEFAULT_SILENT_MODE_ENABLED);
     if ("true".equals(enabledInBuild)) {
       return true;
     } else if ("false".equals(enabledInBuild)) {
