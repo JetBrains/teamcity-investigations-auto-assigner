@@ -21,15 +21,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityFacade;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntryEx;
+import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.serverSide.problems.BuildProblemInfo;
+import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.util.Dates;
+import jetbrains.buildServer.vcs.SelectPrevBuildPolicy;
 import org.jetbrains.annotations.NotNull;
 
 public class BuildProblemsAssigner {
@@ -43,7 +47,10 @@ public class BuildProblemsAssigner {
 
   void assign(final HeuristicResult heuristicsResult,
               final SProject sProject,
+              final SBuild sBuild,
               final List<BuildProblem> buildProblems) {
+    if (heuristicsResult.isEmpty()) return;
+
     HashMap<Responsibility, List<BuildProblemInfo>> responsibilityToBuildProblem = new HashMap<>();
     for (BuildProblem buildProblem : buildProblems) {
       Responsibility responsibility = heuristicsResult.getResponsibility(buildProblem);
@@ -52,11 +59,16 @@ public class BuildProblemsAssigner {
       buildProblemList.add(buildProblem);
     }
 
-    Set<Responsibility> uniqueResponsibilities = responsibilityToBuildProblem.keySet();
+    Set<Long> committersIds = sBuild.getCommitters(SelectPrevBuildPolicy.SINCE_LAST_BUILD)
+                                    .getUsers()
+                                    .stream()
+                                    .map(User::getId)
+                                    .collect(Collectors.toSet());
 
+    Set<Responsibility> uniqueResponsibilities = responsibilityToBuildProblem.keySet();
     for (Responsibility responsibility : uniqueResponsibilities) {
 
-      if (responsibility != null) {
+      if (responsibility != null && committersIds.contains(responsibility.getUser().getId())) {
         LOGGER.info(String.format("Automatically assigning investigation(s) to %s in %s because of %s",
                                   responsibility.getUser().getUsername(),
                                   sProject.describe(false),

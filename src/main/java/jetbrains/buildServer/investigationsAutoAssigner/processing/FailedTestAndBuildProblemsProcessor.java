@@ -84,8 +84,8 @@ public class FailedTestAndBuildProblemsProcessor {
     myAssignerArtifactDao.appendHeuristicsResult(sBuild, testsForAssign, heuristicsResult);
 
     if (CustomParameters.isBuildFeatureEnabled(sBuild)) {
-      myFailedTestAssigner.assign(heuristicsResult, sProject, testsForAssign);
-      myBuildProblemsAssigner.assign(heuristicsResult, sProject, problemsForAssign);
+      myFailedTestAssigner.assign(heuristicsResult, sProject, sBuild, testsForAssign);
+      myBuildProblemsAssigner.assign(heuristicsResult, sProject, sBuild, problemsForAssign);
     }
 
     failedBuildInfo.addHeuristicsResult(heuristicsResult);

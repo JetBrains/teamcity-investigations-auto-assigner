@@ -29,10 +29,12 @@ public class Responsibility {
     myDescription = description;
   }
 
+  @NotNull
   public User getUser() {
     return myUser;
   }
 
+  @NotNull
   public String getDescription() {
     return myDescription;
   }
