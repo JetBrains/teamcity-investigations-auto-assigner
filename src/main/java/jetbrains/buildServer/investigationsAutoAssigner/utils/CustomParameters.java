@@ -111,4 +111,16 @@ public class CustomParameters {
 
     return !descriptors.isEmpty();
   }
+
+  public static boolean shouldRunForFeatureBranches(SBuild build) {
+    @Nullable
+    String enabledInBuild = build.getParametersProvider().get(Constants.ENABLE_FEATURE_BRANCHES_SUPPORT);
+    if ("true".equals(enabledInBuild)) {
+      return true;
+    } else if ("false".equals(enabledInBuild)) {
+      return false;
+    }
+
+    return Boolean.valueOf(TeamCityProperties.getProperty(Constants.ENABLE_FEATURE_BRANCHES_SUPPORT, "false"));
+  }
 }
