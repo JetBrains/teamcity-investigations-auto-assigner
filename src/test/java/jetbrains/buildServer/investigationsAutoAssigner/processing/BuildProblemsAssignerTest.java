@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import jetbrains.buildServer.BaseTestCase;
+import jetbrains.buildServer.investigationsAutoAssigner.common.DefaultUserResponsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityFacade;
@@ -124,7 +125,7 @@ public class BuildProblemsAssignerTest extends BaseTestCase {
     Mockito.verify(myBuildProblemResponsibilityFacade, Mockito.times(2)).setBuildProblemResponsibility(anyList(), any(), any());
   }
 
-  public void Test_OneResponsibilityFoundNoCommitters() {
+  public void Test_FoundNoCommitters() {
     UserSet userSetMock = Mockito.mock(UserSet.class);
     when(userSetMock.getUsers()).thenReturn(new HashSet<>(Collections.singletonList(myUser2)));
     when(mySBuild.getCommitters(any())).thenReturn(userSetMock);
@@ -133,5 +134,17 @@ public class BuildProblemsAssignerTest extends BaseTestCase {
     myHeuristicResult.addResponsibility(myBuildProblem1, new Responsibility(myUser1, "any description"));
     buildProblemsAssigner.assign(myHeuristicResult, mySProject, mySBuild, Collections.singletonList(myBuildProblem1));
     Mockito.verify(myBuildProblemResponsibilityFacade, Mockito.never()).setBuildProblemResponsibility(anyList(), any(), any());
+  }
+
+
+  public void Test_FoundNoCommittersOneDefaultResponsibility() {
+    UserSet userSetMock = Mockito.mock(UserSet.class);
+    when(userSetMock.getUsers()).thenReturn(new HashSet<>(Collections.singletonList(myUser2)));
+    when(mySBuild.getCommitters(any())).thenReturn(userSetMock);
+
+    BuildProblemsAssigner buildProblemsAssigner = new BuildProblemsAssigner(myBuildProblemResponsibilityFacade);
+    myHeuristicResult.addResponsibility(myBuildProblem1, new DefaultUserResponsibility(myUser1));
+    buildProblemsAssigner.assign(myHeuristicResult, mySProject, mySBuild, Collections.singletonList(myBuildProblem1));
+    Mockito.verify(myBuildProblemResponsibilityFacade, Mockito.only()).setBuildProblemResponsibility(anyList(), any(), any());
   }
 }

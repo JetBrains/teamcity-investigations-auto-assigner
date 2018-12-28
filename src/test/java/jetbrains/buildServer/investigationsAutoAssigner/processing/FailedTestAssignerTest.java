@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import jetbrains.buildServer.BaseTestCase;
+import jetbrains.buildServer.investigationsAutoAssigner.common.DefaultUserResponsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityFacade;
@@ -28,7 +29,6 @@ import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STest;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.tests.TestName;
-import jetbrains.buildServer.users.SUser;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.users.UserSet;
 import jetbrains.buildServer.users.impl.UserImpl;
@@ -141,7 +141,7 @@ public class FailedTestAssignerTest extends BaseTestCase {
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.times(2)).setTestNameResponsibility(anyList(), any(), any());
   }
 
-  public void Test_OneResponsibilityFoundNoCommitters() {
+  public void Test_FoundNoCommitters() {
     UserSet userSetMock = Mockito.mock(UserSet.class);
     when(userSetMock.getUsers()).thenReturn(new HashSet<>(Collections.singletonList(myUser2)));
     when(mySBuild.getCommitters(any())).thenReturn(userSetMock);
@@ -151,9 +151,17 @@ public class FailedTestAssignerTest extends BaseTestCase {
     myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, mySBuild, Collections.singletonList(mySTestRun1));
 
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.never()).setTestNameResponsibility(anyList(), any(), any());
+  }
 
+  public void Test_FoundNoCommittersOneDefaultResponsibility() {
+    UserSet userSetMock = Mockito.mock(UserSet.class);
+    when(userSetMock.getUsers()).thenReturn(new HashSet<>(Collections.singletonList(myUser2)));
+    when(mySBuild.getCommitters(any())).thenReturn(userSetMock);
+    Responsibility putResponsibility = new DefaultUserResponsibility(myUser1);
+    myHeuristicResult.addResponsibility(mySTestRun1, putResponsibility);
 
+    myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, mySBuild, Collections.singletonList(mySTestRun1));
 
-
+    Mockito.verify(myTestNameResponsibilityFacade, Mockito.only()).setTestNameResponsibility(anyList(), any(), any());
   }
 }

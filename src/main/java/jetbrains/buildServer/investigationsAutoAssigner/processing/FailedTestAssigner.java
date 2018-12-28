@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import jetbrains.buildServer.investigationsAutoAssigner.common.DefaultUserResponsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
@@ -66,7 +67,7 @@ public class FailedTestAssigner {
 
     Set<Responsibility> uniqueResponsibilities = responsibilityToTestNames.keySet();
     for (Responsibility responsibility : uniqueResponsibilities) {
-      if (responsibility != null && committersIds.contains(responsibility.getUser().getId())) {
+      if (shouldAssignInvestigation(responsibility, committersIds)) {
         List<TestName> testNameList = responsibilityToTestNames.get(responsibility);
         LOGGER.info(String.format("Automatically assigning investigation(s) to %s in %s # %s because of %s",
                                   responsibility.getUser().getUsername(),
@@ -82,5 +83,11 @@ public class FailedTestAssigner {
         );
       }
     }
+  }
+
+  private boolean shouldAssignInvestigation(final Responsibility responsibility, final Set<Long> committersIds) {
+    return responsibility != null &&
+           (responsibility instanceof DefaultUserResponsibility ||
+            committersIds.contains(responsibility.getUser().getId()));
   }
 }
