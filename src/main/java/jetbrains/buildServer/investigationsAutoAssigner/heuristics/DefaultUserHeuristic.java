@@ -19,6 +19,7 @@ package jetbrains.buildServer.investigationsAutoAssigner.heuristics;
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
 import java.util.Random;
+import jetbrains.buildServer.investigationsAutoAssigner.common.DefaultUserResponsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
@@ -72,7 +73,7 @@ public class DefaultUserHeuristic implements Heuristic {
       return result;
     }
 
-    Responsibility responsibility = new Responsibility(responsibleUser, "was the default responsible for the builds");
+    Responsibility responsibility = new DefaultUserResponsibility(responsibleUser);
     heuristicContext.getBuildProblems()
                     .forEach(buildProblem -> result.addResponsibility(buildProblem, responsibility));
     heuristicContext.getTestRuns().forEach(testRun -> result.addResponsibility(testRun, responsibility));

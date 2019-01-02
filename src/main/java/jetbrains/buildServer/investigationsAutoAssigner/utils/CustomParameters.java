@@ -58,7 +58,7 @@ public class CustomParameters {
 
   public static boolean isDefaultSilentModeEnabled(final SBuild build) {
     @Nullable
-    String enabledInBuild = build.getBuildOwnParameters().get(Constants.DEFAULT_SILENT_MODE_ENABLED);
+    String enabledInBuild = build.getParametersProvider().get(Constants.DEFAULT_SILENT_MODE_ENABLED);
     if ("true".equals(enabledInBuild)) {
       return true;
     } else if ("false".equals(enabledInBuild)) {
@@ -110,5 +110,17 @@ public class CustomParameters {
     Collection<SBuildFeatureDescriptor> descriptors = sBuild.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
 
     return !descriptors.isEmpty();
+  }
+
+  public static boolean shouldRunForFeatureBranches(SBuild build) {
+    @Nullable
+    String enabledInBuild = build.getParametersProvider().get(Constants.ENABLE_FEATURE_BRANCHES_SUPPORT);
+    if ("true".equals(enabledInBuild)) {
+      return true;
+    } else if ("false".equals(enabledInBuild)) {
+      return false;
+    }
+
+    return Boolean.valueOf(TeamCityProperties.getProperty(Constants.ENABLE_FEATURE_BRANCHES_SUPPORT, "false"));
   }
 }

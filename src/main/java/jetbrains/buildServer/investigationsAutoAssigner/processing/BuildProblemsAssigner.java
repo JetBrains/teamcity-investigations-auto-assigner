@@ -26,13 +26,14 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityFacade;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntryEx;
+import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.serverSide.problems.BuildProblemInfo;
 import jetbrains.buildServer.util.Dates;
 import org.jetbrains.annotations.NotNull;
 
-public class BuildProblemsAssigner {
+public class BuildProblemsAssigner extends BaseAssigner {
 
   private static final Logger LOGGER = Logger.getInstance(BuildProblemsAssigner.class.getName());
   @NotNull private final BuildProblemResponsibilityFacade myBuildProblemResponsibilityFacade;
@@ -43,7 +44,10 @@ public class BuildProblemsAssigner {
 
   void assign(final HeuristicResult heuristicsResult,
               final SProject sProject,
+              final SBuild sBuild,
               final List<BuildProblem> buildProblems) {
+    if (heuristicsResult.isEmpty()) return;
+
     HashMap<Responsibility, List<BuildProblemInfo>> responsibilityToBuildProblem = new HashMap<>();
     for (BuildProblem buildProblem : buildProblems) {
       Responsibility responsibility = heuristicsResult.getResponsibility(buildProblem);
@@ -52,11 +56,11 @@ public class BuildProblemsAssigner {
       buildProblemList.add(buildProblem);
     }
 
+    Set<Long> committersIds = calculateCommitersIds(sBuild);
+
     Set<Responsibility> uniqueResponsibilities = responsibilityToBuildProblem.keySet();
-
     for (Responsibility responsibility : uniqueResponsibilities) {
-
-      if (responsibility != null) {
+      if (shouldAssignInvestigation(responsibility, committersIds)) {
         LOGGER.info(String.format("Automatically assigning investigation(s) to %s in %s because of %s",
                                   responsibility.getUser().getUsername(),
                                   sProject.describe(false),

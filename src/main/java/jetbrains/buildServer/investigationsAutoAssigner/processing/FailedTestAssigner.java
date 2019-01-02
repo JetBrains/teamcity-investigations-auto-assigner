@@ -26,13 +26,14 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntryEx;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityFacade;
+import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.tests.TestName;
 import jetbrains.buildServer.util.Dates;
 import org.jetbrains.annotations.NotNull;
 
-public class FailedTestAssigner {
+public class FailedTestAssigner extends BaseAssigner {
   @NotNull private final TestNameResponsibilityFacade myTestNameResponsibilityFacade;
   private static final Logger LOGGER = Logger.getInstance(FailedTestAssigner.class.getName());
 
@@ -42,18 +43,23 @@ public class FailedTestAssigner {
 
   void assign(final HeuristicResult heuristicsResult,
               final SProject sProject,
+              final SBuild sBuild,
               final List<STestRun> sTestRuns) {
+    if (heuristicsResult.isEmpty()) return;
+
     HashMap<Responsibility, List<TestName>> responsibilityToTestNames = new HashMap<>();
     for (STestRun sTestRun : sTestRuns) {
       Responsibility responsibility = heuristicsResult.getResponsibility(sTestRun);
-      responsibilityToTestNames.putIfAbsent(responsibility, new ArrayList<>());
+      responsibilityToTestNames.computeIfAbsent(responsibility, devNull -> new ArrayList<>());
       List<TestName> testNameList = responsibilityToTestNames.get(responsibility);
       testNameList.add(sTestRun.getTest().getName());
     }
 
+    Set<Long> committersIds = calculateCommitersIds(sBuild);
+
     Set<Responsibility> uniqueResponsibilities = responsibilityToTestNames.keySet();
     for (Responsibility responsibility : uniqueResponsibilities) {
-      if (responsibility != null) {
+      if (shouldAssignInvestigation(responsibility, committersIds)) {
         List<TestName> testNameList = responsibilityToTestNames.get(responsibility);
         LOGGER.info(String.format("Automatically assigning investigation(s) to %s in %s # %s because of %s",
                                   responsibility.getUser().getUsername(),

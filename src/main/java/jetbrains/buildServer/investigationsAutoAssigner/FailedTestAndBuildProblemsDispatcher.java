@@ -65,11 +65,11 @@ public class FailedTestAndBuildProblemsDispatcher {
       public void buildProblemsChanged(@NotNull SBuild sBuild,
                                        @NotNull List<BuildProblemData> before,
                                        @NotNull List<BuildProblemData> after) {
-        if (shouldIgnore(sBuild) || !(sBuild instanceof BuildEx)) {
+        if (myFailedBuilds.containsKey(sBuild.getBuildId()) || shouldIgnore(sBuild) || !(sBuild instanceof BuildEx)) {
           return;
         }
 
-        myFailedBuilds.computeIfAbsent(sBuild.getBuildId(), devNull -> new FailedBuildInfo(sBuild));
+        myFailedBuilds.put(sBuild.getBuildId(), new FailedBuildInfo(sBuild));
       }
 
       @Override
@@ -124,13 +124,19 @@ public class FailedTestAndBuildProblemsDispatcher {
     }
   }
 
+  /*
+    We should ignore personal builds, builds for feature branches (by default),
+    and handle the case when investigation suggestions are disabled.
+   */
   private static boolean shouldIgnore(@NotNull SBuild build) {
     @Nullable
     Branch branch = build.getBranch();
     boolean isDefaultBranch = branch == null || branch.isDefaultBranch();
 
-    return build.isPersonal() ||
-           !isDefaultBranch ||
-           (!CustomParameters.isBuildFeatureEnabled(build) && !CustomParameters.isDefaultSilentModeEnabled(build));
+    if (build.isPersonal() || !(isDefaultBranch || CustomParameters.shouldRunForFeatureBranches(build))) {
+      return true;
+    }
+
+    return !(CustomParameters.isBuildFeatureEnabled(build) || CustomParameters.isDefaultSilentModeEnabled(build));
   }
 }
