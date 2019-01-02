@@ -21,8 +21,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import jetbrains.buildServer.investigationsAutoAssigner.common.DefaultUserResponsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
@@ -32,12 +30,10 @@ import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.tests.TestName;
-import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.util.Dates;
-import jetbrains.buildServer.vcs.SelectPrevBuildPolicy;
 import org.jetbrains.annotations.NotNull;
 
-public class FailedTestAssigner {
+public class FailedTestAssigner extends BaseAssigner {
   @NotNull private final TestNameResponsibilityFacade myTestNameResponsibilityFacade;
   private static final Logger LOGGER = Logger.getInstance(FailedTestAssigner.class.getName());
 
@@ -59,11 +55,7 @@ public class FailedTestAssigner {
       testNameList.add(sTestRun.getTest().getName());
     }
 
-    Set<Long> committersIds = sBuild.getCommitters(SelectPrevBuildPolicy.SINCE_LAST_BUILD)
-                                    .getUsers()
-                                    .stream()
-                                    .map(User::getId)
-                                    .collect(Collectors.toSet());
+    Set<Long> committersIds = calculateCommitersIds(sBuild);
 
     Set<Responsibility> uniqueResponsibilities = responsibilityToTestNames.keySet();
     for (Responsibility responsibility : uniqueResponsibilities) {
@@ -83,11 +75,5 @@ public class FailedTestAssigner {
         );
       }
     }
-  }
-
-  private boolean shouldAssignInvestigation(final Responsibility responsibility, final Set<Long> committersIds) {
-    return responsibility != null &&
-           (responsibility instanceof DefaultUserResponsibility ||
-            committersIds.contains(responsibility.getUser().getId()));
   }
 }
