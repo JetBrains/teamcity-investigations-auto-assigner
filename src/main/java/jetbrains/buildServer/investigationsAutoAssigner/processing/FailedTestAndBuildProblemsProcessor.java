@@ -85,6 +85,12 @@ public class FailedTestAndBuildProblemsProcessor extends BaseProcessor {
     if (CustomParameters.isBuildFeatureEnabled(sBuild) && !failedBuildInfo.shouldDelayAssignments) {
       myFailedTestAssigner.assign(heuristicsResult, sProject, sBuild, testsForAssign);
       myBuildProblemsAssigner.assign(heuristicsResult, sProject, sBuild, problemsForAssign);
+    } else if (LOGGER.isDebugEnabled() && !failedBuildInfo.getHeuristicsResult().isEmpty()) {
+      if (!CustomParameters.isBuildFeatureEnabled(sBuild)) {
+        LOGGER.debug("Found investigations but build feature is not configured.");
+      } else if (failedBuildInfo.shouldDelayAssignments) {
+        LOGGER.debug("Found investigations but assignments should be delayed.");
+      }
     }
 
     failedBuildInfo.addHeuristicsResult(heuristicsResult);

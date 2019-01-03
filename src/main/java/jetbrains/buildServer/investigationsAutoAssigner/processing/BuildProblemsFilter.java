@@ -50,6 +50,10 @@ public class BuildProblemsFilter {
                            final SProject sProject,
                            final List<BuildProblem> buildProblems) {
     SBuild sBuild = failedBuildInfo.getBuild();
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug(String.format("Filtering of build problems for build %s started", sBuild.getBuildId()));
+    }
+
     Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
 
     List<BuildProblem> filteredBuildProblems = buildProblems.stream()
@@ -69,6 +73,9 @@ public class BuildProblemsFilter {
                                        final SProject sProject,
                                        final List<BuildProblem> allBuildProblems) {
     SBuild sBuild = failedBuildInfo.getBuild();
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug(String.format("Filtering before assign of build problems for build %s started", sBuild.getBuildId()));
+    }
 
     return allBuildProblems.stream()
                            .filter(buildProblem -> isApplicable(sProject, sBuild, buildProblem))

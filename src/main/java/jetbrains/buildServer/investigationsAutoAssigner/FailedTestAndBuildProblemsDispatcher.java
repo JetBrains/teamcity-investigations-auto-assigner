@@ -88,7 +88,6 @@ public class FailedTestAndBuildProblemsDispatcher {
         FailedBuildInfo failedBuildInfo = myFailedBuilds.remove(build.getBuildId());
         if (failedBuildInfo != null) {
           myDaemon.execute(() -> instance.processFinishedBuild(failedBuildInfo));
-          LOGGER.debug("Build #" + build.getBuildId() + " removed from processing.");
         }
       }
 
@@ -128,6 +127,7 @@ public class FailedTestAndBuildProblemsDispatcher {
     String description = String.format("Investigations auto-assigner: processing finished build %s in background",
                                        failedBuildInfo.getBuild().getBuildId());
     NamedThreadFactory.executeWithNewThreadName(description, () -> this.processBrokenBuild(failedBuildInfo));
+    LOGGER.debug("Build #" + failedBuildInfo.getBuild().getBuildId() + " will be removed from processing.");
 
     if (failedBuildInfo.shouldDelayAssignments && !failedBuildInfo.getHeuristicsResult().isEmpty()) {
       putIntoDelayAssignments(failedBuildInfo);
