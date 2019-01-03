@@ -17,8 +17,6 @@
 package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
