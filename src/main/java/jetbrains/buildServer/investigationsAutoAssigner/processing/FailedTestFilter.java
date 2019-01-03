@@ -49,7 +49,7 @@ public class FailedTestFilter {
   List<STestRun> apply(final FailedBuildInfo failedBuildInfo, final SProject sProject, final List<STestRun> testRuns) {
     SBuild sBuild = failedBuildInfo.getBuild();
     if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug(String.format("Filtering of failed tests for build %s started", sBuild.getBuildId()));
+      LOGGER.debug(String.format("Filtering of failed tests for build #%s started", sBuild.getBuildId()));
     }
 
     Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
@@ -71,7 +71,7 @@ public class FailedTestFilter {
                                    final List<STestRun> testRuns) {
     SBuild sBuild = failedBuildInfo.getBuild();
     if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug(String.format("Filtering before assign of failed tests for build %s started", sBuild.getBuildId()));
+      LOGGER.debug(String.format("Filtering before assign of failed tests for build #%s started", sBuild.getBuildId()));
     }
     return testRuns.stream()
                    .filter(testRun -> isApplicable(sProject, sBuild, testRun))

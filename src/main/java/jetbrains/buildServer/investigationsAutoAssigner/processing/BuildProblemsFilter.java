@@ -51,7 +51,7 @@ public class BuildProblemsFilter {
                            final List<BuildProblem> buildProblems) {
     SBuild sBuild = failedBuildInfo.getBuild();
     if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug(String.format("Filtering of build problems for build %s started", sBuild.getBuildId()));
+      LOGGER.debug(String.format("Filtering of build problems for build #%s started", sBuild.getBuildId()));
     }
 
     Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
@@ -74,7 +74,7 @@ public class BuildProblemsFilter {
                                        final List<BuildProblem> allBuildProblems) {
     SBuild sBuild = failedBuildInfo.getBuild();
     if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug(String.format("Filtering before assign of build problems for build %s started", sBuild.getBuildId()));
+      LOGGER.debug(String.format("Filtering before assign of build problems for build #%s started", sBuild.getBuildId()));
     }
 
     return allBuildProblems.stream()
@@ -99,7 +99,7 @@ public class BuildProblemsFilter {
 
     boolean isApplicable = reason == null;
     if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug(String.format("Build problem %s:%s is %s.%s",
+      LOGGER.debug(String.format("Build problem #%s:%s is %s.%s",
                                  sBuild.getBuildId(),
                                  problem.getTypeDescription(),
                                  (isApplicable ? "applicable" : "not applicable"),
