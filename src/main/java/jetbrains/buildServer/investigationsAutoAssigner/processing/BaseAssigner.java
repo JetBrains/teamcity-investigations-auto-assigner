@@ -24,7 +24,7 @@ import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.vcs.SelectPrevBuildPolicy;
 
-public class BaseAssigner {
+abstract public class BaseAssigner {
   protected boolean shouldAssignInvestigation(final Responsibility responsibility, final Set<Long> committersIds) {
     return responsibility != null &&
            (responsibility instanceof DefaultUserResponsibility ||
