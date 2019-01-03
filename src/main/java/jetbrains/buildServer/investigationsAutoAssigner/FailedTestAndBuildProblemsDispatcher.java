@@ -18,13 +18,13 @@ package jetbrains.buildServer.investigationsAutoAssigner;
 
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
+import jetbrains.buildServer.investigationsAutoAssigner.processing.DelayedAssignmentsProcessor;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.FailedTestAndBuildProblemsProcessor;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.EmailReporter;
@@ -41,19 +41,24 @@ public class FailedTestAndBuildProblemsDispatcher {
 
   @NotNull
   private final FailedTestAndBuildProblemsProcessor myProcessor;
+  private final DelayedAssignmentsProcessor myDelayedAssignmentsProcessor;
   @NotNull private final EmailReporter myEmailReporter;
-  // Map isn't synchronized because we work with it from synchronized method
   @NotNull
   private final ConcurrentHashMap<Long, FailedBuildInfo> myFailedBuilds;
+  @NotNull
+  private final ConcurrentHashMap<String, FailedBuildInfo> myDelayedAssignments;
   @NotNull
   private final ScheduledExecutorService myDaemon;
 
   public FailedTestAndBuildProblemsDispatcher(@NotNull final BuildServerListenerEventDispatcher buildServerListenerEventDispatcher,
                                               @NotNull final FailedTestAndBuildProblemsProcessor processor,
+                                              @NotNull final DelayedAssignmentsProcessor delayedAssignmentsProcessor,
                                               @NotNull final EmailReporter emailReporter) {
     myProcessor = processor;
+    myDelayedAssignmentsProcessor = delayedAssignmentsProcessor;
     myEmailReporter = emailReporter;
     myFailedBuilds = new ConcurrentHashMap<>();
+    myDelayedAssignments = new ConcurrentHashMap<>();
     myDaemon = ExecutorsFactory.newFixedScheduledDaemonExecutor(Constants.BUILD_FEATURE_TYPE, 1);
     myDaemon.scheduleWithFixedDelay(this::processBrokenBuildsOneThread,
             CustomParameters.getProcessingDelayInSeconds(),
@@ -74,9 +79,28 @@ public class FailedTestAndBuildProblemsDispatcher {
 
       @Override
       public void buildFinished(@NotNull SRunningBuild build) {
-        FailedBuildInfo failedBuildInfo = myFailedBuilds.get(build.getBuildId());
+        if (shouldIgnore(build)) {
+          return;
+        }
+        processDelayedAssignmentsForPrevious(build);
+
+        @Nullable
+        FailedBuildInfo failedBuildInfo = myFailedBuilds.remove(build.getBuildId());
         if (failedBuildInfo != null) {
-          myDaemon.execute(() -> instance.processFinishedBuild(failedBuildInfo, build.getBuildId()));
+          myDaemon.execute(() -> instance.processFinishedBuild(failedBuildInfo));
+          LOGGER.debug("Build #" + build.getBuildId() + " removed from processing.");
+        }
+      }
+
+      private void processDelayedAssignmentsForPrevious(SBuild nextBuild) {
+        @Nullable
+        SBuildType sBuildType = nextBuild.getBuildType();
+        if (sBuildType != null) {
+          @Nullable
+          FailedBuildInfo delayedAssignmentsBuildInfo = myDelayedAssignments.remove(sBuildType.getInternalId());
+          if (delayedAssignmentsBuildInfo != null) {
+            myDaemon.execute(() -> instance.processDelayedAssignments(delayedAssignmentsBuildInfo, nextBuild));
+          }
         }
       }
 
@@ -93,35 +117,40 @@ public class FailedTestAndBuildProblemsDispatcher {
     NamedThreadFactory.executeWithNewThreadName(description, this::processBrokenBuilds);
   }
 
-  private void processBrokenBuilds() {
-    for (Map.Entry<Long, FailedBuildInfo> entry : myFailedBuilds.entrySet()) {
-      FailedBuildInfo failedBuildInfo = entry.getValue();
-      processBrokenBuild(failedBuildInfo, entry.getKey());
-    }
+  private void processDelayedAssignments(final FailedBuildInfo delayedAssignmentsBuildInfo, SBuild nextBuild) {
+    String description = String.format("Investigations auto-assigner: processing delayed assignments for build %s" +
+                                       " in background", delayedAssignmentsBuildInfo.getBuild().getBuildId());
+    NamedThreadFactory.executeWithNewThreadName(
+      description, () -> myDelayedAssignmentsProcessor.processBuild(delayedAssignmentsBuildInfo, nextBuild));
   }
 
-  private void processFinishedBuild(@NotNull final FailedBuildInfo failedBuildInfo,
-                                    @NotNull final Long buildKey) {
+  private void processFinishedBuild(@NotNull final FailedBuildInfo failedBuildInfo) {
     String description = String.format("Investigations auto-assigner: processing finished build %s in background",
-                                       buildKey);
-    NamedThreadFactory.executeWithNewThreadName(description, () -> this.processBrokenBuild(failedBuildInfo, buildKey));
+                                       failedBuildInfo.getBuild().getBuildId());
+    NamedThreadFactory.executeWithNewThreadName(description, () -> this.processBrokenBuild(failedBuildInfo));
+
+    if (failedBuildInfo.shouldDelayAssignments && !failedBuildInfo.getHeuristicsResult().isEmpty()) {
+      putIntoDelayAssignments(failedBuildInfo);
+    }
   }
 
-  private synchronized void processBrokenBuild(final FailedBuildInfo failedBuildInfo, final Long buildKey) {
-    if (!myFailedBuilds.containsKey(buildKey)) {
-      LOGGER.debug("Build #" + buildKey + " was already processed and removed.");
-      return;
+  private void putIntoDelayAssignments(final FailedBuildInfo failedBuildInfo) {
+    @Nullable
+    SBuildType sBuildType = failedBuildInfo.getBuild().getBuildType();
+    if (sBuildType != null) {
+      myDelayedAssignments.put(sBuildType.getInternalId(), failedBuildInfo);
     }
+  }
 
-    boolean shouldRemove = failedBuildInfo.getBuild().isFinished();
+  private void processBrokenBuilds() {
+    for (FailedBuildInfo failedBuildInfo : myFailedBuilds.values()) {
+      processBrokenBuild(failedBuildInfo);
+    }
+  }
+
+  private synchronized void processBrokenBuild(final FailedBuildInfo failedBuildInfo) {
     myProcessor.processBuild(failedBuildInfo);
-
-    if (shouldRemove) {
-      myEmailReporter.sendResults(failedBuildInfo.getBuild(), failedBuildInfo.getHeuristicsResult());
-      long buildId = failedBuildInfo.getBuild().getBuildId();
-      myFailedBuilds.remove(buildKey);
-      LOGGER.debug("Build #" + buildId + " removed from processing.");
-    }
+    myEmailReporter.sendResults(failedBuildInfo.getBuild(), failedBuildInfo.getHeuristicsResult());
   }
 
   /*
