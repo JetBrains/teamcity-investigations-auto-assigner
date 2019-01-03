@@ -102,9 +102,8 @@ public class CustomParameters {
   }
 
   public static boolean shouldDelayAssignments(final SBuild sBuild) {
-    final SBuildFeatureDescriptor sBuildFeature = getBuildFeatureDescriptor(sBuild);
-    if (sBuildFeature == null) return false;
-    String shouldDelayAssignments = sBuildFeature.getParameters().get(Constants.SHOULD_DELAY_ASSIGNMENTS);
+    @Nullable
+    String shouldDelayAssignments = sBuild.getParametersProvider().get(Constants.SHOULD_DELAY_ASSIGNMENTS);
     return "true".equals(shouldDelayAssignments);
   }
 

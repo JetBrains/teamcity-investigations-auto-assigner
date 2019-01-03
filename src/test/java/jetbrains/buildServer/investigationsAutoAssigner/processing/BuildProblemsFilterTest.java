@@ -25,6 +25,7 @@ import jetbrains.buildServer.investigationsAutoAssigner.utils.BuildProblemUtils;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.InvestigationsManager;
 import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
+import jetbrains.buildServer.parameters.ParametersProvider;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.serverSide.BuildPromotion;
@@ -70,6 +71,7 @@ public class BuildProblemsFilterTest extends BaseTestCase {
     myBuildProblemUtils = Mockito.mock(BuildProblemUtils.class);
 
     when(mySBuild.getBuildPromotion()).thenReturn(buildPromotion);
+    when(mySBuild.getParametersProvider()).thenReturn(Mockito.mock(ParametersProvider.class));
     when(mySProject.getProjectId()).thenReturn("Project ID");
     when(project2.getProjectId()).thenReturn("Project ID 2");
     when(parentProject.getProjectId()).thenReturn("Parent Project ID");

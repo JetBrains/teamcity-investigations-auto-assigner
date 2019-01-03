@@ -25,6 +25,7 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerArtifactDao;
+import jetbrains.buildServer.parameters.ParametersProvider;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.tests.TestName;
 import jetbrains.buildServer.users.SUser;
@@ -47,6 +48,7 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
   private FailedBuildInfo myFailedBuildInfo;
   private HeuristicResult myNotEmptyHeuristicResult;
   private FailedTestAssigner myFailedTestAssigner;
+  private ParametersProvider myParametersProvider;
 
   @BeforeMethod
   @Override
@@ -88,10 +90,14 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
     mySBuildType = Mockito.mock(SBuildType.class);
     when(mySBuildType.getProject()).thenReturn(sProject);
 
+    //configure parameters provider
+    myParametersProvider = Mockito.mock(ParametersProvider.class);
+
     //configure build
     mySBuild = Mockito.mock(BuildEx.class);
     when(mySBuild.getBuildType()).thenReturn(mySBuildType);
     when(mySBuild.getBuildStatistics(any())).thenReturn(buildStatistics);
+    when(mySBuild.getParametersProvider()).thenReturn(myParametersProvider);
     myFailedBuildInfo = new FailedBuildInfo(mySBuild);
 
     //configure finder
@@ -137,6 +143,7 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
   }
 
   public void TestBuildFeatureNotConfigured() {
+    setDelayedAssignments("true");
     when(mySBuild.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE)).thenReturn(Collections.emptyList());
 
     myProcessor.processBuild(myFailedBuildInfo);
@@ -145,8 +152,8 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
   }
 
   public void TestDelayedAssignment() {
-    SBuildFeatureDescriptor descriptor = configureBuildFeature(mySBuild);
-    setDelayedAssignments(descriptor, "true");
+    configureBuildFeature(mySBuild);
+    setDelayedAssignments("true");
 
     myProcessor.processBuild(myFailedBuildInfo);
 
@@ -154,8 +161,8 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
   }
 
   public void TestRegularAssignment() {
-    SBuildFeatureDescriptor descriptor = configureBuildFeature(mySBuild);
-    setDelayedAssignments(descriptor, "false");
+    configureBuildFeature(mySBuild);
+    setDelayedAssignments("false");
 
     myProcessor.processBuild(myFailedBuildInfo);
 
@@ -163,26 +170,22 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
   }
 
   public void TestDefaultAssignmentIsRegular() {
-    SBuildFeatureDescriptor descriptor = configureBuildFeature(mySBuild);
-    setDelayedAssignments(descriptor, null);
+    configureBuildFeature(mySBuild);
+    setDelayedAssignments(null);
 
     myProcessor.processBuild(myFailedBuildInfo);
 
     Mockito.verify(myFailedTestAssigner, Mockito.atLeastOnce()).assign(any(), any(), any(), anyList());
   }
 
-  private SBuildFeatureDescriptor configureBuildFeature(SBuild sBuild) {
+  private void configureBuildFeature(SBuild sBuild) {
     SBuildFeatureDescriptor sBuildFeatureDescriptor = Mockito.mock(SBuildFeatureDescriptor.class);
     when(sBuild.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE))
       .thenReturn(Collections.singletonList(sBuildFeatureDescriptor));
-
-    return sBuildFeatureDescriptor;
   }
 
-  private void setDelayedAssignments(SBuildFeatureDescriptor sBuildFeatureDescriptor, String value) {
-    Map<String, String> fakeParams = new HashMap<>();
-    fakeParams.put(Constants.SHOULD_DELAY_ASSIGNMENTS, value);
-    when(sBuildFeatureDescriptor.getParameters()).thenReturn(fakeParams);
+  private void setDelayedAssignments(String value) {
+    when(myParametersProvider.get(Constants.SHOULD_DELAY_ASSIGNMENTS)).thenReturn(value);
 
     //reinitialize build info required
     myFailedBuildInfo = new FailedBuildInfo(mySBuild);

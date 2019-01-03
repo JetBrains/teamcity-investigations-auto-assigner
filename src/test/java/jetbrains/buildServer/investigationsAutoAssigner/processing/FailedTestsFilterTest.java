@@ -23,6 +23,7 @@ import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.FlakyTestDetector;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.InvestigationsManager;
+import jetbrains.buildServer.parameters.ParametersProvider;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityEntry;
 import jetbrains.buildServer.serverSide.SBuild;
@@ -81,6 +82,7 @@ public class FailedTestsFilterTest extends BaseTestCase {
     when(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, mySTest)).thenReturn(false);
 
     myTestsWrapper = Collections.singletonList(mySTestRun);
+    when(mySBuild.getParametersProvider()).thenReturn(Mockito.mock(ParametersProvider.class));
     myFailedBuildInfo = new FailedBuildInfo(mySBuild);
     myFailedTestFilter = new FailedTestFilter(myFlakyTestDetector, myInvestigationsManager);
 

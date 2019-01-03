@@ -23,6 +23,7 @@ import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.investigationsAutoAssigner.common.DefaultUserResponsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
+import jetbrains.buildServer.parameters.ParametersProvider;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityFacade;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
@@ -84,6 +85,7 @@ public class FailedTestAssignerTest extends BaseTestCase {
     UserSet userSetMock = Mockito.mock(UserSet.class);
     when(userSetMock.getUsers()).thenReturn(new HashSet<>(Arrays.asList(myUser1, myUser2)));
     when(mySBuild.getCommitters(any())).thenReturn(userSetMock);
+    when(mySBuild.getParametersProvider()).thenReturn(Mockito.mock(ParametersProvider.class));
 
     myTestedFailedTestAssigner = new FailedTestAssigner(myTestNameResponsibilityFacade);
   }
