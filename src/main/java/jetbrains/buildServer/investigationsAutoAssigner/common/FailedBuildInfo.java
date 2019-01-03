@@ -19,6 +19,7 @@ package jetbrains.buildServer.investigationsAutoAssigner.common;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
@@ -31,11 +32,13 @@ public class FailedBuildInfo {
   private Set<Integer> processedTests = new HashSet<>();
   private Set<Integer> processedBuildProblems = new HashSet<>();
   private HeuristicResult myHeuristicResult = new HeuristicResult();
+  public final boolean shouldDelayAssignments;
 
   public int processed = 0;
 
   public FailedBuildInfo(final SBuild sBuild) {
     mySBuild = sBuild;
+    shouldDelayAssignments = CustomParameters.shouldDelayAssignments(sBuild);
   }
 
   @NotNull

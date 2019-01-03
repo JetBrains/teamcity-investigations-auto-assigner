@@ -17,7 +17,10 @@
 package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import jetbrains.buildServer.BaseTestCase;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
@@ -43,6 +46,7 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
   private AssignerArtifactDao myAssignerArtifactDao;
   private FailedBuildInfo myFailedBuildInfo;
   private HeuristicResult myNotEmptyHeuristicResult;
+  private FailedTestAssigner myFailedTestAssigner;
 
   @BeforeMethod
   @Override
@@ -50,13 +54,13 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
     super.setUp();
     myResponsibleUserFinder = Mockito.mock(ResponsibleUserFinder.class);
     final FailedTestFilter failedTestFilter = Mockito.mock(FailedTestFilter.class);
-    final FailedTestAssigner failedTestAssigner = Mockito.mock(FailedTestAssigner.class);
+    myFailedTestAssigner = Mockito.mock(FailedTestAssigner.class);
     final BuildProblemsFilter buildProblemsFilter = Mockito.mock(BuildProblemsFilter.class);
     final BuildProblemsAssigner buildProblemsAssigner = Mockito.mock(BuildProblemsAssigner.class);
     myAssignerArtifactDao = Mockito.mock(AssignerArtifactDao.class);
     myProcessor = new FailedTestAndBuildProblemsProcessor(myResponsibleUserFinder,
                                                           failedTestFilter,
-                                                          failedTestAssigner,
+                                                          myFailedTestAssigner,
                                                           buildProblemsFilter,
                                                           buildProblemsAssigner,
                                                           myAssignerArtifactDao);
@@ -100,7 +104,7 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
     myNotEmptyHeuristicResult.addResponsibility(STestRun, new Responsibility(sUser, "Failed description"));
   }
 
-  public void Test_OnTestFailed_BuildTypeIsNull() {
+  public void TestBuildTypeIsNull() {
     when(mySBuild.getBuildType()).thenReturn(null);
 
     myProcessor.processBuild(myFailedBuildInfo);
@@ -108,7 +112,7 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
     Mockito.verify(mySBuild, Mockito.never()).getBuildProblems();
   }
 
-  public void Test_OnTestFailed_BuildTypeNotNull() {
+  public void TestBuildTypeNotNull() {
     when(mySBuild.getBuildType()).thenReturn(mySBuildType);
 
     myProcessor.processBuild(myFailedBuildInfo);
@@ -116,7 +120,7 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
     Mockito.verify(mySBuild, Mockito.atLeastOnce()).getBuildProblems();
   }
 
-  public void Test_OnTestFailed_AssignerHasRightHeuristicsResult() {
+  public void TestAssignerHasRightHeuristicsResult() {
     when(myResponsibleUserFinder.findResponsibleUser(any(), any(), anyList(), anyList()))
       .thenReturn(myNotEmptyHeuristicResult);
 
@@ -132,4 +136,55 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
     Mockito.verify(myAssignerArtifactDao, Mockito.atLeastOnce()).appendHeuristicsResult(any(), any(), any());
   }
 
+  public void TestBuildFeatureNotConfigured() {
+    when(mySBuild.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE)).thenReturn(Collections.emptyList());
+
+    myProcessor.processBuild(myFailedBuildInfo);
+
+    Mockito.verify(myFailedTestAssigner, Mockito.never()).assign(any(), any(), any(), anyList());
+  }
+
+  public void TestDelayedAssignment() {
+    SBuildFeatureDescriptor descriptor = configureBuildFeature(mySBuild);
+    setDelayedAssignments(descriptor, "true");
+
+    myProcessor.processBuild(myFailedBuildInfo);
+
+    Mockito.verify(myFailedTestAssigner, Mockito.never()).assign(any(), any(), any(), anyList());
+  }
+
+  public void TestRegularAssignment() {
+    SBuildFeatureDescriptor descriptor = configureBuildFeature(mySBuild);
+    setDelayedAssignments(descriptor, "false");
+
+    myProcessor.processBuild(myFailedBuildInfo);
+
+    Mockito.verify(myFailedTestAssigner, Mockito.atLeastOnce()).assign(any(), any(), any(), anyList());
+  }
+
+  public void TestDefaultAssignmentIsRegular() {
+    SBuildFeatureDescriptor descriptor = configureBuildFeature(mySBuild);
+    setDelayedAssignments(descriptor, null);
+
+    myProcessor.processBuild(myFailedBuildInfo);
+
+    Mockito.verify(myFailedTestAssigner, Mockito.atLeastOnce()).assign(any(), any(), any(), anyList());
+  }
+
+  private SBuildFeatureDescriptor configureBuildFeature(SBuild sBuild) {
+    SBuildFeatureDescriptor sBuildFeatureDescriptor = Mockito.mock(SBuildFeatureDescriptor.class);
+    when(sBuild.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE))
+      .thenReturn(Collections.singletonList(sBuildFeatureDescriptor));
+
+    return sBuildFeatureDescriptor;
+  }
+
+  private void setDelayedAssignments(SBuildFeatureDescriptor sBuildFeatureDescriptor, String value) {
+    Map<String, String> fakeParams = new HashMap<>();
+    fakeParams.put(Constants.SHOULD_DELAY_ASSIGNMENTS, value);
+    when(sBuildFeatureDescriptor.getParameters()).thenReturn(fakeParams);
+
+    //reinitialize build info required
+    myFailedBuildInfo = new FailedBuildInfo(mySBuild);
+  }
 }
