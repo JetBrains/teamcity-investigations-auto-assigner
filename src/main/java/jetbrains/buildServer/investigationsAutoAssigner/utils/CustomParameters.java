@@ -87,7 +87,7 @@ public class CustomParameters {
 
   public static int getMaxTestsPerBuildThreshold(SBuild build) {
     @Nullable
-    String maxTestsPerBuildNumber = build.getBuildOwnParameters().get(Constants.MAX_TESTS_PER_BUILD_NUMBER);
+    String maxTestsPerBuildNumber = build.getParametersProvider().get(Constants.MAX_TESTS_PER_BUILD_NUMBER);
     if (StringUtil.isNotEmpty(maxTestsPerBuildNumber)) {
       return parseThreshold(maxTestsPerBuildNumber);
     }
