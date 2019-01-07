@@ -98,14 +98,13 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
     when(mySBuild.getParametersProvider()).thenReturn(myParametersProvider);
     myFailedBuildInfo = new FailedBuildInfo(mySBuild);
 
-    //configure finder
-    final HeuristicResult heuristicsResult = new HeuristicResult();
-    when(myResponsibleUserFinder.findResponsibleUser(any(), any(), anyList(), anyList())).thenReturn(heuristicsResult);
-
     //configure heuristic results
     myNotEmptyHeuristicResult = new HeuristicResult();
     SUser sUser = Mockito.mock(SUser.class);
     myNotEmptyHeuristicResult.addResponsibility(STestRun, new Responsibility(sUser, "Failed description"));
+
+    //configure finder
+    when(myResponsibleUserFinder.findResponsibleUser(any(), any(), anyList(), anyList())).thenReturn(myNotEmptyHeuristicResult);
   }
 
   public void TestBuildTypeIsNull() {

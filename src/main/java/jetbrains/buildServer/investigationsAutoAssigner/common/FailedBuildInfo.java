@@ -32,13 +32,13 @@ public class FailedBuildInfo {
   private Set<Integer> processedTests = new HashSet<>();
   private Set<Integer> processedBuildProblems = new HashSet<>();
   private HeuristicResult myHeuristicResult = new HeuristicResult();
-  public final boolean shouldDelayAssignments;
+  private final boolean myShouldDelayAssignments;
 
   public int processed = 0;
 
   public FailedBuildInfo(final SBuild sBuild) {
     mySBuild = sBuild;
-    shouldDelayAssignments = CustomParameters.shouldDelayAssignments(sBuild);
+    myShouldDelayAssignments = CustomParameters.shouldDelayAssignments(sBuild);
   }
 
   @NotNull
@@ -72,5 +72,9 @@ public class FailedBuildInfo {
 
   public HeuristicResult getHeuristicsResult() {
     return myHeuristicResult;
+  }
+
+  public boolean shouldDelayAssignments() {
+    return myShouldDelayAssignments;
   }
 }

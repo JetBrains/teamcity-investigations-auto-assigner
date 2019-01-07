@@ -127,7 +127,7 @@ public class FailedTestAndBuildProblemsDispatcher {
     NamedThreadFactory.executeWithNewThreadName(description, () -> this.processBrokenBuild(failedBuildInfo));
     LOGGER.debug("Build #" + failedBuildInfo.getBuild().getBuildId() + " will be removed from processing.");
 
-    if (failedBuildInfo.shouldDelayAssignments && !failedBuildInfo.getHeuristicsResult().isEmpty()) {
+    if (failedBuildInfo.shouldDelayAssignments() && !failedBuildInfo.getHeuristicsResult().isEmpty()) {
       putIntoDelayAssignments(failedBuildInfo);
     }
   }

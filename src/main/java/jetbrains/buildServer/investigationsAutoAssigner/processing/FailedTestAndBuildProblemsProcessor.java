@@ -82,14 +82,18 @@ public class FailedTestAndBuildProblemsProcessor extends BaseProcessor {
 
     myAssignerArtifactDao.appendHeuristicsResult(sBuild, testsForAssign, heuristicsResult);
 
-    if (CustomParameters.isBuildFeatureEnabled(sBuild) && !failedBuildInfo.shouldDelayAssignments) {
+    if (heuristicsResult.isEmpty()) {
+      return;
+    }
+
+    if (CustomParameters.isBuildFeatureEnabled(sBuild) && !failedBuildInfo.shouldDelayAssignments()) {
       myFailedTestAssigner.assign(heuristicsResult, sProject, sBuild, testsForAssign);
       myBuildProblemsAssigner.assign(heuristicsResult, sProject, sBuild, problemsForAssign);
-    } else if (LOGGER.isDebugEnabled() && !heuristicsResult.isEmpty()) {
+    } else if (LOGGER.isDebugEnabled()) {
       if (!CustomParameters.isBuildFeatureEnabled(sBuild)) {
         LOGGER.debug(String.format("Build #%s. Found investigations but build feature is not configured.",
                                    sBuild.getBuildId()));
-      } else if (failedBuildInfo.shouldDelayAssignments) {
+      } else if (failedBuildInfo.shouldDelayAssignments()) {
         LOGGER.debug(String.format("Build #%s. Found investigations but assignments should be delayed.",
                                    sBuild.getBuildId()));
       }
