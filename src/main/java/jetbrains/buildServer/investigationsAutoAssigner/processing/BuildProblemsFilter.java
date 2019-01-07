@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.BuildProblemUtils;
-import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.InvestigationsManager;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
@@ -54,16 +53,14 @@ public class BuildProblemsFilter {
       LOGGER.debug(String.format("Filtering of build problems for build #%s started", sBuild.getBuildId()));
     }
 
-    Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
-
     List<BuildProblem> filteredBuildProblems = buildProblems.stream()
                                                             .filter(failedBuildInfo::checkNotProcessed)
                                                             .filter(problem -> isApplicable(sProject, sBuild, problem))
-                                                            .limit(threshold - failedBuildInfo.processed)
+                                                            .limit(failedBuildInfo.getLimitToProcess())
                                                             .collect(Collectors.toList());
 
     failedBuildInfo.addProcessedBuildProblems(buildProblems);
-    failedBuildInfo.processed += filteredBuildProblems.size();
+    failedBuildInfo.increaseProcessedNumber(filteredBuildProblems.size());
 
     return filteredBuildProblems;
   }

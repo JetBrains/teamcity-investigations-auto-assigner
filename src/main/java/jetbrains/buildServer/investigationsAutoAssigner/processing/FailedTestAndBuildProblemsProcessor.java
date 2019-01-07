@@ -60,8 +60,7 @@ public class FailedTestAndBuildProblemsProcessor extends BaseProcessor {
     if (sProject == null) return;
 
     LOGGER.debug("Start processing build #" + sBuild.getBuildId() + ".");
-    int threshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
-    if (failedBuildInfo.processed >= threshold) {
+    if (failedBuildInfo.isOverProcessedProblemsThreshold()) {
       LOGGER.debug("Stop processing build #" + sBuild.getBuildId() + " as the threshold was exceeded.");
       return;
     }

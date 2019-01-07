@@ -17,12 +17,10 @@
 package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
 import com.intellij.openapi.diagnostic.Logger;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
-import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.FlakyTestDetector;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.InvestigationsManager;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.Utils;
@@ -52,16 +50,15 @@ public class FailedTestFilter {
       LOGGER.debug(String.format("Filtering of failed tests for build #%s started", sBuild.getBuildId()));
     }
 
-    Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
     List<STestRun> filteredTestRuns = testRuns.stream()
                                               .sorted(Comparator.comparingInt(STestRun::getOrderId))
                                               .filter(failedBuildInfo::checkNotProcessed)
                                               .filter(testRun -> isApplicable(sProject, sBuild, testRun))
-                                              .limit(threshold - failedBuildInfo.processed)
+                                              .limit(failedBuildInfo.getLimitToProcess())
                                               .collect(Collectors.toList());
 
     failedBuildInfo.addProcessedTestRuns(testRuns);
-    failedBuildInfo.processed += filteredTestRuns.size();
+    failedBuildInfo.increaseProcessedNumber(filteredTestRuns.size());
 
     return filteredTestRuns;
   }

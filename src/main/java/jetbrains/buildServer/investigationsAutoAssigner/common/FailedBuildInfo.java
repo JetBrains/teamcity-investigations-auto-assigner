@@ -28,17 +28,17 @@ import org.jetbrains.annotations.NotNull;
 public class FailedBuildInfo {
 
   private final SBuild mySBuild;
-
+  private final int myThreshold;
   private Set<Integer> processedTests = new HashSet<>();
   private Set<Integer> processedBuildProblems = new HashSet<>();
   private HeuristicResult myHeuristicResult = new HeuristicResult();
   private final boolean myShouldDelayAssignments;
-
-  public int processed = 0;
+  private int myProcessedCount = 0;
 
   public FailedBuildInfo(final SBuild sBuild) {
     mySBuild = sBuild;
     myShouldDelayAssignments = CustomParameters.shouldDelayAssignments(sBuild);
+    myThreshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
   }
 
   @NotNull
@@ -76,5 +76,17 @@ public class FailedBuildInfo {
 
   public boolean shouldDelayAssignments() {
     return myShouldDelayAssignments;
+  }
+
+  public boolean isOverProcessedProblemsThreshold() {
+    return getLimitToProcess() <= 0;
+  }
+
+  public int getLimitToProcess() {
+    return myThreshold - myProcessedCount;
+  }
+
+  public void increaseProcessedNumber(final int numberOfProcessedProblems) {
+    myProcessedCount += numberOfProcessedProblems;
   }
 }
