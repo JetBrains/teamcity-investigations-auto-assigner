@@ -44,9 +44,9 @@ public class FailedTestAndBuildProblemsDispatcher {
   private final DelayedAssignmentsProcessor myDelayedAssignmentsProcessor;
   @NotNull private final EmailReporter myEmailReporter;
   @NotNull
-  private final ConcurrentHashMap<Long, FailedBuildInfo> myFailedBuilds;
+  private final ConcurrentHashMap<Long, FailedBuildInfo> myFailedBuilds = new ConcurrentHashMap<>();
   @NotNull
-  private final ConcurrentHashMap<String, FailedBuildInfo> myDelayedAssignments;
+  private final ConcurrentHashMap<String, FailedBuildInfo> myDelayedAssignments = new ConcurrentHashMap<>();
   @NotNull
   private final ScheduledExecutorService myDaemon;
 
@@ -57,8 +57,6 @@ public class FailedTestAndBuildProblemsDispatcher {
     myProcessor = processor;
     myDelayedAssignmentsProcessor = delayedAssignmentsProcessor;
     myEmailReporter = emailReporter;
-    myFailedBuilds = new ConcurrentHashMap<>();
-    myDelayedAssignments = new ConcurrentHashMap<>();
     myDaemon = ExecutorsFactory.newFixedScheduledDaemonExecutor(Constants.BUILD_FEATURE_TYPE, 1);
     myDaemon.scheduleWithFixedDelay(this::processBrokenBuildsOneThread,
             CustomParameters.getProcessingDelayInSeconds(),
