@@ -66,9 +66,9 @@ public class FailedTestFilter {
     return filteredTestRuns;
   }
 
-  List<STestRun> applyBeforeAssign(final FailedBuildInfo failedBuildInfo,
-                                   final SProject sProject,
-                                   final List<STestRun> testRuns) {
+  List<STestRun> getStillApplicable(final FailedBuildInfo failedBuildInfo,
+                                    final SProject sProject,
+                                    final List<STestRun> testRuns) {
     SBuild sBuild = failedBuildInfo.getBuild();
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug(String.format("Filtering before assign of failed tests for build #%s started", sBuild.getBuildId()));

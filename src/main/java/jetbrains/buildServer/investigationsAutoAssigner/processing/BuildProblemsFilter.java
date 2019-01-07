@@ -69,9 +69,9 @@ public class BuildProblemsFilter {
   }
 
 
-  List<BuildProblem> applyBeforeAssign(final FailedBuildInfo failedBuildInfo,
-                                       final SProject sProject,
-                                       final List<BuildProblem> allBuildProblems) {
+  List<BuildProblem> getStillApplicable(final FailedBuildInfo failedBuildInfo,
+                                        final SProject sProject,
+                                        final List<BuildProblem> allBuildProblems) {
     SBuild sBuild = failedBuildInfo.getBuild();
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug(String.format("Filtering before assign of build problems for build #%s started", sBuild.getBuildId()));

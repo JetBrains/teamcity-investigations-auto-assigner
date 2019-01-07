@@ -73,9 +73,9 @@ public class DelayedAssignmentsProcessor extends BaseProcessor {
                        .collect(Collectors.toList());
 
     logProblemsNumber(sBuild, applicableFailedTests, applicableProblems);
-    List<STestRun> testsForAssign = myFailedTestFilter.applyBeforeAssign(failedBuildInfo, sProject, applicableFailedTests);
+    List<STestRun> testsForAssign = myFailedTestFilter.getStillApplicable(failedBuildInfo, sProject, applicableFailedTests);
     List<BuildProblem> problemsForAssign =
-      myBuildProblemsFilter.applyBeforeAssign(failedBuildInfo, sProject, applicableProblems);
+      myBuildProblemsFilter.getStillApplicable(failedBuildInfo, sProject, applicableProblems);
     logChangedProblemsNumber(sBuild, applicableFailedTests, testsForAssign, applicableProblems, problemsForAssign);
 
     myFailedTestAssigner.assign(heuristicsResult, sProject, sBuild, testsForAssign);

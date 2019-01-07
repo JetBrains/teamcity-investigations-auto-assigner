@@ -75,9 +75,9 @@ public class FailedTestAndBuildProblemsProcessor extends BaseProcessor {
     HeuristicResult heuristicsResult =
       myResponsibleUserFinder.findResponsibleUser(sBuild, sProject, applicableProblems, applicableFailedTests);
 
-    List<STestRun> testsForAssign = myFailedTestFilter.applyBeforeAssign(failedBuildInfo, sProject, applicableFailedTests);
+    List<STestRun> testsForAssign = myFailedTestFilter.getStillApplicable(failedBuildInfo, sProject, applicableFailedTests);
     List<BuildProblem> problemsForAssign =
-      myBuildProblemsFilter.applyBeforeAssign(failedBuildInfo, sProject, applicableProblems);
+      myBuildProblemsFilter.getStillApplicable(failedBuildInfo, sProject, applicableProblems);
     logChangedProblemsNumber(sBuild, applicableFailedTests, testsForAssign, applicableProblems, problemsForAssign);
 
     myAssignerArtifactDao.appendHeuristicsResult(sBuild, testsForAssign, heuristicsResult);
