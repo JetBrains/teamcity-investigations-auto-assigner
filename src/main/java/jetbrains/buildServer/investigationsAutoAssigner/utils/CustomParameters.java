@@ -59,7 +59,7 @@ public class CustomParameters {
   public static boolean isDefaultSilentModeEnabled(final SBuild build) {
     @Nullable
     String enabledInBuild = build.getParametersProvider().get(Constants.DEFAULT_SILENT_MODE_ENABLED);
-    if ("true".equals(enabledInBuild)) {
+    if (StringUtil.isTrue(enabledInBuild)) {
       return true;
     } else if ("false".equals(enabledInBuild)) {
       return false;
@@ -87,7 +87,7 @@ public class CustomParameters {
 
   public static int getMaxTestsPerBuildThreshold(SBuild build) {
     @Nullable
-    String maxTestsPerBuildNumber = build.getBuildOwnParameters().get(Constants.MAX_TESTS_PER_BUILD_NUMBER);
+    String maxTestsPerBuildNumber = build.getParametersProvider().get(Constants.MAX_TESTS_PER_BUILD_NUMBER);
     if (StringUtil.isNotEmpty(maxTestsPerBuildNumber)) {
       return parseThreshold(maxTestsPerBuildNumber);
     }
@@ -99,6 +99,12 @@ public class CustomParameters {
   private static int parseThreshold(@NotNull String value) {
     int parsedValue = StringUtil.parseInt(value, Constants.DEFAULT_TEST_COUNT_THRESHOLD);
     return parsedValue >= 0 ? parsedValue : Integer.MAX_VALUE;
+  }
+
+  public static boolean shouldDelayAssignments(final SBuild sBuild) {
+    @Nullable
+    String shouldDelayAssignments = sBuild.getParametersProvider().get(Constants.SHOULD_DELAY_ASSIGNMENTS);
+    return StringUtil.isTrue(shouldDelayAssignments);
   }
 
   @Nullable
@@ -115,7 +121,7 @@ public class CustomParameters {
   public static boolean shouldRunForFeatureBranches(SBuild build) {
     @Nullable
     String enabledInBuild = build.getParametersProvider().get(Constants.ENABLE_FEATURE_BRANCHES_SUPPORT);
-    if ("true".equals(enabledInBuild)) {
+    if (StringUtil.isTrue(enabledInBuild)) {
       return true;
     } else if ("false".equals(enabledInBuild)) {
       return false;

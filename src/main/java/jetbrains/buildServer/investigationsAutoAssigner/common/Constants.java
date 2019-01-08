@@ -28,6 +28,9 @@ public class Constants {
   public static final String DEFAULT_RESPONSIBLE = "defaultAssignee.username";
   public static final String USERS_TO_IGNORE = "excludeAssignees.usernames";
 
+  // Experimental configuration parameter
+  public static final String SHOULD_DELAY_ASSIGNMENTS = "teamcity.investigationsAutoAssigner.shouldDelayAssignments";
+
   // Build configuration parameter and internal property
   public static final String DEFAULT_SILENT_MODE_ENABLED = "teamcity.investigationsAutoAssigner.suggestions.enabledByDefault";
   public static final String ENABLE_FEATURE_BRANCHES_SUPPORT = "teamcity.investigationsAutoAssigner.enableFeatureBranchesSupport";

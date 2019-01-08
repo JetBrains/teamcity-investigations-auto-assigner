@@ -22,11 +22,14 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerArtifactDao;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
-import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.serverSide.BuildEx;
+import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.SProject;
+import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.jetbrains.annotations.NotNull;
 
-public class FailedTestAndBuildProblemsProcessor {
+public class FailedTestAndBuildProblemsProcessor extends BaseProcessor {
 
   private static final Logger LOGGER = Logger.getInstance(FailedTestAndBuildProblemsProcessor.class.getName());
   private final FailedTestFilter myFailedTestFilter;
@@ -53,16 +56,11 @@ public class FailedTestAndBuildProblemsProcessor {
 
   public void processBuild(final FailedBuildInfo failedBuildInfo) {
     SBuild sBuild = failedBuildInfo.getBuild();
-    SBuildType sBuildType = sBuild.getBuildType();
-    if (sBuildType == null) {
-      LOGGER.warn("Build #" + sBuild.getBuildId() + " doesn't have a build type.");
-      return;
-    }
-    LOGGER.debug("Start processing build #" + sBuild.getBuildId() + ".");
+    SProject sProject = getProject(sBuild);
+    if (sProject == null) return;
 
-    SProject sProject = sBuildType.getProject();
-    int threshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
-    if (failedBuildInfo.processed >= threshold) {
+    LOGGER.debug("Start processing build #" + sBuild.getBuildId() + ".");
+    if (failedBuildInfo.isOverProcessedProblemsThreshold()) {
       LOGGER.debug("Stop processing build #" + sBuild.getBuildId() + " as the threshold was exceeded.");
       return;
     }
@@ -76,58 +74,30 @@ public class FailedTestAndBuildProblemsProcessor {
     HeuristicResult heuristicsResult =
       myResponsibleUserFinder.findResponsibleUser(sBuild, sProject, applicableProblems, applicableFailedTests);
 
-    List<STestRun> testsForAssign = myFailedTestFilter.applyBeforeAssign(failedBuildInfo, sProject, allFailedTests);
+    List<STestRun> testsForAssign = myFailedTestFilter.getStillApplicable(failedBuildInfo, sProject, applicableFailedTests);
     List<BuildProblem> problemsForAssign =
-      myBuildProblemsFilter.applyBeforeAssign(failedBuildInfo, sProject, allBuildProblems);
+      myBuildProblemsFilter.getStillApplicable(failedBuildInfo, sProject, applicableProblems);
     logChangedProblemsNumber(sBuild, applicableFailedTests, testsForAssign, applicableProblems, problemsForAssign);
 
     myAssignerArtifactDao.appendHeuristicsResult(sBuild, testsForAssign, heuristicsResult);
 
-    if (CustomParameters.isBuildFeatureEnabled(sBuild)) {
+    if (heuristicsResult.isEmpty()) {
+      return;
+    }
+
+    if (CustomParameters.isBuildFeatureEnabled(sBuild) && !failedBuildInfo.shouldDelayAssignments()) {
       myFailedTestAssigner.assign(heuristicsResult, sProject, sBuild, testsForAssign);
       myBuildProblemsAssigner.assign(heuristicsResult, sProject, sBuild, problemsForAssign);
+    } else if (LOGGER.isDebugEnabled()) {
+      if (!CustomParameters.isBuildFeatureEnabled(sBuild)) {
+        LOGGER.debug(String.format("Build #%s. Found investigations but build feature is not configured.",
+                                   sBuild.getBuildId()));
+      } else if (failedBuildInfo.shouldDelayAssignments()) {
+        LOGGER.debug(String.format("Build #%s. Found investigations but assignments should be delayed.",
+                                   sBuild.getBuildId()));
+      }
     }
 
     failedBuildInfo.addHeuristicsResult(heuristicsResult);
   }
-
-  private void logProblemsNumber(SBuild sBuild,
-                                 final List<STestRun> afterFilteringTests,
-                                 final List<BuildProblem> afterFilteringProblems) {
-    if (!LOGGER.isDebugEnabled()) {
-      return;
-    }
-
-    LOGGER.debug("Build #" + sBuild.getBuildId() + ": found " + afterFilteringProblems.size() +
-                 " applicable build problems and " + afterFilteringTests.size() + " applicable failed tests.");
-  }
-
-  private void logChangedProblemsNumber(SBuild sBuild,
-                                        final List<STestRun> beforeFilteringTests,
-                                        final List<STestRun> afterFilteringTests,
-                                        final List<BuildProblem> beforeFilteringProblems,
-                                        final List<BuildProblem> afterFilteringProblems) {
-    if (!LOGGER.isDebugEnabled()) {
-      return;
-    }
-
-    if (beforeFilteringTests.size() != afterFilteringTests.size()) {
-      LOGGER.debug("Build #" + sBuild.getBuildId() + ": number of applicable tests changed because " +
-                   (beforeFilteringTests.size() - afterFilteringTests.size()) + " became not applicable");
-    }
-    if (beforeFilteringProblems.size() != afterFilteringProblems.size()) {
-      LOGGER.debug("Build #" + sBuild.getBuildId() + ": number of applicable problems changed because " +
-                   (beforeFilteringProblems.size() - beforeFilteringProblems.size()) + " became not applicable");
-    }
-
-  }
-
-  private List<STestRun> requestBrokenTestsWithStats(final SBuild build) {
-    BuildStatisticsOptions options = new BuildStatisticsOptions(
-      BuildStatisticsOptions.FIRST_FAILED_IN_BUILD | BuildStatisticsOptions.FIXED_IN_BUILD, -1);
-    BuildStatistics stats = build.getBuildStatistics(options);
-
-    return stats.getFailedTests();
-  }
-
 }

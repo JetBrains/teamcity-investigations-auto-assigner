@@ -56,14 +56,14 @@ public class AssignerArtifactDao {
 
       List<ResponsibilityPersistentInfo> previouslyAdded = mySuggestionsDao.read(resultsFilePath);
       infoToAdd.addAll(previouslyAdded);
-      LOGGER.debug(String.format("Build %s :: Read %s previously added investigations",
+      LOGGER.debug(String.format("Build #%s :: Read %s previously added investigations",
                                  build.getBuildId(), previouslyAdded.size()));
 
       mySuggestionsDao.write(resultsFilePath, infoToAdd);
-      LOGGER.debug(String.format("Build %s :: Wrote %s new found investigations",
+      LOGGER.debug(String.format("Build #%s :: Wrote %s new found investigations",
                                  build.getBuildId(), infoToAdd.size() - previouslyAdded.size()));
     } catch (IOException ex) {
-      LOGGER.error(String.format("Build %s :: An error occurs during appending results", build.getBuildId()), ex);
+      LOGGER.error(String.format("Build #%s :: An error occurs during appending results", build.getBuildId()), ex);
       throw new RuntimeException("An error occurs during appending results");
     }
   }

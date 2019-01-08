@@ -22,7 +22,6 @@ import java.util.stream.Collectors;
 import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.BuildProblemUtils;
-import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.InvestigationsManager;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
@@ -50,25 +49,30 @@ public class BuildProblemsFilter {
                            final SProject sProject,
                            final List<BuildProblem> buildProblems) {
     SBuild sBuild = failedBuildInfo.getBuild();
-    Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug(String.format("Filtering of build problems for build #%s started", sBuild.getBuildId()));
+    }
 
     List<BuildProblem> filteredBuildProblems = buildProblems.stream()
                                                             .filter(failedBuildInfo::checkNotProcessed)
                                                             .filter(problem -> isApplicable(sProject, sBuild, problem))
-                                                            .limit(threshold - failedBuildInfo.processed)
+                                                            .limit(failedBuildInfo.getLimitToProcess())
                                                             .collect(Collectors.toList());
 
     failedBuildInfo.addProcessedBuildProblems(buildProblems);
-    failedBuildInfo.processed += filteredBuildProblems.size();
+    failedBuildInfo.increaseProcessedNumber(filteredBuildProblems.size());
 
     return filteredBuildProblems;
   }
 
 
-  List<BuildProblem> applyBeforeAssign(final FailedBuildInfo failedBuildInfo,
-                                       final SProject sProject,
-                                       final List<BuildProblem> allBuildProblems) {
+  List<BuildProblem> getStillApplicable(final FailedBuildInfo failedBuildInfo,
+                                        final SProject sProject,
+                                        final List<BuildProblem> allBuildProblems) {
     SBuild sBuild = failedBuildInfo.getBuild();
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug(String.format("Filtering before assign of build problems for build #%s started", sBuild.getBuildId()));
+    }
 
     return allBuildProblems.stream()
                            .filter(buildProblem -> isApplicable(sProject, sBuild, buildProblem))
@@ -92,7 +96,7 @@ public class BuildProblemsFilter {
 
     boolean isApplicable = reason == null;
     if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug(String.format("Build problem %s:%s is %s.%s",
+      LOGGER.debug(String.format("Build problem #%s:%s is %s.%s",
                                  sBuild.getBuildId(),
                                  problem.getTypeDescription(),
                                  (isApplicable ? "applicable" : "not applicable"),

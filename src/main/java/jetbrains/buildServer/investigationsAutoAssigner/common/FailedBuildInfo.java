@@ -19,6 +19,7 @@ package jetbrains.buildServer.investigationsAutoAssigner.common;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
@@ -27,15 +28,17 @@ import org.jetbrains.annotations.NotNull;
 public class FailedBuildInfo {
 
   private final SBuild mySBuild;
-
+  private final int myThreshold;
   private Set<Integer> processedTests = new HashSet<>();
   private Set<Integer> processedBuildProblems = new HashSet<>();
   private HeuristicResult myHeuristicResult = new HeuristicResult();
-
-  public int processed = 0;
+  private final boolean myShouldDelayAssignments;
+  private int myProcessedCount = 0;
 
   public FailedBuildInfo(final SBuild sBuild) {
     mySBuild = sBuild;
+    myShouldDelayAssignments = CustomParameters.shouldDelayAssignments(sBuild);
+    myThreshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
   }
 
   @NotNull
@@ -69,5 +72,21 @@ public class FailedBuildInfo {
 
   public HeuristicResult getHeuristicsResult() {
     return myHeuristicResult;
+  }
+
+  public boolean shouldDelayAssignments() {
+    return myShouldDelayAssignments;
+  }
+
+  public boolean isOverProcessedProblemsThreshold() {
+    return getLimitToProcess() <= 0;
+  }
+
+  public int getLimitToProcess() {
+    return myThreshold - myProcessedCount;
+  }
+
+  public void increaseProcessedNumber(final int numberOfProcessedProblems) {
+    myProcessedCount += numberOfProcessedProblems;
   }
 }

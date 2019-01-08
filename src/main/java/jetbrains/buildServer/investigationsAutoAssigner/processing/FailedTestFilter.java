@@ -17,12 +17,10 @@
 package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
 import com.intellij.openapi.diagnostic.Logger;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
-import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.FlakyTestDetector;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.InvestigationsManager;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.Utils;
@@ -48,25 +46,30 @@ public class FailedTestFilter {
 
   List<STestRun> apply(final FailedBuildInfo failedBuildInfo, final SProject sProject, final List<STestRun> testRuns) {
     SBuild sBuild = failedBuildInfo.getBuild();
-    Integer threshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug(String.format("Filtering of failed tests for build #%s started", sBuild.getBuildId()));
+    }
+
     List<STestRun> filteredTestRuns = testRuns.stream()
                                               .sorted(Comparator.comparingInt(STestRun::getOrderId))
                                               .filter(failedBuildInfo::checkNotProcessed)
                                               .filter(testRun -> isApplicable(sProject, sBuild, testRun))
-                                              .limit(threshold - failedBuildInfo.processed)
+                                              .limit(failedBuildInfo.getLimitToProcess())
                                               .collect(Collectors.toList());
 
     failedBuildInfo.addProcessedTestRuns(testRuns);
-    failedBuildInfo.processed += filteredTestRuns.size();
+    failedBuildInfo.increaseProcessedNumber(filteredTestRuns.size());
 
     return filteredTestRuns;
   }
 
-  List<STestRun> applyBeforeAssign(final FailedBuildInfo failedBuildInfo,
-                                   final SProject sProject,
-                                   final List<STestRun> testRuns) {
+  List<STestRun> getStillApplicable(final FailedBuildInfo failedBuildInfo,
+                                    final SProject sProject,
+                                    final List<STestRun> testRuns) {
     SBuild sBuild = failedBuildInfo.getBuild();
-
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug(String.format("Filtering before assign of failed tests for build #%s started", sBuild.getBuildId()));
+    }
     return testRuns.stream()
                    .filter(testRun -> isApplicable(sProject, sBuild, testRun))
                    .collect(Collectors.toList());
