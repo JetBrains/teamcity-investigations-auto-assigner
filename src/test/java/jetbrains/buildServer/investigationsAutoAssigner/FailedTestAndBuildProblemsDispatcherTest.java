@@ -151,6 +151,6 @@ public class FailedTestAndBuildProblemsDispatcherTest {
   }
 
   private void verifyMarkOfPassForBuildFinished(int expectedExecutions) {
-    verify(myRunningBuild, times(expectedExecutions)).getBuildType();
+    verify(myRunningBuild, times(expectedExecutions)).getBuildId();
   }
 }

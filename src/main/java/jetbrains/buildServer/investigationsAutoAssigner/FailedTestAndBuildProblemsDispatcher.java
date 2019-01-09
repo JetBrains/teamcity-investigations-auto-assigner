@@ -80,24 +80,12 @@ public class FailedTestAndBuildProblemsDispatcher {
         if (shouldIgnore(build)) {
           return;
         }
-        processDelayedAssignmentsForPrevious(build);
+        myExecutor.execute(() -> instance.processDelayedAssignmentsOneThread(build));
 
         @Nullable
         FailedBuildInfo failedBuildInfo = myFailedBuilds.remove(build.getBuildId());
         if (failedBuildInfo != null) {
           myExecutor.execute(() -> instance.processFinishedBuild(failedBuildInfo));
-        }
-      }
-
-      private void processDelayedAssignmentsForPrevious(SBuild nextBuild) {
-        @Nullable
-        SBuildType sBuildType = nextBuild.getBuildType();
-        if (sBuildType != null) {
-          @Nullable
-          FailedBuildInfo delayedAssignmentsBuildInfo = myDelayedAssignments.remove(sBuildType.getInternalId());
-          if (delayedAssignmentsBuildInfo != null) {
-            myExecutor.execute(() -> instance.processDelayedAssignments(delayedAssignmentsBuildInfo, nextBuild));
-          }
         }
       }
 
@@ -112,6 +100,20 @@ public class FailedTestAndBuildProblemsDispatcher {
     String description = String.format("Investigations auto-assigner: processing %s builds in background",
                                        myFailedBuilds.size());
     NamedThreadFactory.executeWithNewThreadName(description, this::processBrokenBuilds);
+  }
+
+  private void processDelayedAssignmentsOneThread(SBuild nextBuild) {
+    @Nullable
+    SBuildType sBuildType = nextBuild.getBuildType();
+    if (sBuildType != null) {
+      @Nullable
+      FailedBuildInfo delayedAssignmentsBuildInfo = myDelayedAssignments.get(sBuildType.getInternalId());
+      if (delayedAssignmentsBuildInfo != null &&
+          delayedAssignmentsBuildInfo.getBuild().getBuildId() <= nextBuild.getBuildId()) {
+        myDelayedAssignments.remove(sBuildType.getInternalId());
+        processDelayedAssignments(delayedAssignmentsBuildInfo, nextBuild);
+      }
+    }
   }
 
   private void processDelayedAssignments(final FailedBuildInfo delayedAssignmentsBuildInfo, SBuild nextBuild) {
@@ -132,12 +134,29 @@ public class FailedTestAndBuildProblemsDispatcher {
     }
   }
 
-  private void putIntoDelayAssignments(final FailedBuildInfo failedBuildInfo) {
+  private void putIntoDelayAssignments(final FailedBuildInfo currentFailedBuildInfo) {
     @Nullable
-    SBuildType sBuildType = failedBuildInfo.getBuild().getBuildType();
-    if (sBuildType != null) {
-      myDelayedAssignments.put(sBuildType.getInternalId(), failedBuildInfo);
+    SBuildType sBuildType = currentFailedBuildInfo.getBuild().getBuildType();
+    if (sBuildType == null) {
+      return;
     }
+
+    FailedBuildInfo previouslyAdded = myDelayedAssignments.get(sBuildType.getInternalId());
+    if (previouslyAdded == null) {
+      myDelayedAssignments.put(sBuildType.getInternalId(), currentFailedBuildInfo);
+      return;
+    }
+
+    if (previouslyAdded.getBuildId() <= currentFailedBuildInfo.getBuildId()) {
+      processOlderAndDelayNew(sBuildType, previouslyAdded, currentFailedBuildInfo);
+    } else {
+      processOlderAndDelayNew(sBuildType, currentFailedBuildInfo, previouslyAdded);
+    }
+  }
+
+  private void processOlderAndDelayNew(SBuildType sBuildType, FailedBuildInfo older, FailedBuildInfo newer) {
+    processDelayedAssignments(older, newer.getBuild());
+    myDelayedAssignments.put(sBuildType.getInternalId(), newer);
   }
 
   private void processBrokenBuilds() {
