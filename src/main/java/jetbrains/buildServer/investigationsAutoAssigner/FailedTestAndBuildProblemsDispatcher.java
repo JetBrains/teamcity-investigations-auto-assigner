@@ -48,7 +48,7 @@ public class FailedTestAndBuildProblemsDispatcher {
   @NotNull
   private final ConcurrentHashMap<String, FailedBuildInfo> myDelayedAssignments = new ConcurrentHashMap<>();
   @NotNull
-  private final ScheduledExecutorService myDaemon;
+  private final ScheduledExecutorService myExecutor;
 
   public FailedTestAndBuildProblemsDispatcher(@NotNull final BuildServerListenerEventDispatcher buildServerListenerEventDispatcher,
                                               @NotNull final FailedTestAndBuildProblemsProcessor processor,
@@ -57,11 +57,11 @@ public class FailedTestAndBuildProblemsDispatcher {
     myProcessor = processor;
     myDelayedAssignmentsProcessor = delayedAssignmentsProcessor;
     myEmailReporter = emailReporter;
-    myDaemon = ExecutorsFactory.newFixedScheduledDaemonExecutor(Constants.BUILD_FEATURE_TYPE, 1);
-    myDaemon.scheduleWithFixedDelay(this::processBrokenBuildsOneThread,
-            CustomParameters.getProcessingDelayInSeconds(),
-            CustomParameters.getProcessingDelayInSeconds(),
-            TimeUnit.SECONDS);
+    myExecutor = ExecutorsFactory.newFixedScheduledDaemonExecutor(Constants.BUILD_FEATURE_TYPE, 1);
+    myExecutor.scheduleWithFixedDelay(this::processBrokenBuildsOneThread,
+                                      CustomParameters.getProcessingDelayInSeconds(),
+                                      CustomParameters.getProcessingDelayInSeconds(),
+                                      TimeUnit.SECONDS);
     FailedTestAndBuildProblemsDispatcher instance = this;
     buildServerListenerEventDispatcher.addListener(new BuildServerAdapter() {
       @Override
@@ -85,7 +85,7 @@ public class FailedTestAndBuildProblemsDispatcher {
         @Nullable
         FailedBuildInfo failedBuildInfo = myFailedBuilds.remove(build.getBuildId());
         if (failedBuildInfo != null) {
-          myDaemon.execute(() -> instance.processFinishedBuild(failedBuildInfo));
+          myExecutor.execute(() -> instance.processFinishedBuild(failedBuildInfo));
         }
       }
 
@@ -96,14 +96,14 @@ public class FailedTestAndBuildProblemsDispatcher {
           @Nullable
           FailedBuildInfo delayedAssignmentsBuildInfo = myDelayedAssignments.remove(sBuildType.getInternalId());
           if (delayedAssignmentsBuildInfo != null) {
-            myDaemon.execute(() -> instance.processDelayedAssignments(delayedAssignmentsBuildInfo, nextBuild));
+            myExecutor.execute(() -> instance.processDelayedAssignments(delayedAssignmentsBuildInfo, nextBuild));
           }
         }
       }
 
       @Override
       public void serverShutdown() {
-        ThreadUtil.shutdownGracefully(myDaemon, "Investigator-Auto-Assigner Daemon");
+        ThreadUtil.shutdownGracefully(myExecutor, "Investigator-Auto-Assigner Daemon");
       }
     });
   }
