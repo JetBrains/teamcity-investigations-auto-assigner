@@ -132,6 +132,8 @@ public class FailedTestAndBuildProblemsDispatcher {
     if (failedBuildInfo.shouldDelayAssignments() && !failedBuildInfo.getHeuristicsResult().isEmpty()) {
       putIntoDelayAssignments(failedBuildInfo);
     }
+
+    myEmailReporter.sendResults(failedBuildInfo.getBuild(), failedBuildInfo.getHeuristicsResult());
   }
 
   private void putIntoDelayAssignments(final FailedBuildInfo currentFailedBuildInfo) {
@@ -167,7 +169,6 @@ public class FailedTestAndBuildProblemsDispatcher {
 
   private synchronized void processBrokenBuild(final FailedBuildInfo failedBuildInfo) {
     myProcessor.processBuild(failedBuildInfo);
-    myEmailReporter.sendResults(failedBuildInfo.getBuild(), failedBuildInfo.getHeuristicsResult());
   }
 
   /*
