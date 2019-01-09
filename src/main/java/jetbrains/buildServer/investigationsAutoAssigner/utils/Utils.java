@@ -20,6 +20,6 @@ import jetbrains.buildServer.serverSide.STestRun;
 
 public class Utils {
   public static String getLogPrefix(STestRun sTestRun) {
-    return String.format("Build: #%s , testRun: %s ::", sTestRun.getBuildId(), sTestRun.getTestRunId());
+    return String.format("Build: id:%s , testRun: %s ::", sTestRun.getBuildId(), sTestRun.getTestRunId());
   }
 }

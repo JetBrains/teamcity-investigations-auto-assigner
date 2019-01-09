@@ -44,7 +44,7 @@ public class EmailReporter {
 
   public void sendResults(SBuild sBuild, HeuristicResult heuristicsResult) {
     if (mySupervisorEmail != null && heuristicsResult.getAllResponsibilities().size() > 0) {
-      String title = String.format("Investigation auto-assigner report for build #%s", sBuild.getBuildId());
+      String title = String.format("Investigation auto-assigner report for build id:%s", sBuild.getBuildId());
       trySendEmail(mySupervisorEmail, title, generateHtmlReport(sBuild, heuristicsResult));
     }
   }
