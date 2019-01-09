@@ -160,7 +160,9 @@ public class FailedTestAndBuildProblemsDispatcher {
     Branch branch = build.getBranch();
     boolean isDefaultBranch = branch == null || branch.isDefaultBranch();
 
-    if (build.isPersonal() || !(isDefaultBranch || CustomParameters.shouldRunForFeatureBranches(build))) {
+    if (build.isPersonal() ||
+        build.getBuildType() != null ||
+        !(isDefaultBranch || CustomParameters.shouldRunForFeatureBranches(build))) {
       return true;
     }
 
