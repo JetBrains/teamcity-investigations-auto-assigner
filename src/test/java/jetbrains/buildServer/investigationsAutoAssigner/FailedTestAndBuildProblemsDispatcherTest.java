@@ -18,7 +18,6 @@ package jetbrains.buildServer.investigationsAutoAssigner;
 
 import java.util.Collections;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
-import jetbrains.buildServer.investigationsAutoAssigner.processing.DelayedAssignmentsProcessor;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.FailedTestAndBuildProblemsProcessor;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.EmailReporter;
 import jetbrains.buildServer.parameters.ParametersProvider;
@@ -79,11 +78,10 @@ public class FailedTestAndBuildProblemsDispatcherTest {
     //configure event dispatcher
     myBsDispatcher = new BuildServerListenerEventDispatcher(securityContextEx);
     FailedTestAndBuildProblemsProcessor processor = mock(FailedTestAndBuildProblemsProcessor.class);
-    DelayedAssignmentsProcessor delayedAssignmentsProcessor = mock(DelayedAssignmentsProcessor.class);
 
     EmailReporter emailReporter = mock(EmailReporter.class);
 
-    new FailedTestAndBuildProblemsDispatcher(myBsDispatcher, processor, delayedAssignmentsProcessor, emailReporter);
+    new FailedTestAndBuildProblemsDispatcher(myBsDispatcher, processor, emailReporter);
   }
 
   public void Test_BuildProblemsChanged_PersonalBuildFiltered() {

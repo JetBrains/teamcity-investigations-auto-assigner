@@ -13,7 +13,6 @@
 
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.AutoAssignerBuildFeature"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.processing.FailedTestAndBuildProblemsProcessor"/>
-  <bean class="jetbrains.buildServer.investigationsAutoAssigner.processing.DelayedAssignmentsProcessor"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.processing.FailedTestFilter"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.processing.BuildProblemsFilter"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.utils.BuildProblemUtils"/>

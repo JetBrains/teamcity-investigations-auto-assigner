@@ -24,7 +24,6 @@ import java.util.concurrent.TimeUnit;
 import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
-import jetbrains.buildServer.investigationsAutoAssigner.processing.DelayedAssignmentsProcessor;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.FailedTestAndBuildProblemsProcessor;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.EmailReporter;
@@ -41,7 +40,6 @@ public class FailedTestAndBuildProblemsDispatcher {
 
   @NotNull
   private final FailedTestAndBuildProblemsProcessor myProcessor;
-  private final DelayedAssignmentsProcessor myDelayedAssignmentsProcessor;
   @NotNull private final EmailReporter myEmailReporter;
   @NotNull
   private final ConcurrentHashMap<Long, FailedBuildInfo> myFailedBuilds = new ConcurrentHashMap<>();
@@ -52,10 +50,8 @@ public class FailedTestAndBuildProblemsDispatcher {
 
   public FailedTestAndBuildProblemsDispatcher(@NotNull final BuildServerListenerEventDispatcher buildServerListenerEventDispatcher,
                                               @NotNull final FailedTestAndBuildProblemsProcessor processor,
-                                              @NotNull final DelayedAssignmentsProcessor delayedAssignmentsProcessor,
                                               @NotNull final EmailReporter emailReporter) {
     myProcessor = processor;
-    myDelayedAssignmentsProcessor = delayedAssignmentsProcessor;
     myEmailReporter = emailReporter;
     myExecutor = ExecutorsFactory.newFixedScheduledDaemonExecutor(Constants.BUILD_FEATURE_TYPE, 1);
     myExecutor.scheduleWithFixedDelay(this::processBrokenBuildsOneThread,
@@ -120,7 +116,7 @@ public class FailedTestAndBuildProblemsDispatcher {
     String description = String.format("Investigations auto-assigner: processing delayed assignments for build %s" +
                                        " in background", delayedAssignmentsBuildInfo.getBuild().getBuildId());
     NamedThreadFactory.executeWithNewThreadName(
-      description, () -> myDelayedAssignmentsProcessor.processBuild(delayedAssignmentsBuildInfo, nextBuild));
+      description, () -> myProcessor.processDelayedAssignments(delayedAssignmentsBuildInfo, nextBuild));
   }
 
   private void processFinishedBuild(@NotNull final FailedBuildInfo failedBuildInfo) {

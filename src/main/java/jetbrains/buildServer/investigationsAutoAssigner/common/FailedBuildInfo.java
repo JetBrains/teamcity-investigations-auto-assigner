@@ -93,4 +93,20 @@ public class FailedBuildInfo {
   public void increaseProcessedNumber(final int numberOfProcessedProblems) {
     myProcessedCount += numberOfProcessedProblems;
   }
+
+  public boolean shouldAssignInvestigations(final HeuristicResult foundHeuristicsResult) {
+    return !foundHeuristicsResult.isEmpty() &&
+           CustomParameters.isBuildFeatureEnabled(mySBuild) &&
+           !myShouldDelayAssignments;
+  }
+
+  public String getNotAssignReason(final HeuristicResult foundHeuristicsResult) {
+    if (foundHeuristicsResult.isEmpty()) {
+      return "Nothing to assign";
+    } else if (myShouldDelayAssignments) {
+      return String.format("Build id:%s. Found investigations but assignments should be delayed.", getBuildId());
+    } else {
+      return String.format("Build id:%s. Found investigations but build feature is not configured.", getBuildId());
+    }
+  }
 }
