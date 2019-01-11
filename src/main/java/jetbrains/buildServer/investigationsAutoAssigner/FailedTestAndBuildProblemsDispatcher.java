@@ -48,7 +48,7 @@ public class FailedTestAndBuildProblemsDispatcher {
   @NotNull
   private final ConcurrentHashMap<String, FailedBuildInfo> myDelayedAssignments = new ConcurrentHashMap<>();
   @NotNull
-  private final ScheduledExecutorService myDaemon;
+  private final ScheduledExecutorService myExecutor;
 
   public FailedTestAndBuildProblemsDispatcher(@NotNull final BuildServerListenerEventDispatcher buildServerListenerEventDispatcher,
                                               @NotNull final FailedTestAndBuildProblemsProcessor processor,
@@ -57,11 +57,11 @@ public class FailedTestAndBuildProblemsDispatcher {
     myProcessor = processor;
     myDelayedAssignmentsProcessor = delayedAssignmentsProcessor;
     myEmailReporter = emailReporter;
-    myDaemon = ExecutorsFactory.newFixedScheduledDaemonExecutor(Constants.BUILD_FEATURE_TYPE, 1);
-    myDaemon.scheduleWithFixedDelay(this::processBrokenBuildsOneThread,
-            CustomParameters.getProcessingDelayInSeconds(),
-            CustomParameters.getProcessingDelayInSeconds(),
-            TimeUnit.SECONDS);
+    myExecutor = ExecutorsFactory.newFixedScheduledDaemonExecutor(Constants.BUILD_FEATURE_TYPE, 1);
+    myExecutor.scheduleWithFixedDelay(this::processBrokenBuildsOneThread,
+                                      CustomParameters.getProcessingDelayInSeconds(),
+                                      CustomParameters.getProcessingDelayInSeconds(),
+                                      TimeUnit.SECONDS);
     FailedTestAndBuildProblemsDispatcher instance = this;
     buildServerListenerEventDispatcher.addListener(new BuildServerAdapter() {
       @Override
@@ -80,30 +80,18 @@ public class FailedTestAndBuildProblemsDispatcher {
         if (shouldIgnore(build)) {
           return;
         }
-        processDelayedAssignmentsForPrevious(build);
+        myExecutor.execute(() -> instance.processDelayedAssignmentsOneThread(build));
 
         @Nullable
         FailedBuildInfo failedBuildInfo = myFailedBuilds.remove(build.getBuildId());
         if (failedBuildInfo != null) {
-          myDaemon.execute(() -> instance.processFinishedBuild(failedBuildInfo));
-        }
-      }
-
-      private void processDelayedAssignmentsForPrevious(SBuild nextBuild) {
-        @Nullable
-        SBuildType sBuildType = nextBuild.getBuildType();
-        if (sBuildType != null) {
-          @Nullable
-          FailedBuildInfo delayedAssignmentsBuildInfo = myDelayedAssignments.remove(sBuildType.getInternalId());
-          if (delayedAssignmentsBuildInfo != null) {
-            myDaemon.execute(() -> instance.processDelayedAssignments(delayedAssignmentsBuildInfo, nextBuild));
-          }
+          myExecutor.execute(() -> instance.processFinishedBuild(failedBuildInfo));
         }
       }
 
       @Override
       public void serverShutdown() {
-        ThreadUtil.shutdownGracefully(myDaemon, "Investigator-Auto-Assigner Daemon");
+        ThreadUtil.shutdownGracefully(myExecutor, "Investigator-Auto-Assigner Daemon");
       }
     });
   }
@@ -112,6 +100,20 @@ public class FailedTestAndBuildProblemsDispatcher {
     String description = String.format("Investigations auto-assigner: processing %s builds in background",
                                        myFailedBuilds.size());
     NamedThreadFactory.executeWithNewThreadName(description, this::processBrokenBuilds);
+  }
+
+  private void processDelayedAssignmentsOneThread(SBuild nextBuild) {
+    @Nullable
+    SBuildType sBuildType = nextBuild.getBuildType();
+    if (sBuildType != null) {
+      @Nullable
+      FailedBuildInfo delayedAssignmentsBuildInfo = myDelayedAssignments.get(sBuildType.getInternalId());
+      if (delayedAssignmentsBuildInfo != null &&
+          nextBuild.getBuildPromotion().isLaterThan(delayedAssignmentsBuildInfo.getBuild().getBuildPromotion())) {
+        myDelayedAssignments.remove(sBuildType.getInternalId());
+        processDelayedAssignments(delayedAssignmentsBuildInfo, nextBuild);
+      }
+    }
   }
 
   private void processDelayedAssignments(final FailedBuildInfo delayedAssignmentsBuildInfo, SBuild nextBuild) {
@@ -130,14 +132,35 @@ public class FailedTestAndBuildProblemsDispatcher {
     if (failedBuildInfo.shouldDelayAssignments() && !failedBuildInfo.getHeuristicsResult().isEmpty()) {
       putIntoDelayAssignments(failedBuildInfo);
     }
+
+    myEmailReporter.sendResults(failedBuildInfo.getBuild(), failedBuildInfo.getHeuristicsResult());
   }
 
-  private void putIntoDelayAssignments(final FailedBuildInfo failedBuildInfo) {
+  private void putIntoDelayAssignments(final FailedBuildInfo currentFailedBuildInfo) {
     @Nullable
-    SBuildType sBuildType = failedBuildInfo.getBuild().getBuildType();
-    if (sBuildType != null) {
-      myDelayedAssignments.put(sBuildType.getInternalId(), failedBuildInfo);
+    SBuildType sBuildType = currentFailedBuildInfo.getBuild().getBuildType();
+    if (sBuildType == null) {
+      return;
     }
+
+    FailedBuildInfo previouslyAdded = myDelayedAssignments.get(sBuildType.getInternalId());
+    if (previouslyAdded == null) {
+      myDelayedAssignments.put(sBuildType.getInternalId(), currentFailedBuildInfo);
+      return;
+    }
+
+    BuildPromotion currentBuildPromotion = currentFailedBuildInfo.getBuild().getBuildPromotion();
+    BuildPromotion previouslyAddedPromotion = previouslyAdded.getBuild().getBuildPromotion();
+    if (currentBuildPromotion.isLaterThan(previouslyAddedPromotion)) {
+      processOlderAndDelayNew(sBuildType, previouslyAdded, currentFailedBuildInfo);
+    } else {
+      processOlderAndDelayNew(sBuildType, currentFailedBuildInfo, previouslyAdded);
+    }
+  }
+
+  private void processOlderAndDelayNew(SBuildType sBuildType, FailedBuildInfo older, FailedBuildInfo newer) {
+    processDelayedAssignments(older, newer.getBuild());
+    myDelayedAssignments.put(sBuildType.getInternalId(), newer);
   }
 
   private void processBrokenBuilds() {
@@ -148,7 +171,6 @@ public class FailedTestAndBuildProblemsDispatcher {
 
   private synchronized void processBrokenBuild(final FailedBuildInfo failedBuildInfo) {
     myProcessor.processBuild(failedBuildInfo);
-    myEmailReporter.sendResults(failedBuildInfo.getBuild(), failedBuildInfo.getHeuristicsResult());
   }
 
   /*
@@ -160,7 +182,9 @@ public class FailedTestAndBuildProblemsDispatcher {
     Branch branch = build.getBranch();
     boolean isDefaultBranch = branch == null || branch.isDefaultBranch();
 
-    if (build.isPersonal() || !(isDefaultBranch || CustomParameters.shouldRunForFeatureBranches(build))) {
+    if (build.isPersonal() ||
+        build.getBuildType() == null ||
+        !(isDefaultBranch || CustomParameters.shouldRunForFeatureBranches(build))) {
       return true;
     }
 
