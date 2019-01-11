@@ -109,7 +109,7 @@ public class FailedTestAndBuildProblemsDispatcher {
       @Nullable
       FailedBuildInfo delayedAssignmentsBuildInfo = myDelayedAssignments.get(sBuildType.getInternalId());
       if (delayedAssignmentsBuildInfo != null &&
-          delayedAssignmentsBuildInfo.getBuild().getBuildId() <= nextBuild.getBuildId()) {
+          nextBuild.getBuildPromotion().isLaterThan(delayedAssignmentsBuildInfo.getBuild().getBuildPromotion())) {
         myDelayedAssignments.remove(sBuildType.getInternalId());
         processDelayedAssignments(delayedAssignmentsBuildInfo, nextBuild);
       }
@@ -149,7 +149,9 @@ public class FailedTestAndBuildProblemsDispatcher {
       return;
     }
 
-    if (previouslyAdded.getBuildId() <= currentFailedBuildInfo.getBuildId()) {
+    BuildPromotion currentBuildPromotion = currentFailedBuildInfo.getBuild().getBuildPromotion();
+    BuildPromotion previouslyAddedPromotion = previouslyAdded.getBuild().getBuildPromotion();
+    if (currentBuildPromotion.isLaterThan(previouslyAddedPromotion)) {
       processOlderAndDelayNew(sBuildType, previouslyAdded, currentFailedBuildInfo);
     } else {
       processOlderAndDelayNew(sBuildType, currentFailedBuildInfo, previouslyAdded);
