@@ -46,6 +46,10 @@ public class FailedBuildInfo {
     return mySBuild;
   }
 
+  public long getBuildId() {
+    return mySBuild.getBuildId();
+  }
+
   public void addProcessedTestRuns(@NotNull Collection<STestRun> tests) {
     for (STestRun testRun : tests) {
       processedTests.add(testRun.getTestRunId());

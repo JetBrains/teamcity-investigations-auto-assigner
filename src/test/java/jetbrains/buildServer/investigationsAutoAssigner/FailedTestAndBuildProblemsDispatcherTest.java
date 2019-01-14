@@ -51,6 +51,7 @@ public class FailedTestAndBuildProblemsDispatcherTest {
     myBuild = mock(BuildEx.class);
     when(myBuild.getBuildId()).thenReturn(239L);
     when(myBuild.getBranch()).thenReturn(myBranch);
+    when(myBuild.getBuildType()).thenReturn(mock(SBuildType.class));
     when(myBuild.isPersonal()).thenReturn(false);
     when(myBuild.getParametersProvider()).thenReturn(myParametersProvider);
 
@@ -58,6 +59,7 @@ public class FailedTestAndBuildProblemsDispatcherTest {
     mySecondBuild = mock(BuildEx.class);
     when(mySecondBuild.getBuildId()).thenReturn(238L);
     when(mySecondBuild.getBranch()).thenReturn(myBranch);
+    when(mySecondBuild.getBuildType()).thenReturn(mock(SBuildType.class));
     when(mySecondBuild.isPersonal()).thenReturn(false);
     when(mySecondBuild.getParametersProvider()).thenReturn(myParametersProvider);
 
@@ -65,6 +67,7 @@ public class FailedTestAndBuildProblemsDispatcherTest {
     myRunningBuild = mock(SRunningBuild.class);
     when(myRunningBuild.getBuildId()).thenReturn(239L);
     when(myRunningBuild.getBranch()).thenReturn(myBranch);
+    when(myRunningBuild.getBuildType()).thenReturn(mock(SBuildType.class));
     when(myRunningBuild.isPersonal()).thenReturn(false);
     when(myRunningBuild.getParametersProvider()).thenReturn(myParametersProvider);
 
@@ -151,6 +154,6 @@ public class FailedTestAndBuildProblemsDispatcherTest {
   }
 
   private void verifyMarkOfPassForBuildFinished(int expectedExecutions) {
-    verify(myRunningBuild, times(expectedExecutions)).getBuildType();
+    verify(myRunningBuild, times(expectedExecutions)).getBuildId();
   }
 }
