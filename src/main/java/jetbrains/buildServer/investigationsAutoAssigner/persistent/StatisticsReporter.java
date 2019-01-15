@@ -16,6 +16,9 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.persistent;
 
+import java.util.concurrent.TimeUnit;
+import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
+import jetbrains.buildServer.serverSide.executors.ExecutorServices;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.serverSide.TeamCityProperties;
 import jetbrains.buildServer.util.StringUtil;
@@ -24,9 +27,15 @@ public class StatisticsReporter {
   private final StatisticsDao myStatisticsDao;
   private Statistics myStatistics;
 
-  StatisticsReporter(StatisticsDao statisticsDao) {
+  StatisticsReporter(StatisticsDao statisticsDao,
+                     ExecutorServices executorServices) {
     myStatistics = statisticsDao.read();
     myStatisticsDao = statisticsDao;
+    StatisticsReporter instance = this;
+    int delayInSeconds = CustomParameters.getProcessingDelayInSeconds();
+    executorServices
+      .getNormalExecutorService()
+      .scheduleWithFixedDelay(instance::saveDataOnDisk, delayInSeconds, delayInSeconds, TimeUnit.SECONDS);
   }
 
   public synchronized void reportShownButton() {
@@ -45,7 +54,7 @@ public class StatisticsReporter {
     myStatistics.wrongInvestigationsCount += count;
   }
 
-  public synchronized void saveDataOnDisk() {
+  private void saveDataOnDisk() {
     if (StringUtil.isTrue(TeamCityProperties.getProperty(Constants.STATISTICS_ENABLED, "false"))) {
       myStatisticsDao.write(myStatistics);
     }

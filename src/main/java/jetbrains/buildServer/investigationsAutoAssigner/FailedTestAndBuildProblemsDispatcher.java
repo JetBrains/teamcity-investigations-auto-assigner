@@ -31,7 +31,6 @@ import jetbrains.buildServer.investigationsAutoAssigner.processing.FailedTestAnd
 import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.EmailReporter;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
-import jetbrains.buildServer.responsibility.TestNameResponsibilityEntry;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.problems.BuildProblemInfo;
 import jetbrains.buildServer.tests.TestName;
@@ -138,8 +137,6 @@ public class FailedTestAndBuildProblemsDispatcher {
     String description = String.format("Investigations auto-assigner: processing %s builds in background",
                                        myFailedBuilds.size());
     NamedThreadFactory.executeWithNewThreadName(description, this::processBrokenBuilds);
-
-    myStatisticsReporter.saveDataOnDisk();
   }
 
   private void processDelayedAssignmentsOneThread(SBuild nextBuild) {
