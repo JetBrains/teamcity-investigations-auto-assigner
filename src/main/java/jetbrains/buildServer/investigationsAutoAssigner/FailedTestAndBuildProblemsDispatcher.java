@@ -173,7 +173,7 @@ public class FailedTestAndBuildProblemsDispatcher {
       putIntoDelayAssignments(failedBuildInfo);
     }
 
-    myEmailReporter.sendResults(failedBuildInfo.getBuild(), failedBuildInfo.getHeuristicsResult());
+    myEmailReporter.sendResults(failedBuildInfo);
   }
 
   private void putIntoDelayAssignments(final FailedBuildInfo currentFailedBuildInfo) {

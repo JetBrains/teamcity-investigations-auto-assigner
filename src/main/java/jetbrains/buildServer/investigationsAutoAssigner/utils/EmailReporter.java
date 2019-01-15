@@ -18,8 +18,10 @@ package jetbrains.buildServer.investigationsAutoAssigner.utils;
 
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
+import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
+import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.util.EmailException;
@@ -32,18 +34,24 @@ public class EmailReporter {
   private static final Logger LOGGER = Logger.getInstance(EmailReporter.class.getName());
   @NotNull private final EmailSender myEmailSender;
   @Nullable private final String mySupervisorEmail;
+  private StatisticsReporter myStatisticsReporter;
   @NotNull private final WebLinks myWebLinks;
 
   public EmailReporter(@NotNull EmailSender emailSender,
                        @NotNull WebLinks webLinks,
-                       @NotNull CustomParameters customParameters) {
+                       @NotNull CustomParameters customParameters,
+                       @NotNull StatisticsReporter statisticsReporter) {
     myEmailSender = emailSender;
     myWebLinks = webLinks;
     mySupervisorEmail = customParameters.getEmailForEmailReporter();
+    myStatisticsReporter = statisticsReporter;
   }
 
-  public void sendResults(SBuild sBuild, HeuristicResult heuristicsResult) {
-    if (mySupervisorEmail != null && !heuristicsResult.isEmpty()) {
+  public void sendResults(FailedBuildInfo failedBuildInfo) {
+    SBuild sBuild = failedBuildInfo.getBuild();
+    HeuristicResult heuristicsResult = failedBuildInfo.getHeuristicsResult();
+
+    if (mySupervisorEmail != null && !heuristicsResult.isEmpty() && failedBuildInfo.shouldDelayAssignments()) {
       String title = String.format("Investigation auto-assigner report for build id:%s", sBuild.getBuildId());
       trySendEmail(mySupervisorEmail, title, generateHtmlReport(sBuild, heuristicsResult));
     }
@@ -67,6 +75,7 @@ public class EmailReporter {
                          "<body>\n" +
                          "<h2>Report for <a href=\"%s\">%s#%s</a>. Found %s investigations:</h2>\n" +
                          "<ol>\n%s%s</ol>\n" +
+                         "%s" +
                          "</body>\n" +
                          "</html>",
                          buildRunResultsUrl,
@@ -74,7 +83,8 @@ public class EmailReporter {
                          sBuild.getBuildId(),
                          heuristicsResult.getAllResponsibilities().size(),
                          generateForFailedTests(sBuild, heuristicsResult),
-                         generateForBuildProblems(sBuild, heuristicsResult));
+                         generateForBuildProblems(sBuild, heuristicsResult),
+                         myStatisticsReporter.generateReport());
   }
 
   private String generateForFailedTests(SBuild sBuild, HeuristicResult heuristicsResult) {

@@ -50,4 +50,16 @@ public class StatisticsReporter {
       myStatisticsDao.write(myStatistics);
     }
   }
+
+  public String generateReport() {
+    return String.format("Short statistics of plugin usage:" +
+                         "%s investigations assigned;\n" +
+                         "%s of them were wrong;\n" +
+                         "%s shown suggestions;\n" +
+                         "%s of assignments from them.\n",
+                         myStatistics.assignedInvestigationsCount,
+                         myStatistics.wrongInvestigationsCount,
+                         myStatistics.shownButtonsCount,
+                         myStatistics.clickedButtonsCount);
+  }
 }
