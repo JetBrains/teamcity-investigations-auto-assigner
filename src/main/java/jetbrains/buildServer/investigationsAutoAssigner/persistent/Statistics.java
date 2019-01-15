@@ -20,7 +20,32 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 
 class Statistics {
 
+  public String getVersion() {
+    return version;
+  }
+
+  public void setVersion(final String version) {
+    this.version = version;
+  }
+
   public String version = Constants.STATISTICS_FILE_VERSION;
+
+  public long getShownButtonsCount() {
+    return shownButtonsCount;
+  }
+
+  public long getClickedButtonsCount() {
+    return clickedButtonsCount;
+  }
+
+  public long getAssignedInvestigationsCount() {
+    return assignedInvestigationsCount;
+  }
+
+  public long getWrongInvestigationsCount() {
+    return wrongInvestigationsCount;
+  }
+
   long shownButtonsCount;
   long clickedButtonsCount;
   long assignedInvestigationsCount;

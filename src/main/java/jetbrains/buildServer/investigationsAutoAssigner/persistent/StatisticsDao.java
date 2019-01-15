@@ -16,10 +16,11 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.persistent;
 
-import com.google.gson.Gson;
+import com.google.gson.*;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -35,13 +36,14 @@ public class StatisticsDao {
   private Gson myGson;
 
   public StatisticsDao(@NotNull final ServerPaths serverPaths) {
-    myGson = new Gson();
+    GsonBuilder builder = new GsonBuilder();
+    builder.registerTypeAdapter(Statistics.class, new StatisticsConverter());
+    myGson = builder.create();
     myPluginDataDirectory = Paths.get(serverPaths.getPluginDataDirectory().getPath(),
                                       Constants.PLUGIN_DATA_DIR);
     myStatisticsPath = Paths.get(serverPaths.getPluginDataDirectory().getPath(),
                                  Constants.PLUGIN_DATA_DIR,
                                  Constants.STATISTICS_FILE_NAME);
-
   }
 
   @NotNull
@@ -51,30 +53,18 @@ public class StatisticsDao {
     }
 
     try (BufferedReader reader = Files.newBufferedReader(myStatisticsPath)) {
-      StatisticsPersistentInfo statisticsPersistentInfo = myGson.fromJson(reader, StatisticsPersistentInfo.class);
-      if (!isValidStatisticsFile(statisticsPersistentInfo)) {
-        return new Statistics();
+      Statistics statistics = myGson.fromJson(reader, Statistics.class);
+      if (!isValidStatisticsFile(statistics)) {
+        statistics = new Statistics();
       }
-
-      return statisticsPersistentInfo.getStatistics();
+      return statistics;
     } catch (IOException ex) {
       throw new RuntimeException("An error during reading statistics occurs", ex);
     }
   }
 
-  private boolean isValidStatisticsFile(@Nullable StatisticsPersistentInfo statisticsPersistentInfo) {
-    if (statisticsPersistentInfo == null) {
-      return false;
-    }
-
-    Statistics statistics;
-    try {
-      statistics = statisticsPersistentInfo.getStatistics();
-    } catch (NumberFormatException ex) {
-      return false;
-    }
-
-    return Constants.STATISTICS_FILE_VERSION.equals(statistics.version);
+  private boolean isValidStatisticsFile(@Nullable Statistics statistics) {
+    return statistics != null && Constants.STATISTICS_FILE_VERSION.equals(statistics.version);
   }
 
   void write(@NotNull Statistics statistics) {
@@ -84,10 +74,34 @@ public class StatisticsDao {
       }
 
       try (BufferedWriter writer = Files.newBufferedWriter(myStatisticsPath)) {
-        myGson.toJson(new StatisticsPersistentInfo(statistics), writer);
+        myGson.toJson(statistics, writer);
       }
     } catch (IOException ex) {
       throw new RuntimeException("An error during writing statistics occurs", ex);
+    }
+  }
+
+  private class StatisticsConverter implements JsonSerializer<Statistics>, JsonDeserializer<Statistics> {
+    @Override
+    public Statistics deserialize(final JsonElement json, final Type typeOfT, final JsonDeserializationContext context)
+      throws JsonParseException {
+      JsonObject object = json.getAsJsonObject();
+      return new Statistics(object.get("version").getAsString(),
+                            Long.parseLong(object.get("assignedInvestigationsCount").getAsString()),
+                            Long.parseLong(object.get("wrongInvestigationsCount").getAsString()),
+                            Long.parseLong(object.get("shownButtonCount").getAsString()),
+                            Long.parseLong(object.get("clickedButtonCount").getAsString()));
+    }
+
+    @Override
+    public JsonElement serialize(final Statistics src, final Type typeOfSrc, final JsonSerializationContext context) {
+      JsonObject object = new JsonObject();
+      object.addProperty("version", src.getVersion());
+      object.addProperty("assignedInvestigationsCount", src.getAssignedInvestigationsCount());
+      object.addProperty("wrongInvestigationsCount", src.getWrongInvestigationsCount());
+      object.addProperty("shownButtonCount", src.getShownButtonsCount());
+      object.addProperty("clickedButtonCount", src.getClickedButtonsCount());
+      return object;
     }
   }
 }
