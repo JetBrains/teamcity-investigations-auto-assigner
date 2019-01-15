@@ -16,11 +16,15 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.persistent;
 
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
+import jetbrains.buildServer.serverSide.TeamCityProperties;
+import jetbrains.buildServer.util.StringUtil;
+
 public class StatisticsReporter {
   private final StatisticsDao myStatisticsDao;
   private Statistics myStatistics;
 
-  public StatisticsReporter(StatisticsDao statisticsDao) {
+  StatisticsReporter(StatisticsDao statisticsDao) {
     myStatistics = statisticsDao.read();
     myStatisticsDao = statisticsDao;
   }
@@ -42,7 +46,8 @@ public class StatisticsReporter {
   }
 
   public void saveDataOnDisk() {
-    myStatisticsDao.write(myStatistics);
+    if (StringUtil.isTrue(TeamCityProperties.getProperty(Constants.STATISTICS_ENABLED, "false"))) {
+      myStatisticsDao.write(myStatistics);
+    }
   }
 }
-

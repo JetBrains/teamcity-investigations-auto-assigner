@@ -31,31 +31,29 @@ import org.jetbrains.annotations.Nullable;
 public class StatisticsDao {
 
   private final Path myStatisticsPath;
+  private final Path myPluginDataDirectory;
   private Gson myGson;
 
-  public StatisticsDao(@NotNull final ServerPaths serverPaths) throws IOException {
+  public StatisticsDao(@NotNull final ServerPaths serverPaths) {
     myGson = new Gson();
-    Path pluginDataDirectory = Paths.get(serverPaths.getPluginDataDirectory().getPath(),
-                                         Constants.PLUGIN_DATA_DIR);
-    if (!Files.exists(pluginDataDirectory)) {
-      Files.createDirectory(pluginDataDirectory);
-    }
-
+    myPluginDataDirectory = Paths.get(serverPaths.getPluginDataDirectory().getPath(),
+                                      Constants.PLUGIN_DATA_DIR);
     myStatisticsPath = Paths.get(serverPaths.getPluginDataDirectory().getPath(),
                                  Constants.PLUGIN_DATA_DIR,
                                  Constants.STATISTICS_FILE_NAME);
-    if (!Files.exists(myStatisticsPath) || !isValidStatisticsFile()) {
-      write(Statistics.getNew());
-    }
+
   }
 
   @NotNull
   Statistics read() {
+    if (!Files.exists(myStatisticsPath)) {
+      return new Statistics();
+    }
+
     try (BufferedReader reader = Files.newBufferedReader(myStatisticsPath)) {
       Statistics statistics = myGson.fromJson(reader, Statistics.class);
       if (!isValidStatisticsFile(statistics)) {
-        statistics = Statistics.getNew();
-        write(statistics);
+        statistics = new Statistics();
       }
 
       return statistics;
@@ -64,22 +62,19 @@ public class StatisticsDao {
     }
   }
 
-  private boolean isValidStatisticsFile() throws IOException {
-    Statistics statistics;
-    try (BufferedReader reader = Files.newBufferedReader(myStatisticsPath)) {
-      statistics = myGson.fromJson(reader, Statistics.class);
-    }
-
-    return isValidStatisticsFile(statistics);
-  }
-
   private boolean isValidStatisticsFile(@Nullable Statistics statistics) {
     return statistics != null && Constants.STATISTICS_FILE_VERSION.equals(statistics.version);
   }
 
   void write(@NotNull Statistics statistics) {
-    try (BufferedWriter writer = Files.newBufferedWriter(myStatisticsPath)) {
-      myGson.toJson(statistics, writer);
+    try {
+      if (!Files.exists(myPluginDataDirectory)) {
+        Files.createDirectory(myPluginDataDirectory);
+      }
+
+      try (BufferedWriter writer = Files.newBufferedWriter(myStatisticsPath)) {
+        myGson.toJson(statistics, writer);
+      }
     } catch (IOException ex) {
       throw new RuntimeException("An error during writing statistics occurs", ex);
     }

@@ -41,6 +41,7 @@ public class Constants {
 
   // Server internal properties (debug use only)
   public static final String INTERNAL_REPORTER_EMAIL = "teamcity.investigationsAutoAssigner.debugEmailAddress";
+  public static final String STATISTICS_ENABLED = "teamcity.investigationsAutoAssigner.statisticsEnabled";
 
   //Constants
   public static final String TC_COMPILATION_ERROR_TYPE = BuildProblemTypes.TC_COMPILATION_ERROR_TYPE;
