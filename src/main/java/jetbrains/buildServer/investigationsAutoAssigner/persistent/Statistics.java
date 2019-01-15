@@ -19,9 +19,26 @@ package jetbrains.buildServer.investigationsAutoAssigner.persistent;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 
 class Statistics {
+
   public String version = Constants.STATISTICS_FILE_VERSION;
-  int shownButtonsCount;
-  int clickedButtonsCount;
-  int assignedInvestigationsCount;
-  int wrongInvestigationsCount;
+  long shownButtonsCount;
+  long clickedButtonsCount;
+  long assignedInvestigationsCount;
+  long wrongInvestigationsCount;
+
+  Statistics() {
+    //
+  }
+
+  Statistics(final String version,
+             final long shownButtonsCount,
+             final long clickedButtonsCount,
+             final long assignedInvestigationsCount,
+             final long wrongInvestigationsCount) {
+    this.version = version;
+    this.shownButtonsCount = shownButtonsCount;
+    this.clickedButtonsCount = clickedButtonsCount;
+    this.assignedInvestigationsCount = assignedInvestigationsCount;
+    this.wrongInvestigationsCount = wrongInvestigationsCount;
+  }
 }

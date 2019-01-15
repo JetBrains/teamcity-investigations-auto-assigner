@@ -51,19 +51,30 @@ public class StatisticsDao {
     }
 
     try (BufferedReader reader = Files.newBufferedReader(myStatisticsPath)) {
-      Statistics statistics = myGson.fromJson(reader, Statistics.class);
-      if (!isValidStatisticsFile(statistics)) {
-        statistics = new Statistics();
+      StatisticsPersistentInfo statisticsPersistentInfo = myGson.fromJson(reader, StatisticsPersistentInfo.class);
+      if (!isValidStatisticsFile(statisticsPersistentInfo)) {
+        return new Statistics();
       }
 
-      return statistics;
+      return statisticsPersistentInfo.getStatistics();
     } catch (IOException ex) {
       throw new RuntimeException("An error during reading statistics occurs", ex);
     }
   }
 
-  private boolean isValidStatisticsFile(@Nullable Statistics statistics) {
-    return statistics != null && Constants.STATISTICS_FILE_VERSION.equals(statistics.version);
+  private boolean isValidStatisticsFile(@Nullable StatisticsPersistentInfo statisticsPersistentInfo) {
+    if (statisticsPersistentInfo == null) {
+      return false;
+    }
+
+    Statistics statistics;
+    try {
+      statistics = statisticsPersistentInfo.getStatistics();
+    } catch (NumberFormatException ex) {
+      return false;
+    }
+
+    return Constants.STATISTICS_FILE_VERSION.equals(statistics.version);
   }
 
   void write(@NotNull Statistics statistics) {
@@ -73,7 +84,7 @@ public class StatisticsDao {
       }
 
       try (BufferedWriter writer = Files.newBufferedWriter(myStatisticsPath)) {
-        myGson.toJson(statistics, writer);
+        myGson.toJson(new StatisticsPersistentInfo(statistics), writer);
       }
     } catch (IOException ex) {
       throw new RuntimeException("An error during writing statistics occurs", ex);
