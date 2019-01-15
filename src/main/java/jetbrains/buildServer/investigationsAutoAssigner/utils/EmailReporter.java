@@ -75,7 +75,7 @@ public class EmailReporter {
                          "<body>\n" +
                          "<h2>Report for <a href=\"%s\">%s#%s</a>. Found %s investigations:</h2>\n" +
                          "<ol>\n%s%s</ol>\n" +
-                         "%s" +
+                         "%s\n" +
                          "</body>\n" +
                          "</html>",
                          buildRunResultsUrl,
