@@ -41,6 +41,7 @@ public class Constants {
 
   // Server internal properties (debug use only)
   public static final String INTERNAL_REPORTER_EMAIL = "teamcity.investigationsAutoAssigner.debugEmailAddress";
+  public static final String STATISTICS_ENABLED = "teamcity.investigationsAutoAssigner.statisticsEnabled";
 
   //Constants
   public static final String TC_COMPILATION_ERROR_TYPE = BuildProblemTypes.TC_COMPILATION_ERROR_TYPE;
@@ -48,5 +49,9 @@ public class Constants {
   public final static String TEST_RUN_IN_REQUEST = "loadedTestRun";
   public final static int DEFAULT_TEST_COUNT_THRESHOLD = 100;
   public final static String ARTIFACT_DIRECTORY = "investigationsAutoAssigner";
+  public static final String PLUGIN_DATA_DIR = ARTIFACT_DIRECTORY;
   public static final String ARTIFACT_FILENAME = "suggestions.json";
+  public static final String STATISTICS_FILE_NAME = "statistics.json";
+  public static final String STATISTICS_FILE_VERSION = "1.1";
+  public static final String ASSIGN_DESCRIPTION_PREFIX = "Investigation was automatically assigned to";
 }

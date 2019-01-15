@@ -18,8 +18,12 @@ package jetbrains.buildServer.investigationsAutoAssigner.utils;
 
 import java.util.Arrays;
 import jetbrains.buildServer.BaseTestCase;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
+import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
+import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter;
+import jetbrains.buildServer.parameters.ParametersProvider;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.util.EmailSender;
@@ -41,11 +45,14 @@ public class EmailReporterTest extends BaseTestCase {
   private Responsibility myResponsibility1;
   private Responsibility myResponsibility2;
   private CustomParameters myCustomParameters;
-  private WebLinks myWebLinks;
   private String TEST_LINK_URL = "testLinkUrl.com";
   private Long BUILD_ID = 239L;
   private String BUILD_TYPE_NAME = "testBuildTypeName";
   private HeuristicResult myHeuristicResult;
+  private FailedBuildInfo myFailedBuildInfo;
+  private WebLinks myWebLinks;
+  private StatisticsReporter myStatisticsReporterMock;
+  private String myStatisticReport;
 
   @BeforeMethod
   @Override
@@ -53,6 +60,7 @@ public class EmailReporterTest extends BaseTestCase {
     super.setUp();
     myMockedEmailSender = new EmailSenderMock();
     myWebLinks = Mockito.mock(WebLinks.class);
+    myStatisticsReporterMock = Mockito.mock(StatisticsReporter.class);
     mySBuildMock = Mockito.mock(BuildEx.class);
     final STestRun sTestRun1 = Mockito.mock(STestRun.class);
     final STestRun sTestRun2 = Mockito.mock(STestRun.class);
@@ -62,10 +70,12 @@ public class EmailReporterTest extends BaseTestCase {
     final User user1 = Mockito.mock(User.class);
     final User user2 = Mockito.mock(User.class);
     final BuildStatistics buildStatistics = Mockito.mock(BuildStatistics.class);
+    final ParametersProvider parametersProvider = Mockito.mock(ParametersProvider.class);
     myResponsibility1 = new Responsibility(user1, "testDescription");
     myResponsibility2 = new Responsibility(user2, "testDescription2");
 
 
+    myStatisticReport = "239__239";
     when(mySBuildMock.getBuildStatistics(any())).thenReturn(buildStatistics);
     when(buildStatistics.getFailedTests()).thenReturn(Arrays.asList(sTestRun1, sTestRun2));
     when(user1.getUsername()).thenReturn("testUser1");
@@ -78,6 +88,7 @@ public class EmailReporterTest extends BaseTestCase {
     when(sTest2.getTestNameId()).thenReturn(2L);
     when(mySBuildMock.getBuildId()).thenReturn(BUILD_ID);
     when(mySBuildMock.getBuildTypeName()).thenReturn(BUILD_TYPE_NAME);
+    when(mySBuildMock.getParametersProvider()).thenReturn(parametersProvider);
     myHeuristicResult = new HeuristicResult();
     myHeuristicResult.addResponsibility(sTestRun1, myResponsibility1);
     myHeuristicResult.addResponsibility(sTestRun2, myResponsibility2);
@@ -85,21 +96,26 @@ public class EmailReporterTest extends BaseTestCase {
     String testEmail = "test.mail.com";
     when(myCustomParameters.getEmailForEmailReporter()).thenReturn(testEmail);
     when(myWebLinks.getViewResultsUrl(mySBuildMock)).thenReturn(TEST_LINK_URL);
-    myEmailReporter = new EmailReporter(myMockedEmailSender, myWebLinks, myCustomParameters);
+    when(parametersProvider.get(Constants.SHOULD_DELAY_ASSIGNMENTS)).thenReturn("true");
+    myFailedBuildInfo = new FailedBuildInfo(mySBuildMock);
+
+    myEmailReporter = new EmailReporter(myMockedEmailSender, myWebLinks, myCustomParameters, myStatisticsReporterMock);
   }
 
   public void TestEmailAddressAbsents() {
     when(myCustomParameters.getEmailForEmailReporter()).thenReturn(null);
+    myEmailReporter = new EmailReporter(myMockedEmailSender, myWebLinks, myCustomParameters, myStatisticsReporterMock);
 
-    EmailReporter emailReporter = new EmailReporter(myMockedEmailSender, myWebLinks, myCustomParameters);
-
-    emailReporter.sendResults(mySBuildMock, myHeuristicResult);
+    myFailedBuildInfo.addHeuristicsResult(myHeuristicResult);
+    myEmailReporter.sendResults(myFailedBuildInfo);
 
     assertFalse(myMockedEmailSender.called);
   }
 
   public void TestNoResponsibilities() {
-    myEmailReporter.sendResults(mySBuildMock, new HeuristicResult());
+    myFailedBuildInfo.addHeuristicsResult(new HeuristicResult());
+
+    myEmailReporter.sendResults(myFailedBuildInfo);
 
     assertFalse(myMockedEmailSender.called);
   }
@@ -108,24 +124,25 @@ public class EmailReporterTest extends BaseTestCase {
     String testEmail = "test.mail.com";
     when(myCustomParameters.getEmailForEmailReporter()).thenReturn(testEmail);
 
-    EmailReporter emailReporter = new EmailReporter(myMockedEmailSender, myWebLinks, myCustomParameters);
-    emailReporter.sendResults(mySBuildMock, myHeuristicResult);
+    myFailedBuildInfo.addHeuristicsResult(myHeuristicResult);
+    myEmailReporter.sendResults(myFailedBuildInfo);
 
     assertTrue(myMockedEmailSender.called);
     assertEquals(testEmail, myMockedEmailSender.usedAddress);
   }
 
   public void TestTopicContainsBuildLink() {
-    EmailReporter emailReporter = new EmailReporter(myMockedEmailSender, myWebLinks, myCustomParameters);
-    emailReporter.sendResults(mySBuildMock, myHeuristicResult);
+    myFailedBuildInfo.addHeuristicsResult(myHeuristicResult);
+    myEmailReporter.sendResults(myFailedBuildInfo);
 
     assertTrue(myMockedEmailSender.called);
     assertTrue(myMockedEmailSender.usedSubject.contains(mySBuildMock.getBuildId() + ""));
   }
 
   public void TestCompareWithGold() {
-    EmailReporter emailReporter = new EmailReporter(myMockedEmailSender, myWebLinks, myCustomParameters);
-    emailReporter.sendResults(mySBuildMock, myHeuristicResult);
+    when(myStatisticsReporterMock.generateReport()).thenReturn(myStatisticReport);
+    myFailedBuildInfo.addHeuristicsResult(myHeuristicResult);
+    myEmailReporter.sendResults(myFailedBuildInfo);
 
     assertTrue(myMockedEmailSender.called);
     assertEquals(getHtmlReportGold(), myMockedEmailSender.usedHtml);
@@ -139,6 +156,7 @@ public class EmailReporterTest extends BaseTestCase {
                          "<ol>\n<li><a href=\"testLinkUrl.com#testNameId1\">Investigation</a> was assigned to %s who %s.</li>\n" +
                          "<li><a href=\"testLinkUrl.com#testNameId2\">Investigation</a> was assigned to %s who %s.</li>\n" +
                          "</ol>\n" +
+                         "%s\n" +
                          "</body>\n" +
                          "</html>",
                          TEST_LINK_URL,
@@ -147,7 +165,8 @@ public class EmailReporterTest extends BaseTestCase {
                          myResponsibility1.getUser().getUsername(),
                          myResponsibility1.getDescription(),
                          myResponsibility2.getUser().getUsername(),
-                         myResponsibility2.getDescription());
+                         myResponsibility2.getDescription(),
+                         myStatisticReport);
   }
 
   private class EmailSenderMock implements EmailSender {
