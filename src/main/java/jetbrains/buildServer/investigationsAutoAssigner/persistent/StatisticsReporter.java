@@ -41,8 +41,8 @@ public class StatisticsReporter {
     myStatistics.assignedInvestigationsCount += count;
   }
 
-  public void reportWrongInvestigation() {
-    myStatistics.wrongInvestigationsCount++;
+  public void reportWrongInvestigation(int count) {
+    myStatistics.wrongInvestigationsCount += count;
   }
 
   public void saveDataOnDisk() {

@@ -109,7 +109,7 @@ public class FailedTestAndBuildProblemsDispatcher {
             (entry.getState() == ResponsibilityEntry.State.GIVEN_UP ||
              entry.getState() == ResponsibilityEntry.State.TAKEN) &&
             entry.getComment().startsWith("Investigation was automatically assigned to")) {
-          instance.myStatisticsReporter.reportWrongInvestigation();
+          instance.myStatisticsReporter.reportWrongInvestigation(testNames.size());
         }
       }
 
@@ -123,7 +123,7 @@ public class FailedTestAndBuildProblemsDispatcher {
             (entry.getState() == ResponsibilityEntry.State.GIVEN_UP ||
             entry.getState() == ResponsibilityEntry.State.TAKEN) &&
             entry.getComment().startsWith("Investigation was automatically assigned to")) {
-          instance.myStatisticsReporter.reportWrongInvestigation();
+          instance.myStatisticsReporter.reportWrongInvestigation(buildProblems.size());
         }
       }
 
