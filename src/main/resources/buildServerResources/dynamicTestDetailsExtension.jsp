@@ -35,12 +35,7 @@
           <span class="btn-group investigations-auto-assigner-btn-group">
             <button
                 class="btn btn_mini action investigations-auto-assigner-btn" type="button"
-                onclick="BS.ajaxUpdater('empty-div', 'autoAssignerStatisticsReporter.html',
-                    {
-                    method: 'get',
-                    evalScripts: true,
-                    onComplete: BS.reload(false)
-                    }); return BS.BulkInvestigateMuteTestDialog.showForTest('${test.testNameId}', '${buildId}', null, '${test.projectExternalId}', false, ${optionalArgs});"
+                onclick="return showSuggestedInvestigation();"
                 title="Custom investigation assignment">Assign investigation to ${userName}...</button>
           </span>
         </jsp:attribute>
@@ -52,3 +47,10 @@
     </div>
   </c:if>
 </div>
+
+<script>
+  function showSuggestedInvestigation() {
+    BS.ajaxRequest('autoAssignerStatisticsReporter.html', {method: 'get'});
+    return BS.BulkInvestigateMuteTestDialog.showForTest('${test.testNameId}', '${buildId}', null, '${test.projectExternalId}', false, ${optionalArgs});
+  }
+</script>
