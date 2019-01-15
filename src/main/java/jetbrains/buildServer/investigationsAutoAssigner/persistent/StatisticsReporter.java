@@ -29,29 +29,29 @@ public class StatisticsReporter {
     myStatisticsDao = statisticsDao;
   }
 
-  public void reportShownButton() {
+  public synchronized void reportShownButton() {
     myStatistics.shownButtonsCount++;
   }
 
-  public void reportClickedButton() {
+  public synchronized void reportClickedButton() {
     myStatistics.clickedButtonsCount++;
   }
 
-  public void reportAssignedInvestigations(int count) {
+  public synchronized void reportAssignedInvestigations(int count) {
     myStatistics.assignedInvestigationsCount += count;
   }
 
-  public void reportWrongInvestigation(int count) {
+  public synchronized void reportWrongInvestigation(int count) {
     myStatistics.wrongInvestigationsCount += count;
   }
 
-  public void saveDataOnDisk() {
+  public synchronized void saveDataOnDisk() {
     if (StringUtil.isTrue(TeamCityProperties.getProperty(Constants.STATISTICS_ENABLED, "false"))) {
       myStatisticsDao.write(myStatistics);
     }
   }
 
-  public String generateReport() {
+  public synchronized String generateReport() {
     return String.format("Short statistics of plugin usage:" +
                          "%s investigations assigned;\n" +
                          "%s of them were wrong;\n" +
