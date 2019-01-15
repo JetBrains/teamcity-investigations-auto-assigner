@@ -10,7 +10,8 @@
   <!-- see http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html -->
 
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.FailedTestAndBuildProblemsDispatcher"/>
-
+  <bean class="jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter"/>
+  <bean class="jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsDao"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.AutoAssignerBuildFeature"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.processing.FailedTestAndBuildProblemsProcessor"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.processing.DelayedAssignmentsProcessor"/>
@@ -47,6 +48,4 @@
         destroy-method="unregister"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.persistent.SuggestionsDao"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerResultsFilePath"/>
-  <bean class="jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter"/>
-  <bean class="jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsDao"/>
 </beans>

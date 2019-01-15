@@ -20,11 +20,9 @@ import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.serverSide.ServerPaths;
 import org.jetbrains.annotations.NotNull;
@@ -37,6 +35,12 @@ public class StatisticsDao {
 
   public StatisticsDao(@NotNull final ServerPaths serverPaths) throws IOException {
     myGson = new Gson();
+    Path pluginDataDirectory = Paths.get(serverPaths.getPluginDataDirectory().getPath(),
+                                         Constants.PLUGIN_DATA_DIR);
+    if (!Files.exists(pluginDataDirectory)) {
+      Files.createDirectory(pluginDataDirectory);
+    }
+
     myStatisticsPath = Paths.get(serverPaths.getPluginDataDirectory().getPath(),
                                  Constants.PLUGIN_DATA_DIR,
                                  Constants.STATISTICS_FILE_NAME);
@@ -46,7 +50,7 @@ public class StatisticsDao {
   }
 
   @NotNull
-  public Statistics read() {
+  Statistics read() {
     try (BufferedReader reader = Files.newBufferedReader(myStatisticsPath)) {
       Statistics statistics = myGson.fromJson(reader, Statistics.class);
       if (!isValidStatisticsFile(statistics)) {
@@ -73,11 +77,8 @@ public class StatisticsDao {
     return statistics != null && Constants.STATISTICS_FILE_VERSION.equals(statistics.version);
   }
 
-  public void write(@NotNull Statistics statistics) {
-    try (BufferedWriter writer = Files.newBufferedWriter(myStatisticsPath,
-                                                         StandardCharsets.UTF_8,
-                                                         StandardOpenOption.CREATE,
-                                                         StandardOpenOption.TRUNCATE_EXISTING)) {
+  void write(@NotNull Statistics statistics) {
+    try (BufferedWriter writer = Files.newBufferedWriter(myStatisticsPath)) {
       myGson.toJson(statistics, writer);
     } catch (IOException ex) {
       throw new RuntimeException("An error during writing statistics occurs", ex);

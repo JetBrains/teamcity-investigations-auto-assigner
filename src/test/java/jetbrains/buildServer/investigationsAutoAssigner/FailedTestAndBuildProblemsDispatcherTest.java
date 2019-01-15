@@ -18,6 +18,7 @@ package jetbrains.buildServer.investigationsAutoAssigner;
 
 import java.util.Collections;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
+import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.DelayedAssignmentsProcessor;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.FailedTestAndBuildProblemsProcessor;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.EmailReporter;
@@ -82,8 +83,9 @@ public class FailedTestAndBuildProblemsDispatcherTest {
     DelayedAssignmentsProcessor delayedAssignmentsProcessor = mock(DelayedAssignmentsProcessor.class);
 
     EmailReporter emailReporter = mock(EmailReporter.class);
+    StatisticsReporter sr = mock(StatisticsReporter.class);
 
-    new FailedTestAndBuildProblemsDispatcher(myBsDispatcher, processor, delayedAssignmentsProcessor, emailReporter);
+    new FailedTestAndBuildProblemsDispatcher(myBsDispatcher, processor, delayedAssignmentsProcessor, emailReporter, sr);
   }
 
   public void Test_BuildProblemsChanged_PersonalBuildFiltered() {

@@ -19,6 +19,7 @@ package jetbrains.buildServer.investigationsAutoAssigner.representation;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import jetbrains.buildServer.controllers.BaseController;
+import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntryEx;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityFacade;
@@ -41,6 +42,7 @@ import org.springframework.web.servlet.ModelAndView;
 public class AssignInvestigationController extends BaseController {
 
   @NotNull private final SecurityContext mySecurityContext;
+  private StatisticsReporter myStatisticsReporter;
   private final TestNameResponsibilityFacade myTestNameResponsibilityFacade;
   private final STestManager myTestManager;
   @NotNull private UserModelEx myUserModel;
@@ -50,9 +52,11 @@ public class AssignInvestigationController extends BaseController {
                                        @NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade,
                                        @NotNull final UserModelEx userModelEx,
                                        @NotNull final STestManager sTestManager,
-                                       @NotNull final SecurityContext securityContext) {
+                                       @NotNull final SecurityContext securityContext,
+                                       @NotNull final StatisticsReporter statisticsReporter) {
     super(server);
     mySecurityContext = securityContext;
+    myStatisticsReporter = statisticsReporter;
     controllerManager.registerController("/assignInvestigation.html", this);
     myTestNameResponsibilityFacade = testNameResponsibilityFacade;
     myUserModel = userModelEx;
@@ -63,6 +67,8 @@ public class AssignInvestigationController extends BaseController {
   @Override
   protected ModelAndView doHandle(@NotNull final HttpServletRequest request,
                                   @NotNull final HttpServletResponse response) throws IllegalAccessException {
+    myStatisticsReporter.reportClickedButton();
+
     final long userId;
     final long testNameId;
     final int buildId;

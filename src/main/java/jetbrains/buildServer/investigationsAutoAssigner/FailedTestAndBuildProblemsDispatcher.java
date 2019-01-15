@@ -17,6 +17,7 @@
 package jetbrains.buildServer.investigationsAutoAssigner;
 
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
@@ -24,11 +25,16 @@ import java.util.concurrent.TimeUnit;
 import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
+import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.DelayedAssignmentsProcessor;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.FailedTestAndBuildProblemsProcessor;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.EmailReporter;
+import jetbrains.buildServer.responsibility.ResponsibilityEntry;
+import jetbrains.buildServer.responsibility.TestNameResponsibilityEntry;
 import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.serverSide.problems.BuildProblemInfo;
+import jetbrains.buildServer.tests.TestName;
 import jetbrains.buildServer.util.NamedThreadFactory;
 import jetbrains.buildServer.util.ThreadUtil;
 import jetbrains.buildServer.util.executors.ExecutorsFactory;
@@ -43,6 +49,7 @@ public class FailedTestAndBuildProblemsDispatcher {
   private final FailedTestAndBuildProblemsProcessor myProcessor;
   private final DelayedAssignmentsProcessor myDelayedAssignmentsProcessor;
   @NotNull private final EmailReporter myEmailReporter;
+  private StatisticsReporter myStatisticsReporter;
   @NotNull
   private final ConcurrentHashMap<Long, FailedBuildInfo> myFailedBuilds = new ConcurrentHashMap<>();
   @NotNull
@@ -53,10 +60,12 @@ public class FailedTestAndBuildProblemsDispatcher {
   public FailedTestAndBuildProblemsDispatcher(@NotNull final BuildServerListenerEventDispatcher buildServerListenerEventDispatcher,
                                               @NotNull final FailedTestAndBuildProblemsProcessor processor,
                                               @NotNull final DelayedAssignmentsProcessor delayedAssignmentsProcessor,
-                                              @NotNull final EmailReporter emailReporter) {
+                                              @NotNull final EmailReporter emailReporter,
+                                              @NotNull final StatisticsReporter statisticsReporter) {
     myProcessor = processor;
     myDelayedAssignmentsProcessor = delayedAssignmentsProcessor;
     myEmailReporter = emailReporter;
+    myStatisticsReporter = statisticsReporter;
     myExecutor = ExecutorsFactory.newFixedScheduledDaemonExecutor(Constants.BUILD_FEATURE_TYPE, 1);
     myExecutor.scheduleWithFixedDelay(this::processBrokenBuildsOneThread,
                                       CustomParameters.getProcessingDelayInSeconds(),
@@ -90,6 +99,35 @@ public class FailedTestAndBuildProblemsDispatcher {
       }
 
       @Override
+      public void responsibleChanged(@NotNull final SProject project,
+                                     @NotNull final Collection<TestName> testNames,
+                                     @NotNull final ResponsibilityEntry entry,
+                                     final boolean isUserAction) {
+        super.responsibleChanged(project, testNames, entry, isUserAction);
+        if (isUserAction &&
+            entry.getReporterUser() != null &&
+            (entry.getState() == ResponsibilityEntry.State.GIVEN_UP ||
+             entry.getState() == ResponsibilityEntry.State.TAKEN) &&
+            entry.getComment().startsWith("Investigation was automatically assigned to")) {
+          instance.myStatisticsReporter.reportWrongInvestigation();
+        }
+      }
+
+      @Override
+      public void responsibleChanged(@NotNull final SProject project,
+                                     @NotNull final Collection<BuildProblemInfo> buildProblems,
+                                     @Nullable final ResponsibilityEntry entry) {
+        super.responsibleChanged(project, buildProblems, entry);
+        if (entry != null &&
+            entry.getReporterUser() != null &&
+            (entry.getState() == ResponsibilityEntry.State.GIVEN_UP ||
+            entry.getState() == ResponsibilityEntry.State.TAKEN) &&
+            entry.getComment().startsWith("Investigation was automatically assigned to")) {
+          instance.myStatisticsReporter.reportWrongInvestigation();
+        }
+      }
+
+      @Override
       public void serverShutdown() {
         ThreadUtil.shutdownGracefully(myExecutor, "Investigator-Auto-Assigner Daemon");
       }
@@ -100,6 +138,8 @@ public class FailedTestAndBuildProblemsDispatcher {
     String description = String.format("Investigations auto-assigner: processing %s builds in background",
                                        myFailedBuilds.size());
     NamedThreadFactory.executeWithNewThreadName(description, this::processBrokenBuilds);
+
+    myStatisticsReporter.saveDataOnDisk();
   }
 
   private void processDelayedAssignmentsOneThread(SBuild nextBuild) {

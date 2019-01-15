@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Set;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
+import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntryEx;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityFacade;
@@ -35,10 +36,13 @@ import org.jetbrains.annotations.NotNull;
 
 public class FailedTestAssigner extends BaseAssigner {
   @NotNull private final TestNameResponsibilityFacade myTestNameResponsibilityFacade;
+  private StatisticsReporter myStatisticsReporter;
   private static final Logger LOGGER = Logger.getInstance(FailedTestAssigner.class.getName());
 
-  public FailedTestAssigner(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade) {
+  public FailedTestAssigner(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade,
+                            @NotNull final StatisticsReporter statisticsReporter) {
     myTestNameResponsibilityFacade = testNameResponsibilityFacade;
+    myStatisticsReporter = statisticsReporter;
   }
 
   void assign(final HeuristicResult heuristicsResult,
@@ -73,6 +77,8 @@ public class FailedTestAssigner extends BaseAssigner {
             ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
             responsibility.getAssignDescription(), ResponsibilityEntry.RemoveMethod.WHEN_FIXED)
         );
+
+        myStatisticsReporter.reportAssignedInvestigations();
       }
     }
   }

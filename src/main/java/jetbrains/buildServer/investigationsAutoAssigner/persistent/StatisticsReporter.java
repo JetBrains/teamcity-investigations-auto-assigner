@@ -27,21 +27,21 @@ public class StatisticsReporter {
 
   public void reportShownButton() {
     myStatistics.shownButtonsCount++;
-    myStatisticsDao.write(myStatistics);
   }
 
   public void reportClickedButton() {
     myStatistics.clickedButtonsCount++;
-    myStatisticsDao.write(myStatistics);
   }
 
-  public void reportAssignedInvestigation() {
+  public void reportAssignedInvestigations() {
     myStatistics.assignedInvestigationsCount++;
-    myStatisticsDao.write(myStatistics);
   }
 
   public void reportWrongInvestigation() {
     myStatistics.wrongInvestigationsCount++;
+  }
+
+  public void saveDataOnDisk() {
     myStatisticsDao.write(myStatistics);
   }
 }
