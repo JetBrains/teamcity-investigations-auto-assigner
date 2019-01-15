@@ -35,7 +35,12 @@
           <span class="btn-group investigations-auto-assigner-btn-group">
             <button
                 class="btn btn_mini action investigations-auto-assigner-btn" type="button"
-                onclick="return BS.BulkInvestigateMuteTestDialog.showForTest('${test.testNameId}', '${buildId}', null, '${test.projectExternalId}', false, ${optionalArgs});"
+                onclick="BS.ajaxUpdater('empty-div', 'autoAssignerStatisticsReporter.html',
+                    {
+                    method: 'get',
+                    evalScripts: true,
+                    onComplete: BS.reload(false)
+                    }); return BS.BulkInvestigateMuteTestDialog.showForTest('${test.testNameId}', '${buildId}', null, '${test.projectExternalId}', false, ${optionalArgs});"
                 title="Custom investigation assignment">Assign investigation to ${userName}...</button>
           </span>
         </jsp:attribute>

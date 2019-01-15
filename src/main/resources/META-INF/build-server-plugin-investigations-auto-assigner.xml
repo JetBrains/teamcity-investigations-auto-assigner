@@ -40,7 +40,7 @@
   <bean id="previousResponsibleHeuristic" class="jetbrains.buildServer.investigationsAutoAssigner.heuristics.PreviousResponsibleHeuristic"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerArtifactDao"/>
   <bean id="emailReporter" class="jetbrains.buildServer.investigationsAutoAssigner.utils.EmailReporter"/>
-  <bean class="jetbrains.buildServer.investigationsAutoAssigner.representation.AssignInvestigationController"/>
+  <bean class="jetbrains.buildServer.investigationsAutoAssigner.representation.ClickAssignButtonReportController"/>
   <bean id="autoAssignerDetailsController"
         class="jetbrains.buildServer.investigationsAutoAssigner.representation.AutoAssignerDetailsController"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.representation.TestDetailsExtension"
