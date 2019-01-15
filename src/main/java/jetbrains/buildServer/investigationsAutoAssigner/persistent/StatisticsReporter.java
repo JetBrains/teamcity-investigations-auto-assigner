@@ -37,8 +37,8 @@ public class StatisticsReporter {
     myStatistics.clickedButtonsCount++;
   }
 
-  public void reportAssignedInvestigations() {
-    myStatistics.assignedInvestigationsCount++;
+  public void reportAssignedInvestigations(int count) {
+    myStatistics.assignedInvestigationsCount += count;
   }
 
   public void reportWrongInvestigation() {

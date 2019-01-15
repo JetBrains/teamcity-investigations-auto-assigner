@@ -78,7 +78,8 @@ public class BuildProblemsAssigner extends BaseAssigner {
             ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
             responsibility.getAssignDescription(), ResponsibilityEntry.RemoveMethod.WHEN_FIXED)
         );
-        myStatisticsReporter.reportAssignedInvestigations();
+        
+        myStatisticsReporter.reportAssignedInvestigations(buildProblemList.size());
       }
     }
   }
