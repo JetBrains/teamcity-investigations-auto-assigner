@@ -21,28 +21,28 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 class Statistics {
 
   private final String version;
-  private long shownButtonsCount;
-  private long clickedButtonsCount;
-  private long assignedInvestigationsCount;
-  private long wrongInvestigationsCount;
+  private int shownButtonsCount;
+  private int clickedButtonsCount;
+  private int assignedInvestigationsCount;
+  private int wrongInvestigationsCount;
 
   public String getVersion() {
     return version;
   }
 
-  long getShownButtonsCount() {
+  int getShownButtonsCount() {
     return shownButtonsCount;
   }
 
-  long getClickedButtonsCount() {
+  int getClickedButtonsCount() {
     return clickedButtonsCount;
   }
 
-  long getAssignedInvestigationsCount() {
+  int getAssignedInvestigationsCount() {
     return assignedInvestigationsCount;
   }
 
-  long getWrongInvestigationsCount() {
+  int getWrongInvestigationsCount() {
     return wrongInvestigationsCount;
   }
 
@@ -51,10 +51,10 @@ class Statistics {
   }
 
   Statistics(final String version,
-             final long shownButtonsCount,
-             final long clickedButtonsCount,
-             final long assignedInvestigationsCount,
-             final long wrongInvestigationsCount) {
+             final int shownButtonsCount,
+             final int clickedButtonsCount,
+             final int assignedInvestigationsCount,
+             final int wrongInvestigationsCount) {
     this.version = version;
     this.shownButtonsCount = shownButtonsCount;
     this.clickedButtonsCount = clickedButtonsCount;

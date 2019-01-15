@@ -16,11 +16,10 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.persistent;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -36,9 +35,7 @@ public class StatisticsDao {
   private Gson myGson;
 
   public StatisticsDao(@NotNull final ServerPaths serverPaths) {
-    GsonBuilder builder = new GsonBuilder();
-    builder.registerTypeAdapter(Statistics.class, new StatisticsConverter());
-    myGson = builder.create();
+    myGson = new Gson();
     myPluginDataDirectory = Paths.get(serverPaths.getPluginDataDirectory().getPath(),
                                       Constants.PLUGIN_DATA_DIR);
     myStatisticsPath = Paths.get(serverPaths.getPluginDataDirectory().getPath(),
@@ -78,30 +75,6 @@ public class StatisticsDao {
       }
     } catch (IOException ex) {
       throw new RuntimeException("An error during writing statistics occurs", ex);
-    }
-  }
-
-  private class StatisticsConverter implements JsonSerializer<Statistics>, JsonDeserializer<Statistics> {
-    @Override
-    public Statistics deserialize(final JsonElement json, final Type typeOfT, final JsonDeserializationContext context)
-      throws JsonParseException {
-      JsonObject object = json.getAsJsonObject();
-      return new Statistics(object.get("version").getAsString(),
-                            Long.parseLong(object.get("assignedInvestigationsCount").getAsString()),
-                            Long.parseLong(object.get("wrongInvestigationsCount").getAsString()),
-                            Long.parseLong(object.get("shownButtonCount").getAsString()),
-                            Long.parseLong(object.get("clickedButtonCount").getAsString()));
-    }
-
-    @Override
-    public JsonElement serialize(final Statistics src, final Type typeOfSrc, final JsonSerializationContext context) {
-      JsonObject object = new JsonObject();
-      object.addProperty("version", src.getVersion());
-      object.addProperty("assignedInvestigationsCount", src.getAssignedInvestigationsCount());
-      object.addProperty("wrongInvestigationsCount", src.getWrongInvestigationsCount());
-      object.addProperty("shownButtonCount", src.getShownButtonsCount());
-      object.addProperty("clickedButtonCount", src.getClickedButtonsCount());
-      return object;
     }
   }
 }
