@@ -53,4 +53,5 @@ public class Constants {
   public static final String ARTIFACT_FILENAME = "suggestions.json";
   public static final String STATISTICS_FILE_NAME = "statistics.json";
   public static final String STATISTICS_FILE_VERSION = "1.1";
+  public static final String ASSIGN_DESCRIPTION_PREFIX = "Investigation was automatically assigned to";
 }

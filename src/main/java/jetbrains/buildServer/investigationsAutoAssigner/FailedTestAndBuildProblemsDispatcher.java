@@ -103,13 +103,17 @@ public class FailedTestAndBuildProblemsDispatcher {
                                      @NotNull final ResponsibilityEntry entry,
                                      final boolean isUserAction) {
         super.responsibleChanged(project, testNames, entry, isUserAction);
-        if (isUserAction &&
-            entry.getReporterUser() != null &&
-            (entry.getState() == ResponsibilityEntry.State.GIVEN_UP ||
-             entry.getState() == ResponsibilityEntry.State.TAKEN) &&
-            entry.getComment().startsWith("Investigation was automatically assigned to")) {
+        if (isUserAction && shouldBeReportedAsWrong(entry)) {
           instance.myStatisticsReporter.reportWrongInvestigation(testNames.size());
         }
+      }
+
+      private boolean shouldBeReportedAsWrong(@Nullable final ResponsibilityEntry entry) {
+        return entry != null &&
+               entry.getReporterUser() != null &&
+               (entry.getState() == ResponsibilityEntry.State.GIVEN_UP ||
+                entry.getState() == ResponsibilityEntry.State.TAKEN) &&
+               entry.getComment().startsWith(Constants.ASSIGN_DESCRIPTION_PREFIX);
       }
 
       @Override
@@ -117,11 +121,7 @@ public class FailedTestAndBuildProblemsDispatcher {
                                      @NotNull final Collection<BuildProblemInfo> buildProblems,
                                      @Nullable final ResponsibilityEntry entry) {
         super.responsibleChanged(project, buildProblems, entry);
-        if (entry != null &&
-            entry.getReporterUser() != null &&
-            (entry.getState() == ResponsibilityEntry.State.GIVEN_UP ||
-            entry.getState() == ResponsibilityEntry.State.TAKEN) &&
-            entry.getComment().startsWith("Investigation was automatically assigned to")) {
+        if (shouldBeReportedAsWrong(entry)) {
           instance.myStatisticsReporter.reportWrongInvestigation(buildProblems.size());
         }
       }

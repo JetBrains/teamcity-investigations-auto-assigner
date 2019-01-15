@@ -40,7 +40,8 @@ public class Responsibility {
   }
 
   public String getAssignDescription() {
-    return String.format("Investigation was automatically assigned to %s who %s.",
+    return String.format("%s %s who %s.",
+                         Constants.ASSIGN_DESCRIPTION_PREFIX,
                          myUser.getDescriptiveName(),
                          myDescription);
   }
