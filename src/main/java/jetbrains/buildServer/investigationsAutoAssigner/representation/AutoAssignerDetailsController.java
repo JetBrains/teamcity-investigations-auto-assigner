@@ -23,6 +23,7 @@ import jetbrains.buildServer.controllers.BaseController;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerArtifactDao;
+import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.FlakyTestDetector;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.InvestigationsManager;
@@ -45,6 +46,7 @@ public class AutoAssignerDetailsController extends BaseController {
   private final String myCssPath;
   @NotNull private final InvestigationsManager myInvestigationsManager;
   private final FlakyTestDetector myFlakyTestDetector;
+  private final StatisticsReporter myStatisticsReporter;
 
   public AutoAssignerDetailsController(final SBuildServer server,
                                        @NotNull final FirstFailedInFixedInCalculator statisticsProvider,
@@ -52,7 +54,8 @@ public class AutoAssignerDetailsController extends BaseController {
                                        @NotNull final WebControllerManager controllerManager,
                                        @NotNull final PluginDescriptor descriptor,
                                        @NotNull final FlakyTestDetector flakyTestDetector,
-                                       @NotNull final InvestigationsManager investigationsManager) {
+                                       @NotNull final InvestigationsManager investigationsManager,
+                                       @NotNull final StatisticsReporter statisticsReporter) {
     super(server);
     myStatisticsProvider = statisticsProvider;
     myAssignerArtifactDao = assignerArtifactDao;
@@ -60,6 +63,7 @@ public class AutoAssignerDetailsController extends BaseController {
     myDynamicTestDetailsExtensionPath = descriptor.getPluginResourcesPath("dynamicTestDetailsExtension.jsp");
     myCssPath = descriptor.getPluginResourcesPath("testDetailsExtension.css");
     myInvestigationsManager = investigationsManager;
+    myStatisticsReporter = statisticsReporter;
     controllerManager.registerController("/autoAssignerController.html", this);
   }
 
@@ -105,6 +109,8 @@ public class AutoAssignerDetailsController extends BaseController {
       modelAndView.getModel().put("projectId", build.getProjectId());
       modelAndView.getModel().put("test", sTestRun.getTest());
       modelAndView.getModel().put("myCssPath", request.getContextPath() + myCssPath);
+      myStatisticsReporter.reportShownButton();
+
       return modelAndView;
     }
 

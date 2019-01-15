@@ -17,6 +17,7 @@
 package jetbrains.buildServer.investigationsAutoAssigner;
 
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
@@ -24,11 +25,15 @@ import java.util.concurrent.TimeUnit;
 import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
+import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.DelayedAssignmentsProcessor;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.FailedTestAndBuildProblemsProcessor;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.EmailReporter;
+import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.serverSide.problems.BuildProblemInfo;
+import jetbrains.buildServer.tests.TestName;
 import jetbrains.buildServer.util.NamedThreadFactory;
 import jetbrains.buildServer.util.ThreadUtil;
 import jetbrains.buildServer.util.executors.ExecutorsFactory;
@@ -43,6 +48,7 @@ public class FailedTestAndBuildProblemsDispatcher {
   private final FailedTestAndBuildProblemsProcessor myProcessor;
   private final DelayedAssignmentsProcessor myDelayedAssignmentsProcessor;
   @NotNull private final EmailReporter myEmailReporter;
+  private StatisticsReporter myStatisticsReporter;
   @NotNull
   private final ConcurrentHashMap<Long, FailedBuildInfo> myFailedBuilds = new ConcurrentHashMap<>();
   @NotNull
@@ -53,10 +59,12 @@ public class FailedTestAndBuildProblemsDispatcher {
   public FailedTestAndBuildProblemsDispatcher(@NotNull final BuildServerListenerEventDispatcher buildServerListenerEventDispatcher,
                                               @NotNull final FailedTestAndBuildProblemsProcessor processor,
                                               @NotNull final DelayedAssignmentsProcessor delayedAssignmentsProcessor,
-                                              @NotNull final EmailReporter emailReporter) {
+                                              @NotNull final EmailReporter emailReporter,
+                                              @NotNull final StatisticsReporter statisticsReporter) {
     myProcessor = processor;
     myDelayedAssignmentsProcessor = delayedAssignmentsProcessor;
     myEmailReporter = emailReporter;
+    myStatisticsReporter = statisticsReporter;
     myExecutor = ExecutorsFactory.newFixedScheduledDaemonExecutor(Constants.BUILD_FEATURE_TYPE, 1);
     myExecutor.scheduleWithFixedDelay(this::processBrokenBuildsOneThread,
                                       CustomParameters.getProcessingDelayInSeconds(),
@@ -86,6 +94,35 @@ public class FailedTestAndBuildProblemsDispatcher {
         FailedBuildInfo failedBuildInfo = myFailedBuilds.remove(build.getBuildId());
         if (failedBuildInfo != null) {
           myExecutor.execute(() -> instance.processFinishedBuild(failedBuildInfo));
+        }
+      }
+
+      @Override
+      public void responsibleChanged(@NotNull final SProject project,
+                                     @NotNull final Collection<TestName> testNames,
+                                     @NotNull final ResponsibilityEntry entry,
+                                     final boolean isUserAction) {
+        super.responsibleChanged(project, testNames, entry, isUserAction);
+        if (isUserAction && shouldBeReportedAsWrong(entry)) {
+          instance.myStatisticsReporter.reportWrongInvestigation(testNames.size());
+        }
+      }
+
+      private boolean shouldBeReportedAsWrong(@Nullable final ResponsibilityEntry entry) {
+        return entry != null &&
+               entry.getReporterUser() != null &&
+               (entry.getState() == ResponsibilityEntry.State.GIVEN_UP ||
+                entry.getState() == ResponsibilityEntry.State.TAKEN) &&
+               entry.getComment().startsWith(Constants.ASSIGN_DESCRIPTION_PREFIX);
+      }
+
+      @Override
+      public void responsibleChanged(@NotNull final SProject project,
+                                     @NotNull final Collection<BuildProblemInfo> buildProblems,
+                                     @Nullable final ResponsibilityEntry entry) {
+        super.responsibleChanged(project, buildProblems, entry);
+        if (shouldBeReportedAsWrong(entry)) {
+          instance.myStatisticsReporter.reportWrongInvestigation(buildProblems.size());
         }
       }
 
@@ -133,7 +170,7 @@ public class FailedTestAndBuildProblemsDispatcher {
       putIntoDelayAssignments(failedBuildInfo);
     }
 
-    myEmailReporter.sendResults(failedBuildInfo.getBuild(), failedBuildInfo.getHeuristicsResult());
+    myEmailReporter.sendResults(failedBuildInfo);
   }
 
   private void putIntoDelayAssignments(final FailedBuildInfo currentFailedBuildInfo) {
