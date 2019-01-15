@@ -17,10 +17,10 @@
 package jetbrains.buildServer.investigationsAutoAssigner.persistent;
 
 import java.util.concurrent.TimeUnit;
-import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
-import jetbrains.buildServer.serverSide.executors.ExecutorServices;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
+import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.serverSide.TeamCityProperties;
+import jetbrains.buildServer.serverSide.executors.ExecutorServices;
 import jetbrains.buildServer.util.StringUtil;
 
 public class StatisticsReporter {
@@ -39,19 +39,19 @@ public class StatisticsReporter {
   }
 
   public synchronized void reportShownButton() {
-    myStatistics.shownButtonsCount++;
+    myStatistics.increaseShownButtonsCounter();
   }
 
   public synchronized void reportClickedButton() {
-    myStatistics.clickedButtonsCount++;
+    myStatistics.increaseClickedButtonsCounter();
   }
 
   public synchronized void reportAssignedInvestigations(int count) {
-    myStatistics.assignedInvestigationsCount += count;
+    myStatistics.increaseAssignedInvestigationsCounter(count);
   }
 
   public synchronized void reportWrongInvestigation(int count) {
-    myStatistics.wrongInvestigationsCount += count;
+    myStatistics.increaseWrongInvestigationsCounter(count);
   }
 
   private void saveDataOnDisk() {
@@ -66,9 +66,9 @@ public class StatisticsReporter {
                          "%s of them were wrong;\n" +
                          "%s shown suggestions;\n" +
                          "%s of assignments from them.\n",
-                         myStatistics.assignedInvestigationsCount,
-                         myStatistics.wrongInvestigationsCount,
-                         myStatistics.shownButtonsCount,
-                         myStatistics.clickedButtonsCount);
+                         myStatistics.getAssignedInvestigationsCount(),
+                         myStatistics.getWrongInvestigationsCount(),
+                         myStatistics.getShownButtonsCount(),
+                         myStatistics.getClickedButtonsCount());
   }
 }

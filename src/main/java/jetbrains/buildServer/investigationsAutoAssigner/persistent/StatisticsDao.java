@@ -64,7 +64,7 @@ public class StatisticsDao {
   }
 
   private boolean isValidStatisticsFile(@Nullable Statistics statistics) {
-    return statistics != null && Constants.STATISTICS_FILE_VERSION.equals(statistics.version);
+    return statistics != null && Constants.STATISTICS_FILE_VERSION.equals(statistics.getVersion());
   }
 
   void write(@NotNull Statistics statistics) {
