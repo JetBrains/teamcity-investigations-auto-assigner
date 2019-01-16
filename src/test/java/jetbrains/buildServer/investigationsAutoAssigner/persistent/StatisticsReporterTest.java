@@ -1,0 +1,79 @@
+/*
+ * Copyright 2000-2019 JetBrains s.r.o.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package jetbrains.buildServer.investigationsAutoAssigner.persistent;
+
+import jetbrains.buildServer.serverSide.executors.ExecutorServices;
+import jetbrains.buildServer.serverSide.impl.executors.CommonExecutorService;
+import org.mockito.Mockito;
+import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+public class StatisticsReporterTest {
+
+  private StatisticsDao myStatisticsDao;
+  private StatisticsReporter myStatisticsReporter;
+  private ExecutorServices myExecutorServices;
+  private Statistics myStatisticsChecker;
+
+  @BeforeMethod
+  public void setUp() {
+    final CommonExecutorService scheduledExecutorService = Mockito.mock(CommonExecutorService.class);
+    myExecutorServices = Mockito.mock(ExecutorServices.class);
+    when(myExecutorServices.getNormalExecutorService()).thenReturn(scheduledExecutorService);
+
+    myStatisticsChecker = new Statistics();
+    myStatisticsDao = Mockito.mock(StatisticsDao.class);
+    when(myStatisticsDao.read()).thenReturn(myStatisticsChecker);
+    myStatisticsReporter = new StatisticsReporter(myStatisticsDao, myExecutorServices);
+  }
+
+  @Test
+  public void testConstructor() {
+    verify(myStatisticsDao, Mockito.atLeastOnce()).read();
+    verify(myExecutorServices, Mockito.atLeastOnce()).getNormalExecutorService();
+  }
+
+  @Test
+  public void testReports() {
+    myStatisticsReporter.reportShownButton();
+    myStatisticsReporter.reportClickedButton();
+    myStatisticsReporter.reportClickedButton();
+    myStatisticsReporter.reportAssignedInvestigations(3);
+    myStatisticsReporter.reportWrongInvestigation(4);
+    Assert.assertEquals(myStatisticsChecker.getShownButtonsCount(), 1);
+    Assert.assertEquals(myStatisticsChecker.getClickedButtonsCount(), 2);
+    Assert.assertEquals(myStatisticsChecker.getAssignedInvestigationsCount(), 3);
+    Assert.assertEquals(myStatisticsChecker.getWrongInvestigationsCount(), 4);
+  }
+
+  @Test
+  public void testGenerateReport() {
+    myStatisticsReporter.reportShownButton();
+    myStatisticsReporter.reportClickedButton();
+    myStatisticsReporter.reportClickedButton();
+    myStatisticsReporter.reportAssignedInvestigations(3);
+    myStatisticsReporter.reportWrongInvestigation(4);
+    Assert.assertTrue(myStatisticsReporter.generateReport().contains("1"));
+    Assert.assertTrue(myStatisticsReporter.generateReport().contains("2"));
+    Assert.assertTrue(myStatisticsReporter.generateReport().contains("3"));
+    Assert.assertTrue(myStatisticsReporter.generateReport().contains("4"));
+  }
+}
