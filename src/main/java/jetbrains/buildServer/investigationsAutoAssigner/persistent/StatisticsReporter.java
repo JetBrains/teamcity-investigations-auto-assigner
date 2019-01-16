@@ -27,7 +27,7 @@ public class StatisticsReporter {
   private final StatisticsDao myStatisticsDao;
   private Statistics myStatistics;
 
-  StatisticsReporter(StatisticsDao statisticsDao,
+  public StatisticsReporter(StatisticsDao statisticsDao,
                      ExecutorServices executorServices) {
     myStatistics = statisticsDao.read();
     myStatisticsDao = statisticsDao;
