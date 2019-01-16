@@ -10,9 +10,23 @@
 <div id="div_${autoAssignerBlockId}"></div>
 
 <script type="text/javascript">
+  BS.AutoAssignerFeature = BS.AutoAssignerFeature || {};
+  BS.AutoAssignerFeature.assignInvestigationManually =
+    function (testNameId, buildId, projectExternalId, escapedComment, userId) {
+      var args = {
+        comment: escapedComment,
+        responsibilityRemovalMethod: 0,
+        investigatorId: userId
+      };
+
+      BS.ajaxRequest('autoAssignerStatisticsReporter.html', {method: 'get'});
+      return BS.BulkInvestigateMuteTestDialog.showForTest(testNameId, buildId, null, projectExternalId, false, args);
+    };
+
+
   (function () {
     var divWithData = $('div_${autoAssignerBlockId}');
-    BS.ajaxUpdater(divWithData, "autoAssignerController.html?buildId=" + ${buildId} + "&testId=" + ${testId}, {
+    BS.ajaxUpdater(divWithData, "autoAssignerController.html?buildId=" + ${buildId} +"&testId=" + ${testId}, {
       evalScripts: true
     });
   })();
