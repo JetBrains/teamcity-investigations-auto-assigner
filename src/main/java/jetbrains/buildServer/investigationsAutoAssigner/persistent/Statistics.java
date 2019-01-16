@@ -50,18 +50,6 @@ class Statistics {
     version = Constants.STATISTICS_FILE_VERSION;
   }
 
-  Statistics(final String version,
-             final int shownButtonsCount,
-             final int clickedButtonsCount,
-             final int assignedInvestigationsCount,
-             final int wrongInvestigationsCount) {
-    this.version = version;
-    this.shownButtonsCount = shownButtonsCount;
-    this.clickedButtonsCount = clickedButtonsCount;
-    this.assignedInvestigationsCount = assignedInvestigationsCount;
-    this.wrongInvestigationsCount = wrongInvestigationsCount;
-  }
-
   void increaseShownButtonsCounter() {
     shownButtonsCount++;
   }
