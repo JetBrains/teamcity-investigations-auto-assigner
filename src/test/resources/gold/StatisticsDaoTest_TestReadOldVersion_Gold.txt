@@ -1,0 +1,1 @@
+{"version":"0.1","shownButtonsCount":13,"clickedButtonsCount":7,"assignedInvestigationsCount":3,"wrongInvestigationsCount":2}

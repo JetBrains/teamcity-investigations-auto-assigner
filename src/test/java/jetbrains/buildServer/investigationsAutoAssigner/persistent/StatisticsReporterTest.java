@@ -41,8 +41,10 @@ public class StatisticsReporterTest {
 
     myStatisticsChecker = new Statistics();
     myStatisticsDao = Mockito.mock(StatisticsDao.class);
+    StatisticsDaoFactory statisticsDaoFactory = Mockito.mock(StatisticsDaoFactory.class);
+    when(statisticsDaoFactory.get()).thenReturn(myStatisticsDao);
     when(myStatisticsDao.read()).thenReturn(myStatisticsChecker);
-    myStatisticsReporter = new StatisticsReporter(myStatisticsDao, myExecutorServices);
+    myStatisticsReporter = new StatisticsReporter(statisticsDaoFactory, myExecutorServices);
   }
 
   @Test
