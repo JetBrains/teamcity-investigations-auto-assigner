@@ -158,4 +158,26 @@ public class StatisticsDaoTest {
     String fileContent = new String(Files.readAllBytes(myStatisticsPath));
     Assert.assertEquals(fileContent, readGold("StatisticsDaoTest_TestWriteNotUpdatedStatistics_Gold.txt"));
   }
+
+  @Test
+  public void testWriteNotUpdatedStatisticsForSecondTime() throws IOException {
+    Assert.assertEquals(myStatisticsDao.read(), new Statistics());
+    Statistics statistics = new Statistics();
+
+    statistics.increaseShownButtonsCounter();
+    statistics.increaseClickedButtonsCounter();
+    statistics.increaseClickedButtonsCounter();
+    statistics.increaseAssignedInvestigationsCounter(3);
+    statistics.increaseWrongInvestigationsCounter(4);
+    myStatisticsDao.write(statistics);
+
+    Path assignerDataDir = myPluginsDataDir.resolve(Constants.PLUGIN_DATA_DIR);
+    Path myStatisticsPath = assignerDataDir.resolve(Constants.STATISTICS_FILE_NAME);
+
+    Files.write(myStatisticsPath, "UPDATED".getBytes());
+    myStatisticsDao.write(statistics);
+
+    String fileContent = new String(Files.readAllBytes(myStatisticsPath));
+    Assert.assertEquals(fileContent, "UPDATED");
+  }
 }

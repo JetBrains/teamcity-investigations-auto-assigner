@@ -90,6 +90,8 @@ class StatisticsDao {
       try (BufferedWriter writer = Files.newBufferedWriter(myStatisticsPath)) {
         myGson.toJson(statistics, writer);
       }
+
+      myStatisticsOnDisc = statistics;
     } catch (IOException ex) {
       throw new RuntimeException("An error during writing statistics occurs", ex);
     }
