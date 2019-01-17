@@ -22,21 +22,13 @@
     <c:set var="escapedComment">
       '<bs:escapeForJs text="${autoassignerComment}" forHTMLAttribute="${true}"/>'
     </c:set>
-    <c:set var="optionalArgs">
-      {
-      comment: ${escapedComment},
-      responsibilityRemovalMethod: 0,
-      investigatorId: ${userId}
-      }
-    </c:set>
     <div>
       <authz:authorize projectId="${projectId}" allPermissions="ASSIGN_INVESTIGATION">
         <jsp:attribute name="ifAccessGranted">
           <span class="btn-group investigations-auto-assigner-btn-group">
             <button
                 class="btn btn_mini action investigations-auto-assigner-btn" type="button"
-                onclick="BS.ajaxRequest('autoAssignerStatisticsReporter.html', {method: 'get'});
-                return BS.BulkInvestigateMuteTestDialog.showForTest('${test.testNameId}', '${buildId}', null, '${test.projectExternalId}', false, ${optionalArgs});"
+                onclick="BS.AutoAssignerFeature.assignInvestigationManually('${test.testNameId}', '${buildId}', '${test.projectExternalId}', ${escapedComment}, ${userId});"
                 title="Custom investigation assignment">Assign investigation to ${userName}...</button>
           </span>
         </jsp:attribute>

@@ -11,7 +11,7 @@
 
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.FailedTestAndBuildProblemsDispatcher"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter"/>
-  <bean class="jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsDao"/>
+  <bean class="jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsDaoFactory"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.AutoAssignerBuildFeature"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.processing.FailedTestAndBuildProblemsProcessor"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.processing.DelayedAssignmentsProcessor"/>

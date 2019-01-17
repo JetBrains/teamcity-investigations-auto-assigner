@@ -17,47 +17,60 @@
 package jetbrains.buildServer.investigationsAutoAssigner.persistent;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
-import jetbrains.buildServer.serverSide.ServerPaths;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class StatisticsDao {
+class StatisticsDao {
 
   private final Path myStatisticsPath;
   private final Path myPluginDataDirectory;
   private Gson myGson;
+  private Statistics myStatisticsOnDisc;
 
-  public StatisticsDao(@NotNull final ServerPaths serverPaths) {
+  StatisticsDao(@NotNull final Path pluginDataDir) {
     myGson = new Gson();
-    myPluginDataDirectory = Paths.get(serverPaths.getPluginDataDirectory().getPath(),
-                                      Constants.PLUGIN_DATA_DIR);
-    myStatisticsPath = Paths.get(serverPaths.getPluginDataDirectory().getPath(),
-                                 Constants.PLUGIN_DATA_DIR,
-                                 Constants.STATISTICS_FILE_NAME);
+    myPluginDataDirectory = pluginDataDir.resolve(Constants.PLUGIN_DATA_DIR);
+    myStatisticsPath = myPluginDataDirectory.resolve(Constants.STATISTICS_FILE_NAME);
+    myStatisticsOnDisc = new Statistics();
   }
 
   @NotNull
   Statistics read() {
     if (!Files.exists(myStatisticsPath)) {
-      return new Statistics();
+      myStatisticsOnDisc = new Statistics();
+      return myStatisticsOnDisc.clone();
     }
 
     try (BufferedReader reader = Files.newBufferedReader(myStatisticsPath)) {
-      Statistics statistics = myGson.fromJson(reader, Statistics.class);
-      if (!isValidStatisticsFile(statistics)) {
-        statistics = new Statistics();
-      }
-      return statistics;
+      myStatisticsOnDisc = parseStatistics(reader);
+      return myStatisticsOnDisc.clone();
     } catch (IOException ex) {
       throw new RuntimeException("An error during reading statistics occurs", ex);
     }
+  }
+
+  @NotNull
+  private Statistics parseStatistics(final BufferedReader reader) {
+    Statistics statistics;
+
+    try {
+      statistics = myGson.fromJson(reader, Statistics.class);
+
+      if (!isValidStatisticsFile(statistics)) {
+        statistics = new Statistics();
+      }
+    } catch (JsonParseException err) {
+      statistics = new Statistics();
+    }
+
+    return statistics;
   }
 
   private boolean isValidStatisticsFile(@Nullable Statistics statistics) {
@@ -65,6 +78,10 @@ public class StatisticsDao {
   }
 
   void write(@NotNull Statistics statistics) {
+    if (myStatisticsOnDisc.equals(statistics)) {
+      return;
+    }
+
     try {
       if (!Files.exists(myPluginDataDirectory)) {
         Files.createDirectory(myPluginDataDirectory);
@@ -73,6 +90,8 @@ public class StatisticsDao {
       try (BufferedWriter writer = Files.newBufferedWriter(myStatisticsPath)) {
         myGson.toJson(statistics, writer);
       }
+
+      myStatisticsOnDisc = statistics;
     } catch (IOException ex) {
       throw new RuntimeException("An error during writing statistics occurs", ex);
     }

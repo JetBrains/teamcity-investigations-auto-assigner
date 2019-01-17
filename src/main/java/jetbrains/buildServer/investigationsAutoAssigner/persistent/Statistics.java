@@ -18,7 +18,7 @@ package jetbrains.buildServer.investigationsAutoAssigner.persistent;
 
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 
-class Statistics {
+class Statistics implements Cloneable {
 
   private final String version;
   private int shownButtonsCount;
@@ -50,18 +50,6 @@ class Statistics {
     version = Constants.STATISTICS_FILE_VERSION;
   }
 
-  Statistics(final String version,
-             final int shownButtonsCount,
-             final int clickedButtonsCount,
-             final int assignedInvestigationsCount,
-             final int wrongInvestigationsCount) {
-    this.version = version;
-    this.shownButtonsCount = shownButtonsCount;
-    this.clickedButtonsCount = clickedButtonsCount;
-    this.assignedInvestigationsCount = assignedInvestigationsCount;
-    this.wrongInvestigationsCount = wrongInvestigationsCount;
-  }
-
   void increaseShownButtonsCounter() {
     shownButtonsCount++;
   }
@@ -76,5 +64,30 @@ class Statistics {
 
   void increaseWrongInvestigationsCounter(final int count) {
     wrongInvestigationsCount += count;
+  }
+
+  @Override
+  public boolean equals(final Object obj) {
+    if (!(obj instanceof Statistics)) {
+      return false;
+    }
+
+    Statistics another = (Statistics)obj;
+    return version.equals(another.version) &&
+           shownButtonsCount == another.shownButtonsCount &&
+           clickedButtonsCount == another.clickedButtonsCount &&
+           assignedInvestigationsCount == another.assignedInvestigationsCount &&
+           wrongInvestigationsCount == another.wrongInvestigationsCount;
+
+  }
+
+  @Override
+  protected Statistics clone() {
+    Statistics newStatisticsObj = new Statistics();
+    newStatisticsObj.shownButtonsCount = shownButtonsCount;
+    newStatisticsObj.clickedButtonsCount = clickedButtonsCount;
+    newStatisticsObj.assignedInvestigationsCount = assignedInvestigationsCount;
+    newStatisticsObj.wrongInvestigationsCount = wrongInvestigationsCount;
+    return newStatisticsObj;
   }
 }

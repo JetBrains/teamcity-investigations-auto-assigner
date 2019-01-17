@@ -4,14 +4,14 @@
 <jsp:useBean id="buildForm" type="jetbrains.buildServer.controllers.admin.projects.BuildTypeForm" scope="request"/>
 
 <script type="text/javascript">
-  BS.AutoAssignerFeature = {
-    showHomePage: function () {
-      var winSize = BS.Util.windowSize();
-      BS.Util.popupWindow('https://confluence.jetbrains.com/display/TCD18/Investigations+Auto+Assigner', 'Investigations Auto Assigner',
-        {width: 0.9 * winSize[0], height: 0.9 * winSize[1]});
-      BS.stopPropagation(event);
-    }
-  }
+  BS.AutoAssignerFeature = BS.AutoAssignerFeature || {};
+
+  BS.AutoAssignerFeature.showHomePage = function () {
+    var winSize = BS.Util.windowSize();
+    BS.Util.popupWindow('https://confluence.jetbrains.com/display/TCD18/Investigations+Auto+Assigner',
+      'Investigations Auto Assigner', {width: 0.9 * winSize[0], height: 0.9 * winSize[1]});
+    BS.stopPropagation(event);
+  };
 </script>
 
 <tr>

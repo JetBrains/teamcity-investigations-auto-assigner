@@ -27,10 +27,10 @@ public class StatisticsReporter {
   private final StatisticsDao myStatisticsDao;
   private Statistics myStatistics;
 
-  StatisticsReporter(StatisticsDao statisticsDao,
-                     ExecutorServices executorServices) {
-    myStatistics = statisticsDao.read();
-    myStatisticsDao = statisticsDao;
+  public StatisticsReporter(StatisticsDaoFactory statisticsDaoFactory,
+                            ExecutorServices executorServices) {
+    myStatisticsDao = statisticsDaoFactory.get();
+    myStatistics = myStatisticsDao.read();
     StatisticsReporter instance = this;
     int delayInSeconds = CustomParameters.getProcessingDelayInSeconds();
     executorServices
