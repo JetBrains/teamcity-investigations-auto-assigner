@@ -25,6 +25,8 @@ class Statistics implements Cloneable {
   private int clickedButtonsCount;
   private int assignedInvestigationsCount;
   private int wrongInvestigationsCount;
+  private int buildWithSuggestionsCount;
+  private int savedSuggestionsCounter;
 
   public String getVersion() {
     return version;
@@ -44,6 +46,14 @@ class Statistics implements Cloneable {
 
   int getWrongInvestigationsCount() {
     return wrongInvestigationsCount;
+  }
+
+  int getBuildsWithSuggestionsCount() {
+    return buildWithSuggestionsCount;
+  }
+
+  int getSavedSuggestionsCounter() {
+    return savedSuggestionsCounter;
   }
 
   Statistics() {
@@ -66,6 +76,14 @@ class Statistics implements Cloneable {
     wrongInvestigationsCount += count;
   }
 
+  void increaseBuildWithSuggestionsCounter() {
+    buildWithSuggestionsCount++;
+  }
+
+  void increaseSavedSuggestionsCounter(final int count) {
+    savedSuggestionsCounter += count;
+  }
+
   @Override
   public boolean equals(final Object obj) {
     if (!(obj instanceof Statistics)) {
@@ -77,8 +95,19 @@ class Statistics implements Cloneable {
            shownButtonsCount == another.shownButtonsCount &&
            clickedButtonsCount == another.clickedButtonsCount &&
            assignedInvestigationsCount == another.assignedInvestigationsCount &&
-           wrongInvestigationsCount == another.wrongInvestigationsCount;
+           wrongInvestigationsCount == another.wrongInvestigationsCount &&
+           buildWithSuggestionsCount == another.buildWithSuggestionsCount &&
+           savedSuggestionsCounter == another.savedSuggestionsCounter;
 
+  }
+
+  @Override
+  public String toString() {
+    return String.format("version: %s, shownButtonsCount: %s, clickedButtonsCount: %s, " +
+                         "assignedInvestigationsCount: %s, wrongInvestigationsCount: %s, " +
+                         "buildWithSuggestionsCount: %s, savedSuggestionsCounter: %s",
+                         version, shownButtonsCount, clickedButtonsCount, assignedInvestigationsCount,
+                         wrongInvestigationsCount, buildWithSuggestionsCount, savedSuggestionsCounter);
   }
 
   @Override
@@ -88,6 +117,8 @@ class Statistics implements Cloneable {
     newStatisticsObj.clickedButtonsCount = clickedButtonsCount;
     newStatisticsObj.assignedInvestigationsCount = assignedInvestigationsCount;
     newStatisticsObj.wrongInvestigationsCount = wrongInvestigationsCount;
+    newStatisticsObj.buildWithSuggestionsCount = buildWithSuggestionsCount;
+    newStatisticsObj.savedSuggestionsCounter = savedSuggestionsCounter;
     return newStatisticsObj;
   }
 }

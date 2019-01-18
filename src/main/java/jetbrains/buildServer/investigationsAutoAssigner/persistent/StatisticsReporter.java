@@ -54,6 +54,14 @@ public class StatisticsReporter {
     myStatistics.increaseWrongInvestigationsCounter(count);
   }
 
+  synchronized void reportSavedSuggestions(final int count) {
+    myStatistics.increaseSavedSuggestionsCounter(count);
+  }
+
+  synchronized void reportBuildWithSuggestions() {
+    myStatistics.increaseBuildWithSuggestionsCounter();
+  }
+
   private void saveDataOnDisk() {
     if (StringUtil.isTrue(TeamCityProperties.getProperty(Constants.STATISTICS_ENABLED, "false"))) {
       myStatisticsDao.write(myStatistics);
@@ -65,10 +73,14 @@ public class StatisticsReporter {
                          "%s investigations assigned;\n" +
                          "%s of them were wrong;\n" +
                          "%s shown suggestions;\n" +
-                         "%s of assignments from them.\n",
+                         "%s of assignments from them;\n" +
+                         "%s builds have at least one suggestion\n" +
+                         "%s suggestions total.\n",
                          myStatistics.getAssignedInvestigationsCount(),
                          myStatistics.getWrongInvestigationsCount(),
                          myStatistics.getShownButtonsCount(),
-                         myStatistics.getClickedButtonsCount());
+                         myStatistics.getClickedButtonsCount(),
+                         myStatistics.getBuildsWithSuggestionsCount(),
+                         myStatistics.getSavedSuggestionsCounter());
   }
 }

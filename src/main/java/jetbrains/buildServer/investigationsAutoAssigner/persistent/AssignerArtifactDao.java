@@ -35,14 +35,17 @@ public class AssignerArtifactDao {
   private UserModelEx myUserModel;
   private SuggestionsDao mySuggestionsDao;
   private AssignerResultsFilePath myAssignerResultsFilePath;
+  private StatisticsReporter myStatisticsReporter;
   private static final Logger LOGGER = Logger.getInstance(AssignerArtifactDao.class.getName());
 
   public AssignerArtifactDao(@NotNull final UserModelEx userModel,
                              @NotNull final SuggestionsDao suggestionsDao,
-                             @NotNull final AssignerResultsFilePath assignerResultsFilePath) {
+                             @NotNull final AssignerResultsFilePath assignerResultsFilePath,
+                             @NotNull final StatisticsReporter statisticsReporter) {
     myUserModel = userModel;
     mySuggestionsDao = suggestionsDao;
     myAssignerResultsFilePath = assignerResultsFilePath;
+    myStatisticsReporter = statisticsReporter;
   }
 
   public void appendHeuristicsResult(@NotNull SBuild build,
@@ -52,9 +55,16 @@ public class AssignerArtifactDao {
       List<ResponsibilityPersistentInfo> infoToAdd = new ArrayList<>(getPersistentInfoList(testRuns, heuristicResult));
       if (infoToAdd.isEmpty()) return;
 
+      myStatisticsReporter.reportSavedSuggestions(infoToAdd.size());
       Path resultsFilePath = myAssignerResultsFilePath.get(build);
 
       List<ResponsibilityPersistentInfo> previouslyAdded = mySuggestionsDao.read(resultsFilePath);
+
+      if (previouslyAdded.isEmpty()) {
+        //should be called only once per build
+        myStatisticsReporter.reportBuildWithSuggestions();
+      }
+
       infoToAdd.addAll(previouslyAdded);
       LOGGER.debug(String.format("Build id:%s :: Read %s previously added investigations",
                                  build.getBuildId(), previouslyAdded.size()));

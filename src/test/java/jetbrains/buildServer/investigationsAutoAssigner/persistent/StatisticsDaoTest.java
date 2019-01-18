@@ -65,6 +65,8 @@ public class StatisticsDaoTest {
     Assert.assertEquals(statistics.getClickedButtonsCount(), 7);
     Assert.assertEquals(statistics.getAssignedInvestigationsCount(), 3);
     Assert.assertEquals(statistics.getWrongInvestigationsCount(), 2);
+    Assert.assertEquals(statistics.getBuildsWithSuggestionsCount(), 2);
+    Assert.assertEquals(statistics.getSavedSuggestionsCounter(), 3);
   }
 
   @Test
@@ -130,12 +132,16 @@ public class StatisticsDaoTest {
     statistics.increaseClickedButtonsCounter();
     statistics.increaseAssignedInvestigationsCounter(3);
     statistics.increaseWrongInvestigationsCounter(4);
+    statistics.increaseBuildWithSuggestionsCounter();
+    statistics.increaseBuildWithSuggestionsCounter();
+    statistics.increaseSavedSuggestionsCounter(3);
     myStatisticsDao.write(statistics);
 
 
     Path assignerDataDir = myPluginsDataDir.resolve(Constants.PLUGIN_DATA_DIR);
     Path myStatisticsPath = assignerDataDir.resolve(Constants.STATISTICS_FILE_NAME);
     String fileContent = new String(Files.readAllBytes(myStatisticsPath));
+
     Assert.assertEquals(fileContent, readGold("StatisticsDaoTest_TestWriteStatistics_Gold.txt"));
   }
 
@@ -152,6 +158,9 @@ public class StatisticsDaoTest {
     statistics.increaseClickedButtonsCounter();
     statistics.increaseAssignedInvestigationsCounter(3);
     statistics.increaseWrongInvestigationsCounter(4);
+    statistics.increaseBuildWithSuggestionsCounter();
+    statistics.increaseBuildWithSuggestionsCounter();
+    statistics.increaseSavedSuggestionsCounter(3);
     Assert.assertEquals(myStatisticsDao.read(), statistics);
     myStatisticsDao.write(statistics);
 
@@ -169,6 +178,9 @@ public class StatisticsDaoTest {
     statistics.increaseClickedButtonsCounter();
     statistics.increaseAssignedInvestigationsCounter(3);
     statistics.increaseWrongInvestigationsCounter(4);
+    statistics.increaseBuildWithSuggestionsCounter();
+    statistics.increaseBuildWithSuggestionsCounter();
+    statistics.increaseSavedSuggestionsCounter(3);
     myStatisticsDao.write(statistics);
 
     Path assignerDataDir = myPluginsDataDir.resolve(Constants.PLUGIN_DATA_DIR);

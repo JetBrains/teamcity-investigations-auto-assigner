@@ -1,1 +1,1 @@
-{"version":"1.1","shownButtonsCount":1,"clickedButtonsCount":2,"assignedInvestigationsCount":3,"wrongInvestigationsCount":4}
+{"version":"1.2","shownButtonsCount":1,"clickedButtonsCount":2,"assignedInvestigationsCount":3,"wrongInvestigationsCount":4,"buildWithSuggestionsCount":2,"savedSuggestionsCounter":3}
