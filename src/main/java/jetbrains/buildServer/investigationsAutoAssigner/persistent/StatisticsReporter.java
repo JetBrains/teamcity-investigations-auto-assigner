@@ -69,12 +69,12 @@ public class StatisticsReporter {
   }
 
   public synchronized String generateReport() {
-    return String.format("Short statistics of plugin usage:" +
+    return String.format("Short statistics of plugin usage:\n\n" +
                          "%s investigations assigned;\n" +
                          "%s of them were wrong;\n" +
                          "%s shown suggestions;\n" +
                          "%s of assignments from them;\n" +
-                         "%s builds have at least one suggestion\n" +
+                         "%s builds have at least one suggestion;\n" +
                          "%s suggestions total.\n",
                          myStatistics.getAssignedInvestigationsCount(),
                          myStatistics.getWrongInvestigationsCount(),
