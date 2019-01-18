@@ -26,10 +26,7 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter;
 import jetbrains.buildServer.parameters.ParametersProvider;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityFacade;
-import jetbrains.buildServer.serverSide.SBuild;
-import jetbrains.buildServer.serverSide.SProject;
-import jetbrains.buildServer.serverSide.STest;
-import jetbrains.buildServer.serverSide.STestRun;
+import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.tests.TestName;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.users.UserSet;
@@ -59,6 +56,7 @@ public class FailedTestAssignerTest extends BaseTestCase {
   @Override
   protected void setUp() {
     myTestNameResponsibilityFacade = Mockito.mock(TestNameResponsibilityFacade.class);
+    WebLinks webLinks = Mockito.mock(WebLinks.class);
     mySTestRun1 = Mockito.mock(STestRun.class);
     STest sTest1 = Mockito.mock(STest.class);
     TestName testName1 = Mockito.mock(TestName.class);
@@ -89,6 +87,7 @@ public class FailedTestAssignerTest extends BaseTestCase {
     when(mySBuild.getParametersProvider()).thenReturn(Mockito.mock(ParametersProvider.class));
 
     myTestedFailedTestAssigner = new FailedTestAssigner(myTestNameResponsibilityFacade,
+                                                        webLinks,
                                                         Mockito.mock(StatisticsReporter.class));
   }
 
