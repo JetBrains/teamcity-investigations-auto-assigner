@@ -129,4 +129,14 @@ public class CustomParameters {
 
     return Boolean.valueOf(TeamCityProperties.getProperty(Constants.ENABLE_FEATURE_BRANCHES_SUPPORT, "false"));
   }
+
+  @NotNull
+  public List<String> getBuildProblemTypesToIgnore(final SBuild sBuild) {
+    String buildProblemsToIgnore = sBuild.getParametersProvider().get(Constants.BUILD_PROBLEMS_TO_IGNORE);
+    if (buildProblemsToIgnore == null) {
+      return Collections.emptyList();
+    }
+
+    return Arrays.stream(buildProblemsToIgnore.split("\n")).map(String::trim).collect(Collectors.toList());
+  }
 }

@@ -30,6 +30,7 @@ public class Constants {
 
   // Experimental configuration parameter
   public static final String SHOULD_DELAY_ASSIGNMENTS = "teamcity.investigationsAutoAssigner.delayAssignments";
+  public static final String BUILD_PROBLEMS_TO_IGNORE = "teamcity.investigationsAutoAssigner.ignoreBuildProblems.types";
 
   // Build configuration parameter and internal property
   public static final String DEFAULT_SILENT_MODE_ENABLED = "teamcity.investigationsAutoAssigner.suggestions.enabledByDefault";
@@ -44,7 +45,6 @@ public class Constants {
   public static final String STATISTICS_ENABLED = "teamcity.investigationsAutoAssigner.statisticsEnabled";
 
   //Constants
-  public static final String TC_COMPILATION_ERROR_TYPE = BuildProblemTypes.TC_COMPILATION_ERROR_TYPE;
   public final static String TEAMCITY_DIRECTORY = ArtifactsConstants.TEAMCITY_ARTIFACTS_DIR;
   public final static String TEST_RUN_IN_REQUEST = "loadedTestRun";
   public final static int DEFAULT_TEST_COUNT_THRESHOLD = 100;

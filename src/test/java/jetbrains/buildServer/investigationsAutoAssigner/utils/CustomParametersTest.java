@@ -16,11 +16,11 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.utils;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import jetbrains.buildServer.BaseTestCase;
+import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
+import jetbrains.buildServer.parameters.ParametersProvider;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SBuildFeatureDescriptor;
 import org.mockito.Mockito;
@@ -30,9 +30,12 @@ import org.testng.annotations.Test;
 @Test
 public class CustomParametersTest extends BaseTestCase {
 
+  private CustomParameters myCustomParameters;
+
   @BeforeMethod
   @Override
   protected void setUp() throws Exception {
+    myCustomParameters = new CustomParameters();
     super.setUp();
   }
 
@@ -70,5 +73,38 @@ public class CustomParametersTest extends BaseTestCase {
     params.put(Constants.USERS_TO_IGNORE, "username1\nusername2\nusername3");
     Mockito.when(sBuildFeatureDescriptor.getParameters()).thenReturn(params);
     assertListEquals(CustomParameters.getUsersToIgnore(sBuildMock), "username1", "username2", "username3");
+  }
+
+  @Test
+  public void testGetBuildProblemTypesToIgnoreNotSpecified() {
+    SBuild sBuildMock = Mockito.mock(SBuild.class);
+    ParametersProvider parametersProvider = Mockito.mock(ParametersProvider.class);
+    Mockito.when(sBuildMock.getParametersProvider()).thenReturn(parametersProvider);
+    Mockito.when(parametersProvider.get(Constants.BUILD_PROBLEMS_TO_IGNORE)).thenReturn(null);
+
+    assertTrue(myCustomParameters.getBuildProblemTypesToIgnore(sBuildMock).isEmpty());
+  }
+
+  @Test
+  public void testGetBuildProblemTypesToIgnoreOneSpecified() {
+    SBuild sBuildMock = Mockito.mock(SBuild.class);
+    ParametersProvider parametersProvider = Mockito.mock(ParametersProvider.class);
+    Mockito.when(sBuildMock.getParametersProvider()).thenReturn(parametersProvider);
+    Mockito.when(parametersProvider.get(Constants.BUILD_PROBLEMS_TO_IGNORE)).thenReturn(BuildProblemTypes.TC_EXIT_CODE_TYPE);
+
+    assertListEquals(myCustomParameters.getBuildProblemTypesToIgnore(sBuildMock), BuildProblemTypes.TC_EXIT_CODE_TYPE);
+  }
+
+  @Test
+  public void testGetBuildProblemTypesToIgnoreTwoSpecified() {
+    SBuild sBuildMock = Mockito.mock(SBuild.class);
+    ParametersProvider parametersProvider = Mockito.mock(ParametersProvider.class);
+    Mockito.when(sBuildMock.getParametersProvider()).thenReturn(parametersProvider);
+    Mockito.when(parametersProvider.get(Constants.BUILD_PROBLEMS_TO_IGNORE)).
+      thenReturn(BuildProblemTypes.TC_EXIT_CODE_TYPE + "\n" + BuildProblemTypes.TC_COMPILATION_ERROR_TYPE);
+
+    assertListEquals(myCustomParameters.getBuildProblemTypesToIgnore(sBuildMock),
+                     BuildProblemTypes.TC_EXIT_CODE_TYPE,
+                     BuildProblemTypes.TC_COMPILATION_ERROR_TYPE);
   }
 }

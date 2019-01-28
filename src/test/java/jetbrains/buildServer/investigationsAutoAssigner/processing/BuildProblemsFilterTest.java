@@ -20,11 +20,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import jetbrains.buildServer.BaseTestCase;
+import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.BuildProblemUtils;
+import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.InvestigationsManager;
 import jetbrains.buildServer.BuildProblemData;
-import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.parameters.ParametersProvider;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
@@ -53,6 +54,7 @@ public class BuildProblemsFilterTest extends BaseTestCase {
   private FailedBuildInfo myFailedBuildInfo;
   private List<BuildProblem> myBuildProblemWrapper;
   private BuildProblemUtils myBuildProblemUtils;
+  private CustomParameters myCustomParametersMock;
 
   @BeforeMethod
   @Override
@@ -69,7 +71,7 @@ public class BuildProblemsFilterTest extends BaseTestCase {
     BuildProblemResponsibilityEntry responsibilityEntry2 = Mockito.mock(BuildProblemResponsibilityEntry.class);
     myInvestigationsManager = Mockito.mock(InvestigationsManager.class);
     myBuildProblemUtils = Mockito.mock(BuildProblemUtils.class);
-
+    myCustomParametersMock = Mockito.mock(CustomParameters.class);
     when(mySBuild.getBuildPromotion()).thenReturn(buildPromotion);
     when(mySBuild.getParametersProvider()).thenReturn(Mockito.mock(ParametersProvider.class));
     when(mySProject.getProjectId()).thenReturn("Project ID");
@@ -79,14 +81,16 @@ public class BuildProblemsFilterTest extends BaseTestCase {
     when(myResponsibilityEntry.getState()).thenReturn(ResponsibilityEntry.State.NONE);
     when(responsibilityEntry2.getState()).thenReturn(ResponsibilityEntry.State.NONE);
     when(myBuildProblem.getBuildProblemData()).thenReturn(myBuildProblemData);
-    when(myBuildProblemData.getType()).thenReturn(Constants.TC_COMPILATION_ERROR_TYPE);
+    when(myBuildProblemData.getType()).thenReturn(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE);
     when(myBuildProblem.isMuted()).thenReturn(false);
     when(myBuildProblemUtils.isNew(myBuildProblem)).thenReturn(true);
     when(myBuildProblem.getAllResponsibilities())
       .thenReturn(Arrays.asList(myResponsibilityEntry, responsibilityEntry2));
     when(myInvestigationsManager.checkUnderInvestigation(mySProject, mySBuild, myBuildProblem)).thenReturn(false);
     when(myInvestigationsManager.checkUnderInvestigation(project2, mySBuild, myBuildProblem)).thenReturn(false);
-    myBuildProblemsFilter = new BuildProblemsFilter(myInvestigationsManager, myBuildProblemUtils);
+    myBuildProblemsFilter = new BuildProblemsFilter(myInvestigationsManager,
+                                                    myBuildProblemUtils,
+                                                    myCustomParametersMock);
 
     myBuildProblemWrapper = Collections.singletonList(myBuildProblem);
     myFailedBuildInfo = new FailedBuildInfo(mySBuild);
@@ -157,8 +161,19 @@ public class BuildProblemsFilterTest extends BaseTestCase {
     Assert.assertEquals(applicableBuildProblems.size(), 0);
   }
 
+  public void Test_BuildProblemHasIgnoredBuildProblem() {
+    when(myCustomParametersMock.getBuildProblemTypesToIgnore(mySBuild))
+      .thenReturn(Collections.singletonList(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE));
+    when(myBuildProblemData.getType()).thenReturn(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE);
+
+    List<BuildProblem> applicableBuildProblems =
+      myBuildProblemsFilter.apply(myFailedBuildInfo, mySProject, myBuildProblemWrapper);
+
+    Assert.assertEquals(applicableBuildProblems.size(), 0);
+  }
+
   public void Test_BuildProblemHasCompatibleType() {
-    when(myBuildProblemData.getType()).thenReturn(Constants.TC_COMPILATION_ERROR_TYPE);
+    when(myBuildProblemData.getType()).thenReturn(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE);
 
     List<BuildProblem> applicableBuildProblems =
       myBuildProblemsFilter.apply(myFailedBuildInfo, mySProject, myBuildProblemWrapper);
