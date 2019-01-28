@@ -18,27 +18,17 @@ package jetbrains.buildServer.investigationsAutoAssigner.persistent;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
-import jetbrains.buildServer.serverSide.ServerPaths;
-import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import static org.mockito.Mockito.when;
-
 public class StatisticsDaoTest {
-  //
-  //private static final String STATISTICS_GOLD =
-  //  String.format("{\"version\":\"%s\",\"shownButtonsCount\":13,\"clickedButtonsCount\":7," +
-  //                "\"assignedInvestigationsCount\":3,\"wrongInvestigationsCount\":2}",
-  //                Constants.STATISTICS_FILE_VERSION);
   private StatisticsDao myStatisticsDao;
   private Path myPluginsDataDir;
 
@@ -61,10 +51,12 @@ public class StatisticsDaoTest {
     Statistics statistics = myStatisticsDao.read();
 
     Assert.assertEquals(statistics.getVersion(), Constants.STATISTICS_FILE_VERSION);
-    Assert.assertEquals(statistics.getShownButtonsCount(), 13);
-    Assert.assertEquals(statistics.getClickedButtonsCount(), 7);
-    Assert.assertEquals(statistics.getAssignedInvestigationsCount(), 3);
-    Assert.assertEquals(statistics.getWrongInvestigationsCount(), 2);
+    Assert.assertEquals(statistics.get(StatisticsValuesEnum.shownButtonsCount), 13);
+    Assert.assertEquals(statistics.get(StatisticsValuesEnum.clickedButtonsCount), 7);
+    Assert.assertEquals(statistics.get(StatisticsValuesEnum.assignedInvestigationsCount), 3);
+    Assert.assertEquals(statistics.get(StatisticsValuesEnum.wrongInvestigationsCount), 2);
+    Assert.assertEquals(statistics.get(StatisticsValuesEnum.buildWithSuggestionsCount), 2);
+    Assert.assertEquals(statistics.get(StatisticsValuesEnum.savedSuggestionsCount), 3);
   }
 
   @Test
@@ -125,18 +117,27 @@ public class StatisticsDaoTest {
     Assert.assertEquals(myStatisticsDao.read(), new Statistics());
     Statistics statistics = new Statistics();
 
-    statistics.increaseShownButtonsCounter();
-    statistics.increaseClickedButtonsCounter();
-    statistics.increaseClickedButtonsCounter();
-    statistics.increaseAssignedInvestigationsCounter(3);
-    statistics.increaseWrongInvestigationsCounter(4);
+    statistics.increase(StatisticsValuesEnum.shownButtonsCount, 1);
+    statistics.increase(StatisticsValuesEnum.clickedButtonsCount, 2);
+    statistics.increase(StatisticsValuesEnum.assignedInvestigationsCount, 3);
+    statistics.increase(StatisticsValuesEnum.wrongInvestigationsCount, 4);
+    statistics.increase(StatisticsValuesEnum.buildWithSuggestionsCount, 2);
+    statistics.increase(StatisticsValuesEnum.savedSuggestionsCount, 3);
     myStatisticsDao.write(statistics);
 
 
     Path assignerDataDir = myPluginsDataDir.resolve(Constants.PLUGIN_DATA_DIR);
     Path myStatisticsPath = assignerDataDir.resolve(Constants.STATISTICS_FILE_NAME);
     String fileContent = new String(Files.readAllBytes(myStatisticsPath));
-    Assert.assertEquals(fileContent, readGold("StatisticsDaoTest_TestWriteStatistics_Gold.txt"));
+
+    System.out.println(fileContent);
+    Assert.assertTrue(fileContent.contains("\"version\":\"1.3\""));
+    Assert.assertTrue(fileContent.contains("\"clickedButtonsCount\":2"));
+    Assert.assertTrue(fileContent.contains("\"savedSuggestionsCount\":3"));
+    Assert.assertTrue(fileContent.contains("\"shownButtonsCount\":1"));
+    Assert.assertTrue(fileContent.contains("\"buildWithSuggestionsCount\":2"));
+    Assert.assertTrue(fileContent.contains("\"wrongInvestigationsCount\":4"));
+    Assert.assertTrue(fileContent.contains("\"assignedInvestigationsCount\":3"));
   }
 
   @Test
@@ -144,19 +145,14 @@ public class StatisticsDaoTest {
     Path assignerDataDir = myPluginsDataDir.resolve(Constants.PLUGIN_DATA_DIR);
     Files.createDirectory(assignerDataDir);
     Path myStatisticsPath = assignerDataDir.resolve(Constants.STATISTICS_FILE_NAME);
-    Files.write(myStatisticsPath, readGold("StatisticsDaoTest_TestWriteNotUpdatedStatistics_Gold.txt").getBytes());
+    Files.write(myStatisticsPath, readGold("StatisticsDaoTest_TestWriteNotUpdatedStatisticsInitial_Gold.txt").getBytes());
+    Statistics statistics = myStatisticsDao.read();
 
-    Statistics statistics = new Statistics();
-    statistics.increaseShownButtonsCounter();
-    statistics.increaseClickedButtonsCounter();
-    statistics.increaseClickedButtonsCounter();
-    statistics.increaseAssignedInvestigationsCounter(3);
-    statistics.increaseWrongInvestigationsCounter(4);
-    Assert.assertEquals(myStatisticsDao.read(), statistics);
+    Files.write(myStatisticsPath, readGold("StatisticsDaoTest_TestWriteNotUpdatedStatistics_Gold.txt").getBytes());
     myStatisticsDao.write(statistics);
 
     String fileContent = new String(Files.readAllBytes(myStatisticsPath));
-    Assert.assertEquals(fileContent, readGold("StatisticsDaoTest_TestWriteNotUpdatedStatistics_Gold.txt"));
+    Assert.assertEquals(fileContent, readGold("StatisticsDaoTest_TestWriteNotUpdatedStatistics_Gold.txt").trim());
   }
 
   @Test
@@ -164,11 +160,12 @@ public class StatisticsDaoTest {
     Assert.assertEquals(myStatisticsDao.read(), new Statistics());
     Statistics statistics = new Statistics();
 
-    statistics.increaseShownButtonsCounter();
-    statistics.increaseClickedButtonsCounter();
-    statistics.increaseClickedButtonsCounter();
-    statistics.increaseAssignedInvestigationsCounter(3);
-    statistics.increaseWrongInvestigationsCounter(4);
+    statistics.increase(StatisticsValuesEnum.shownButtonsCount, 1);
+    statistics.increase(StatisticsValuesEnum.clickedButtonsCount, 2);
+    statistics.increase(StatisticsValuesEnum.assignedInvestigationsCount, 3);
+    statistics.increase(StatisticsValuesEnum.wrongInvestigationsCount, 4);
+    statistics.increase(StatisticsValuesEnum.buildWithSuggestionsCount, 2);
+    statistics.increase(StatisticsValuesEnum.savedSuggestionsCount, 3);
     myStatisticsDao.write(statistics);
 
     Path assignerDataDir = myPluginsDataDir.resolve(Constants.PLUGIN_DATA_DIR);

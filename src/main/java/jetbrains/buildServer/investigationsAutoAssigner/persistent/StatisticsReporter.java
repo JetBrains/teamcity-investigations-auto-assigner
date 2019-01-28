@@ -39,19 +39,27 @@ public class StatisticsReporter {
   }
 
   public synchronized void reportShownButton() {
-    myStatistics.increaseShownButtonsCounter();
+    myStatistics.increment(StatisticsValuesEnum.shownButtonsCount);
   }
 
   public synchronized void reportClickedButton() {
-    myStatistics.increaseClickedButtonsCounter();
+    myStatistics.increment(StatisticsValuesEnum.clickedButtonsCount);
   }
 
   public synchronized void reportAssignedInvestigations(int count) {
-    myStatistics.increaseAssignedInvestigationsCounter(count);
+    myStatistics.increase(StatisticsValuesEnum.assignedInvestigationsCount, count);
   }
 
   public synchronized void reportWrongInvestigation(int count) {
-    myStatistics.increaseWrongInvestigationsCounter(count);
+    myStatistics.increase(StatisticsValuesEnum.wrongInvestigationsCount, count);
+  }
+
+  synchronized void reportSavedSuggestions(final int count) {
+    myStatistics.increase(StatisticsValuesEnum.savedSuggestionsCount, count);
+  }
+
+  synchronized void reportBuildWithSuggestions() {
+    myStatistics.increment(StatisticsValuesEnum.buildWithSuggestionsCount);
   }
 
   private void saveDataOnDisk() {
@@ -61,14 +69,18 @@ public class StatisticsReporter {
   }
 
   public synchronized String generateReport() {
-    return String.format("Short statistics of plugin usage:" +
+    return String.format("Short statistics of plugin usage:\n\n" +
                          "%s investigations assigned;\n" +
                          "%s of them were wrong;\n" +
                          "%s shown suggestions;\n" +
-                         "%s of assignments from them.\n",
-                         myStatistics.getAssignedInvestigationsCount(),
-                         myStatistics.getWrongInvestigationsCount(),
-                         myStatistics.getShownButtonsCount(),
-                         myStatistics.getClickedButtonsCount());
+                         "%s of assignments from them;\n" +
+                         "%s builds have at least one suggestion;\n" +
+                         "%s suggestions total.\n",
+                         myStatistics.get(StatisticsValuesEnum.assignedInvestigationsCount),
+                         myStatistics.get(StatisticsValuesEnum.wrongInvestigationsCount),
+                         myStatistics.get(StatisticsValuesEnum.shownButtonsCount),
+                         myStatistics.get(StatisticsValuesEnum.clickedButtonsCount),
+                         myStatistics.get(StatisticsValuesEnum.buildWithSuggestionsCount),
+                         myStatistics.get(StatisticsValuesEnum.savedSuggestionsCount));
   }
 }

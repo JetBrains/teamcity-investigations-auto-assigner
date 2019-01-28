@@ -117,11 +117,6 @@ public class AutoAssignerDetailsController extends BaseController {
     return null;
   }
 
-  private static boolean checkFeatureDisabled(@NotNull SBuild build) {
-    Collection<SBuildFeatureDescriptor> descriptors = build.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
-    return descriptors.isEmpty();
-  }
-
   private boolean isUnderInvestigation(SBuild sBuild, STest sTest) {
     SBuildType sBuildType = sBuild.getBuildType();
     if (sBuildType == null) return false;

@@ -27,6 +27,7 @@ import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsRep
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityFacade;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
+import jetbrains.buildServer.serverSide.WebLinks;
 import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.users.User;
@@ -78,6 +79,7 @@ public class BuildProblemsAssignerTest extends BaseTestCase {
     when(mySBuild.getCommitters(any())).thenReturn(userSetMock);
 
     myBuildProblemsAssigner = new BuildProblemsAssigner(myBuildProblemResponsibilityFacade,
+                                                        Mockito.mock(WebLinks.class),
                                                         Mockito.mock(StatisticsReporter.class));
   }
 

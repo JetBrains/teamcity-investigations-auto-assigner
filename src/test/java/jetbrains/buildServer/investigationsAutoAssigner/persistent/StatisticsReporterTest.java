@@ -60,10 +60,10 @@ public class StatisticsReporterTest {
     myStatisticsReporter.reportClickedButton();
     myStatisticsReporter.reportAssignedInvestigations(3);
     myStatisticsReporter.reportWrongInvestigation(4);
-    Assert.assertEquals(myStatisticsChecker.getShownButtonsCount(), 1);
-    Assert.assertEquals(myStatisticsChecker.getClickedButtonsCount(), 2);
-    Assert.assertEquals(myStatisticsChecker.getAssignedInvestigationsCount(), 3);
-    Assert.assertEquals(myStatisticsChecker.getWrongInvestigationsCount(), 4);
+    Assert.assertEquals(myStatisticsChecker.get(StatisticsValuesEnum.shownButtonsCount), 1);
+    Assert.assertEquals(myStatisticsChecker.get(StatisticsValuesEnum.clickedButtonsCount), 2);
+    Assert.assertEquals(myStatisticsChecker.get(StatisticsValuesEnum.assignedInvestigationsCount), 3);
+    Assert.assertEquals(myStatisticsChecker.get(StatisticsValuesEnum.wrongInvestigationsCount), 4);
   }
 
   @Test

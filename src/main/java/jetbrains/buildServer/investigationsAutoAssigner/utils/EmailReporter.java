@@ -52,9 +52,31 @@ public class EmailReporter {
     HeuristicResult heuristicsResult = failedBuildInfo.getHeuristicsResult();
 
     if (mySupervisorEmail != null && !heuristicsResult.isEmpty() && failedBuildInfo.shouldDelayAssignments()) {
-      String title = String.format("Investigation auto-assigner report for build id:%s", sBuild.getBuildId());
-      trySendEmail(mySupervisorEmail, title, generateHtmlReport(sBuild, heuristicsResult));
+      trySendEmail(mySupervisorEmail, getTitle(failedBuildInfo), generateHtmlReport(sBuild, heuristicsResult));
     }
+  }
+
+  private String getTitle(final FailedBuildInfo failedBuildInfo) {
+    SBuild sBuild = failedBuildInfo.getBuild();
+
+    StringBuilder sb = new StringBuilder();
+    sb.append("[IAA health report. ");
+    if (failedBuildInfo.shouldDelayAssignments()) {
+      sb.append("Delayed assignment");
+    } else if (CustomParameters.isBuildFeatureEnabled(sBuild)) {
+      sb.append("New assignments");
+    } else {
+      sb.append("New suggestions");
+    }
+    sb.append("]");
+
+    @Nullable
+    SBuildType sBuildType = sBuild.getBuildType();
+    if (sBuildType != null) {
+      sb.append(" Project '").append(sBuildType.getProject().describe(false)).append("'");
+    }
+
+    return sb.toString();
   }
 
   private void trySendEmail(@NotNull String to, String title, String html) {
@@ -69,11 +91,16 @@ public class EmailReporter {
   private String generateHtmlReport(final SBuild sBuild, final HeuristicResult heuristicsResult) {
     String buildRunResultsUrl = myWebLinks.getViewResultsUrl(sBuild);
 
-
+    String projectName = sBuild.getProjectId();
+    SBuildType sBuildType = sBuild.getBuildType();
+    if (sBuildType != null) {
+      projectName = sBuildType.getProject().describe(false);
+    }
     return String.format("<!DOCTYPE html>\n" +
                          "<html>\n" +
                          "<body>\n" +
-                         "<h2>Report for <a href=\"%s\">%s#%s</a>. Found %s investigations:</h2>\n" +
+                         "<h3>Report for <a href=\"%s\">%s#%s</a></h3>\n" +
+                         "<p>Found %s entries for project '%s':</p>\n" +
                          "<ol>\n%s%s</ol>\n" +
                          "%s\n" +
                          "</body>\n" +
@@ -82,9 +109,14 @@ public class EmailReporter {
                          sBuild.getBuildTypeName(),
                          sBuild.getBuildId(),
                          heuristicsResult.getAllResponsibilities().size(),
+                         projectName,
                          generateForFailedTests(sBuild, heuristicsResult),
                          generateForBuildProblems(sBuild, heuristicsResult),
-                         myStatisticsReporter.generateReport());
+                         generateStatisticsReport());
+  }
+
+  private String generateStatisticsReport() {
+    return myStatisticsReporter.generateReport().replaceAll("\n", "<br>");
   }
 
   private String generateForFailedTests(SBuild sBuild, HeuristicResult heuristicsResult) {
@@ -99,9 +131,9 @@ public class EmailReporter {
         continue;
       }
 
-      htmlBuilder.append(String.format("<li><a href=\"%s\">Investigation</a> was assigned to %s who %s.</li>\n",
+      htmlBuilder.append(String.format("<li><a href=\"%s\">Test entry</a> for %s. The user %s.</li>\n",
                                        buildRunResultsUrl + "#testNameId" + testRun.getTest().getTestNameId(),
-                                       responsibility.getUser().getUsername(),
+                                       responsibility.getUser().getDescriptiveName(),
                                        responsibility.getDescription()));
     }
 
@@ -116,8 +148,9 @@ public class EmailReporter {
       if (responsibility == null) {
         continue;
       }
-      htmlBuilder.append(String.format("<li>Investigation for build problem was assigned to %s who %s.</li>\n",
-                                       responsibility.getUser().getUsername(),
+
+      htmlBuilder.append(String.format("Build problem entry for %s. The user %s.</li>\n",
+                                       responsibility.getUser().getDescriptiveName(),
                                        responsibility.getDescription()));
     }
 

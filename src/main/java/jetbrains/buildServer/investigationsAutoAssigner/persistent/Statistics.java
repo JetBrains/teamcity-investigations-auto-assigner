@@ -16,54 +16,40 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.persistent;
 
+import java.util.HashMap;
+import java.util.Map;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 
 class Statistics implements Cloneable {
 
   private final String version;
-  private int shownButtonsCount;
-  private int clickedButtonsCount;
-  private int assignedInvestigationsCount;
-  private int wrongInvestigationsCount;
+  private final Map<StatisticsValuesEnum, Integer> values;
 
   public String getVersion() {
     return version;
   }
 
-  int getShownButtonsCount() {
-    return shownButtonsCount;
+  int get(StatisticsValuesEnum statisticsKey) {
+    return values.getOrDefault(statisticsKey, 0);
   }
 
-  int getClickedButtonsCount() {
-    return clickedButtonsCount;
+  void increment(StatisticsValuesEnum statisticsKey) {
+    increase(statisticsKey, 1);
   }
 
-  int getAssignedInvestigationsCount() {
-    return assignedInvestigationsCount;
-  }
-
-  int getWrongInvestigationsCount() {
-    return wrongInvestigationsCount;
+  void increase(StatisticsValuesEnum statisticsKey, int delta) {
+    int previousValue = values.getOrDefault(statisticsKey, 0);
+    values.put(statisticsKey, previousValue + delta);
   }
 
   Statistics() {
     version = Constants.STATISTICS_FILE_VERSION;
+    values = new HashMap<>();
   }
 
-  void increaseShownButtonsCounter() {
-    shownButtonsCount++;
-  }
-
-  void increaseClickedButtonsCounter() {
-    clickedButtonsCount++;
-  }
-
-  void increaseAssignedInvestigationsCounter(final int count) {
-    assignedInvestigationsCount += count;
-  }
-
-  void increaseWrongInvestigationsCounter(final int count) {
-    wrongInvestigationsCount += count;
+  private Statistics(String version, Map<StatisticsValuesEnum, Integer> values) {
+    this.version = version;
+    this.values = new HashMap<>(values);
   }
 
   @Override
@@ -74,20 +60,24 @@ class Statistics implements Cloneable {
 
     Statistics another = (Statistics)obj;
     return version.equals(another.version) &&
-           shownButtonsCount == another.shownButtonsCount &&
-           clickedButtonsCount == another.clickedButtonsCount &&
-           assignedInvestigationsCount == another.assignedInvestigationsCount &&
-           wrongInvestigationsCount == another.wrongInvestigationsCount;
+           values.equals(another.values);
+  }
 
+  @Override
+  public String toString() {
+    return String.format("version: %s, shownButtonsCount: %s, clickedButtonsCount: %s, " +
+                         "assignedInvestigationsCount: %s, wrongInvestigationsCount: %s, " +
+                         "buildWithSuggestionsCount: %s, savedSuggestionsCount: %s",
+                         version, get(StatisticsValuesEnum.shownButtonsCount),
+                         get(StatisticsValuesEnum.clickedButtonsCount),
+                         get(StatisticsValuesEnum.assignedInvestigationsCount),
+                         get(StatisticsValuesEnum.wrongInvestigationsCount),
+                         get(StatisticsValuesEnum.buildWithSuggestionsCount),
+                         get(StatisticsValuesEnum.savedSuggestionsCount));
   }
 
   @Override
   protected Statistics clone() {
-    Statistics newStatisticsObj = new Statistics();
-    newStatisticsObj.shownButtonsCount = shownButtonsCount;
-    newStatisticsObj.clickedButtonsCount = clickedButtonsCount;
-    newStatisticsObj.assignedInvestigationsCount = assignedInvestigationsCount;
-    newStatisticsObj.wrongInvestigationsCount = wrongInvestigationsCount;
-    return newStatisticsObj;
+    return new Statistics(version, values);
   }
 }
