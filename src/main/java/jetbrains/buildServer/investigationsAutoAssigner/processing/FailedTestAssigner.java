@@ -30,18 +30,22 @@ import jetbrains.buildServer.responsibility.TestNameResponsibilityFacade;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STestRun;
+import jetbrains.buildServer.serverSide.WebLinks;
 import jetbrains.buildServer.tests.TestName;
 import jetbrains.buildServer.util.Dates;
 import org.jetbrains.annotations.NotNull;
 
 public class FailedTestAssigner extends BaseAssigner {
   @NotNull private final TestNameResponsibilityFacade myTestNameResponsibilityFacade;
+  private WebLinks myWebLinks;
   private StatisticsReporter myStatisticsReporter;
   private static final Logger LOGGER = Logger.getInstance(FailedTestAssigner.class.getName());
 
   public FailedTestAssigner(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade,
+                            @NotNull final WebLinks webLinks,
                             @NotNull final StatisticsReporter statisticsReporter) {
     myTestNameResponsibilityFacade = testNameResponsibilityFacade;
+    myWebLinks = webLinks;
     myStatisticsReporter = statisticsReporter;
   }
 
@@ -65,17 +69,18 @@ public class FailedTestAssigner extends BaseAssigner {
     for (Responsibility responsibility : uniqueResponsibilities) {
       if (shouldAssignInvestigation(responsibility, committersIds)) {
         List<TestName> testNameList = responsibilityToTestNames.get(responsibility);
-        LOGGER.info(String.format("Automatically assigning investigation(s) to %s in %s # %s because of %s",
+        LOGGER.info(String.format("Automatically assigning investigation(s) to %s in %s # %s because user %s",
                                   responsibility.getUser().getUsername(),
                                   sProject.describe(false),
                                   testNameList,
-                                  responsibility.getAssignDescription()));
+                                  responsibility.getDescription()));
 
+        String linkToBuild = myWebLinks.getViewResultsUrl(sBuild);
         myTestNameResponsibilityFacade.setTestNameResponsibility(
           testNameList, sProject.getProjectId(),
           new ResponsibilityEntryEx(
             ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
-            responsibility.getAssignDescription(), ResponsibilityEntry.RemoveMethod.WHEN_FIXED)
+            responsibility.getAssignDescription(linkToBuild), ResponsibilityEntry.RemoveMethod.WHEN_FIXED)
         );
 
         myStatisticsReporter.reportAssignedInvestigations(testNameList.size());

@@ -39,11 +39,12 @@ public class Responsibility {
     return myDescription;
   }
 
-  public String getAssignDescription() {
-    return String.format("%s %s who %s.",
+  public String getAssignDescription(String linkToBuild) {
+    return String.format("%s %s who %s (initial build: %s).",
                          Constants.ASSIGN_DESCRIPTION_PREFIX,
                          myUser.getDescriptiveName(),
-                         myDescription);
+                         myDescription,
+                         linkToBuild);
   }
 
   @Override

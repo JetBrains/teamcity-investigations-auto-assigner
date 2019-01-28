@@ -29,6 +29,7 @@ import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntryEx;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
+import jetbrains.buildServer.serverSide.WebLinks;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.serverSide.problems.BuildProblemInfo;
 import jetbrains.buildServer.util.Dates;
@@ -39,11 +40,14 @@ public class BuildProblemsAssigner extends BaseAssigner {
   private static final Logger LOGGER = Logger.getInstance(BuildProblemsAssigner.class.getName());
   @NotNull private final BuildProblemResponsibilityFacade myBuildProblemResponsibilityFacade;
   private final StatisticsReporter myStatisticsReporter;
+  private WebLinks myWebLinks;
 
   public BuildProblemsAssigner(@NotNull final BuildProblemResponsibilityFacade buildProblemResponsibilityFacade,
+                               @NotNull final WebLinks webLinks,
                                @NotNull final StatisticsReporter statisticsReporter) {
     myBuildProblemResponsibilityFacade = buildProblemResponsibilityFacade;
     myStatisticsReporter = statisticsReporter;
+    myWebLinks = webLinks;
   }
 
   void assign(final HeuristicResult heuristicsResult,
@@ -65,18 +69,19 @@ public class BuildProblemsAssigner extends BaseAssigner {
     Set<Responsibility> uniqueResponsibilities = responsibilityToBuildProblem.keySet();
     for (Responsibility responsibility : uniqueResponsibilities) {
       if (shouldAssignInvestigation(responsibility, committersIds)) {
-        LOGGER.info(String.format("Automatically assigning investigation(s) to %s in %s because of %s",
+        LOGGER.info(String.format("Automatically assigning investigation(s) to %s in %s because user %s",
                                   responsibility.getUser().getUsername(),
                                   sProject.describe(false),
-                                  responsibility.getAssignDescription()));
+                                  responsibility.getDescription()));
         List<BuildProblemInfo> buildProblemList = responsibilityToBuildProblem.get(responsibility);
 
+        String linkToBuild = myWebLinks.getViewResultsUrl(sBuild);
         myBuildProblemResponsibilityFacade.setBuildProblemResponsibility(
           buildProblemList,
           sProject.getProjectId(),
           new ResponsibilityEntryEx(
             ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
-            responsibility.getAssignDescription(), ResponsibilityEntry.RemoveMethod.WHEN_FIXED)
+            responsibility.getAssignDescription(linkToBuild), ResponsibilityEntry.RemoveMethod.WHEN_FIXED)
         );
 
         myStatisticsReporter.reportAssignedInvestigations(buildProblemList.size());

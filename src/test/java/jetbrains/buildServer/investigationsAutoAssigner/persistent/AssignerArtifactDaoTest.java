@@ -75,8 +75,10 @@ public class AssignerArtifactDaoTest {
     Mockito.when(userModelEx.findUserById(myUser.getId())).thenReturn(myUser);
     Mockito.when(assignerResultsFilePath.get(mySBuild)).thenReturn(myPath);
     mySuggestedDaoChecker = new MySuggestedDaoChecker();
-    myAssignerArtifactDaoForTest =
-      new AssignerArtifactDao(userModelEx, mySuggestedDaoChecker, assignerResultsFilePath);
+    myAssignerArtifactDaoForTest = new AssignerArtifactDao(userModelEx,
+                                                           mySuggestedDaoChecker,
+                                                           assignerResultsFilePath,
+                                                           Mockito.mock(StatisticsReporter.class));
   }
 
   @Test
