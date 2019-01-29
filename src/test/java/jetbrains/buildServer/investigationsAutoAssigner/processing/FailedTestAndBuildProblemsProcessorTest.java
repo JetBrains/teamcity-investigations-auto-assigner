@@ -96,7 +96,7 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
     when(mySBuild.getBuildType()).thenReturn(mySBuildType);
     when(mySBuild.getBuildStatistics(any())).thenReturn(buildStatistics);
     when(mySBuild.getParametersProvider()).thenReturn(myParametersProvider);
-    myFailedBuildInfo = new FailedBuildInfo(mySBuild);
+    myFailedBuildInfo = new FailedBuildInfo(mySBuild, false);
 
     //configure heuristic results
     myNotEmptyHeuristicResult = new HeuristicResult();
@@ -140,7 +140,6 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
   }
 
   public void TestBuildFeatureNotConfigured() {
-    setDelayedAssignments("true");
     when(mySBuild.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE)).thenReturn(Collections.emptyList());
 
     myProcessor.processBuild(myFailedBuildInfo);
@@ -150,16 +149,15 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
 
   public void TestDelayedAssignment() {
     configureBuildFeature(mySBuild);
-    setDelayedAssignments("true");
+    FailedBuildInfo failedBuildInfo = new FailedBuildInfo(mySBuild, true);
 
-    myProcessor.processBuild(myFailedBuildInfo);
+    myProcessor.processBuild(failedBuildInfo);
 
     Mockito.verify(myFailedTestAssigner, Mockito.never()).assign(any(), any(), any(), anyList());
   }
 
   public void TestRegularAssignment() {
     configureBuildFeature(mySBuild);
-    setDelayedAssignments("false");
 
     myProcessor.processBuild(myFailedBuildInfo);
 
@@ -168,7 +166,6 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
 
   public void TestDefaultAssignmentIsRegular() {
     configureBuildFeature(mySBuild);
-    setDelayedAssignments(null);
 
     myProcessor.processBuild(myFailedBuildInfo);
 
@@ -179,12 +176,5 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
     SBuildFeatureDescriptor sBuildFeatureDescriptor = Mockito.mock(SBuildFeatureDescriptor.class);
     when(sBuild.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE))
       .thenReturn(Collections.singletonList(sBuildFeatureDescriptor));
-  }
-
-  private void setDelayedAssignments(String value) {
-    when(myParametersProvider.get(Constants.SHOULD_DELAY_ASSIGNMENTS)).thenReturn(value);
-
-    //reinitialize build info required
-    myFailedBuildInfo = new FailedBuildInfo(mySBuild);
   }
 }

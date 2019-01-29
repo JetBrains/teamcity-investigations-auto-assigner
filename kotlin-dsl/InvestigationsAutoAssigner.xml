@@ -28,5 +28,10 @@
         The newline-separated list of build problem types to exclude from investigation auto-assignment.
       </description>
     </param>
+    <param name="delayAssignments.enabled" dslName="enableDelayAssignments">
+      <description>
+        Specify whether investigations auto-assigner should use delayed assignment strategy
+      </description>
+    </param>
   </params>
 </dsl-extension>

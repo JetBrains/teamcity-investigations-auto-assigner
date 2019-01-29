@@ -93,7 +93,7 @@ public class BuildProblemsFilterTest extends BaseTestCase {
                                                     myCustomParametersMock);
 
     myBuildProblemWrapper = Collections.singletonList(myBuildProblem);
-    myFailedBuildInfo = new FailedBuildInfo(mySBuild);
+    myFailedBuildInfo = new FailedBuildInfo(mySBuild, false);
   }
 
   public void Test_BuildProblemIsMuted() {

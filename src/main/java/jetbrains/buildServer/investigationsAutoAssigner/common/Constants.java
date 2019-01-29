@@ -17,7 +17,6 @@
 package jetbrains.buildServer.investigationsAutoAssigner.common;
 
 import jetbrains.buildServer.ArtifactsConstants;
-import jetbrains.buildServer.BuildProblemTypes;
 
 public class Constants {
   // Plugin's ids
@@ -28,9 +27,7 @@ public class Constants {
   public static final String DEFAULT_RESPONSIBLE = "defaultAssignee.username";
   public static final String USERS_TO_IGNORE = "excludeAssignees.usernames";
   public static final String BUILD_PROBLEMS_TO_IGNORE = "ignoreBuildProblems.types";
-
-  // Experimental configuration parameter
-  public static final String SHOULD_DELAY_ASSIGNMENTS = "teamcity.investigationsAutoAssigner.delayAssignments";
+  public static final String SHOULD_DELAY_ASSIGNMENTS = "delayAssignments.enabled";
 
   // Build configuration parameter and internal property
   public static final String DEFAULT_SILENT_MODE_ENABLED = "teamcity.investigationsAutoAssigner.suggestions.enabledByDefault";

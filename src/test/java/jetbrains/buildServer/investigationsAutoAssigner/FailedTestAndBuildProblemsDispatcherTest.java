@@ -21,6 +21,7 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.DelayedAssignmentsProcessor;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.FailedTestAndBuildProblemsProcessor;
+import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.EmailReporter;
 import jetbrains.buildServer.parameters.ParametersProvider;
 import jetbrains.buildServer.serverSide.*;
@@ -40,6 +41,7 @@ public class FailedTestAndBuildProblemsDispatcherTest {
   private ParametersProvider myParametersProvider;
   private BuildEx mySecondBuild;
   private SRunningBuild myRunningBuild;
+  private CustomParameters myCustomParameters;
 
   @BeforeMethod
   public void setUp() throws Throwable {
@@ -83,9 +85,15 @@ public class FailedTestAndBuildProblemsDispatcherTest {
     DelayedAssignmentsProcessor delayedAssignmentsProcessor = mock(DelayedAssignmentsProcessor.class);
 
     EmailReporter emailReporter = mock(EmailReporter.class);
-    StatisticsReporter sr = mock(StatisticsReporter.class);
+    myCustomParameters = mock(CustomParameters.class);
+    StatisticsReporter statisticsReporter = mock(StatisticsReporter.class);
 
-    new FailedTestAndBuildProblemsDispatcher(myBsDispatcher, processor, delayedAssignmentsProcessor, emailReporter, sr);
+    new FailedTestAndBuildProblemsDispatcher(myBsDispatcher,
+                                             processor,
+                                             delayedAssignmentsProcessor,
+                                             emailReporter,
+                                             statisticsReporter,
+                                             myCustomParameters);
   }
 
   public void Test_BuildProblemsChanged_PersonalBuildFiltered() {
@@ -152,7 +160,7 @@ public class FailedTestAndBuildProblemsDispatcherTest {
   }
 
   private void verifyMarkOfPassBuildProblemsChanged(int expectedExecutions) {
-    verify(myParametersProvider, times(expectedExecutions)).get(Constants.SHOULD_DELAY_ASSIGNMENTS);
+    verify(myCustomParameters, times(expectedExecutions)).shouldDelayAssignments(any());
   }
 
   private void verifyMarkOfPassForBuildFinished(int expectedExecutions) {

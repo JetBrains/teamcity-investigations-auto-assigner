@@ -35,9 +35,9 @@ public class FailedBuildInfo {
   private final boolean myShouldDelayAssignments;
   private int myProcessedCount = 0;
 
-  public FailedBuildInfo(final SBuild sBuild) {
+  public FailedBuildInfo(final SBuild sBuild, final boolean shouldDelayAssignments) {
     mySBuild = sBuild;
-    myShouldDelayAssignments = CustomParameters.shouldDelayAssignments(sBuild);
+    myShouldDelayAssignments = shouldDelayAssignments;
     myThreshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
   }
 

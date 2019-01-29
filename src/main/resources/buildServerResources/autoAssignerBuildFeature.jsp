@@ -24,7 +24,21 @@
   </td>
 </tr>
 <tr>
+<tr class="advancedSetting">
   <th>
+    <label for="<%= Constants.SHOULD_DELAY_ASSIGNMENTS%>">Assign strategy: </label>
+  </th>
+  <td>
+    <props:selectProperty name="${Constants.SHOULD_DELAY_ASSIGNMENTS}">
+      <props:option value="false">Immediate assignment</props:option>
+      <props:option value="true">Delayed assignment</props:option>
+    </props:selectProperty>
+    <span class="smallNote">Specify strategy of investigations assignment. Immediate assignment - assigns investigations
+      right after they were found. Delayed assignment - assigns investigations after the problem appears for second time.</span>
+  </td>
+</tr>
+
+<th>
     <label for="<%= Constants.DEFAULT_RESPONSIBLE%>">Default assignee:</label>
   </th>
   <td>
@@ -44,11 +58,11 @@
 </tr>
 <tr class="advancedSetting">
   <th>
-    <label for="<%= Constants.BUILD_PROBLEMS_TO_IGNORE%>">Build problem types to ignore:</label>
+    <label for="<%= Constants.BUILD_PROBLEMS_TO_IGNORE%>">Build problems to ignore:</label>
   </th>
   <td>
     <props:multilineProperty name="<%= Constants.BUILD_PROBLEMS_TO_IGNORE%>" cols="58" rows="6"
-                             linkTitle="Edit build problem to ignore" expanded="true" className="longField"/>
+                             linkTitle="Edit build problem types to ignore" expanded="true" className="longField"/>
     <span class="smallNote">The newline-separated list of build problem types to ignore in investigation auto-assignment.</span>
     <bs:projectData type="BuildProblemTypesList" sourceFieldId="<%= Constants.BUILD_PROBLEMS_TO_IGNORE%>"
                     targetFieldId="<%= Constants.BUILD_PROBLEMS_TO_IGNORE%>" popupTitle="Select build problem types"

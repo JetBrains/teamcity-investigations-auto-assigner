@@ -101,9 +101,14 @@ public class CustomParameters {
     return parsedValue >= 0 ? parsedValue : Integer.MAX_VALUE;
   }
 
-  public static boolean shouldDelayAssignments(final SBuild sBuild) {
+  public boolean shouldDelayAssignments(final SBuild sBuild) {
+    final SBuildFeatureDescriptor sBuildFeature = getBuildFeatureDescriptor(sBuild);
+    if (sBuildFeature == null) {
+      return false;
+    }
+
     @Nullable
-    String shouldDelayAssignments = sBuild.getParametersProvider().get(Constants.SHOULD_DELAY_ASSIGNMENTS);
+    String shouldDelayAssignments = sBuildFeature.getParameters().get(Constants.SHOULD_DELAY_ASSIGNMENTS);
     return StringUtil.isTrue(shouldDelayAssignments);
   }
 
