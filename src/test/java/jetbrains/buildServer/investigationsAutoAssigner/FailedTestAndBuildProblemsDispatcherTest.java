@@ -40,6 +40,8 @@ public class FailedTestAndBuildProblemsDispatcherTest {
   private ParametersProvider myParametersProvider;
   private BuildEx mySecondBuild;
   private SRunningBuild myRunningBuild;
+  private DelayedAssignmentsProcessor myDelayedAssignmentsProcessor;
+  private SBuildType mySBuildType;
 
   @BeforeMethod
   public void setUp() throws Throwable {
@@ -68,7 +70,9 @@ public class FailedTestAndBuildProblemsDispatcherTest {
     myRunningBuild = mock(SRunningBuild.class);
     when(myRunningBuild.getBuildId()).thenReturn(239L);
     when(myRunningBuild.getBranch()).thenReturn(myBranch);
-    when(myRunningBuild.getBuildType()).thenReturn(mock(SBuildType.class));
+    mySBuildType = mock(SBuildType.class);
+    when(mySBuildType.getInternalId()).thenReturn("INTERNAL_iD");
+    when(myRunningBuild.getBuildType()).thenReturn(mySBuildType);
     when(myRunningBuild.isPersonal()).thenReturn(false);
     when(myRunningBuild.getParametersProvider()).thenReturn(myParametersProvider);
 
@@ -80,74 +84,74 @@ public class FailedTestAndBuildProblemsDispatcherTest {
     //configure event dispatcher
     myBsDispatcher = new BuildServerListenerEventDispatcher(securityContextEx);
     FailedTestAndBuildProblemsProcessor processor = mock(FailedTestAndBuildProblemsProcessor.class);
-    DelayedAssignmentsProcessor delayedAssignmentsProcessor = mock(DelayedAssignmentsProcessor.class);
+    myDelayedAssignmentsProcessor = mock(DelayedAssignmentsProcessor.class);
 
     EmailReporter emailReporter = mock(EmailReporter.class);
     StatisticsReporter sr = mock(StatisticsReporter.class);
 
-    new FailedTestAndBuildProblemsDispatcher(myBsDispatcher, processor, delayedAssignmentsProcessor, emailReporter, sr);
+    new FailedTestAndBuildProblemsDispatcher(myBsDispatcher, processor, myDelayedAssignmentsProcessor, emailReporter, sr);
   }
 
-  public void Test_BuildProblemsChanged_PersonalBuildFiltered() {
+  public void Test_BuildProblemsChanged_PersonalBuildFiltered() throws InterruptedException {
     when(myBuild.isPersonal()).thenReturn(true);
 
     myBsDispatcher.getMulticaster().buildProblemsChanged(myBuild, Collections.emptyList(), Collections.emptyList());
-
+    Thread.sleep(50);
     verifyMarkOfPassBuildProblemsChanged(0);
   }
 
-  public void Test_BuildProblemsChanged_FeatureBranchIgnored() {
+  public void Test_BuildProblemsChanged_FeatureBranchIgnored() throws InterruptedException {
     when(myBranch.isDefaultBranch()).thenReturn(false);
 
     myBsDispatcher.getMulticaster().buildProblemsChanged(myBuild, Collections.emptyList(), Collections.emptyList());
-
+    Thread.sleep(50);
     verifyMarkOfPassBuildProblemsChanged(0);
   }
 
-  public void Test_BuildProblemsChanged_NormalBuildAdded() {
+  public void Test_BuildProblemsChanged_NormalBuildAdded() throws InterruptedException {
     when(myBranch.isDefaultBranch()).thenReturn(true);
     when(myBuild.isPersonal()).thenReturn(false);
 
     myBsDispatcher.getMulticaster().buildProblemsChanged(myBuild, Collections.emptyList(), Collections.emptyList());
-
+    Thread.sleep(50);
     verifyMarkOfPassBuildProblemsChanged(1);
   }
 
-  public void Test_BuildProblemsChanged_BuildAddsOnlyOnce() {
+  public void Test_BuildProblemsChanged_BuildAddsOnlyOnce() throws InterruptedException {
     myBsDispatcher.getMulticaster().buildProblemsChanged(myBuild, Collections.emptyList(), Collections.emptyList());
     myBsDispatcher.getMulticaster().buildProblemsChanged(myBuild, Collections.emptyList(), Collections.emptyList());
-
+    Thread.sleep(50);
     verifyMarkOfPassBuildProblemsChanged(1);
   }
 
-  public void Test_BuildProblemsChanged_TwoBuilds() {
+  public void Test_BuildProblemsChanged_TwoBuilds() throws InterruptedException {
     myBsDispatcher.getMulticaster().buildProblemsChanged(myBuild, Collections.emptyList(), Collections.emptyList());
     myBsDispatcher.getMulticaster()
                   .buildProblemsChanged(mySecondBuild, Collections.emptyList(), Collections.emptyList());
-
+    Thread.sleep(50);
     verifyMarkOfPassBuildProblemsChanged(2);
   }
 
-  public void Test_BuildFinished_PersonalBuildIgnored() {
+  public void Test_BuildFinished_PersonalBuildIgnored() throws InterruptedException {
     when(myRunningBuild.isPersonal()).thenReturn(true);
     myBsDispatcher.getMulticaster().buildFinished(myRunningBuild);
-
+    Thread.sleep(50);
     verifyMarkOfPassForBuildFinished(0);
   }
 
-  public void Test_BuildFinished_FeatureBranchIgnored() {
+  public void Test_BuildFinished_FeatureBranchIgnored() throws InterruptedException {
     when(myBranch.isDefaultBranch()).thenReturn(false);
     myBsDispatcher.getMulticaster().buildFinished(myRunningBuild);
-
+    Thread.sleep(50);
     verifyMarkOfPassForBuildFinished(0);
   }
 
-  public void Test_BuildFinished_NormalCase() {
+  public void Test_BuildFinished_NormalCase() throws InterruptedException {
     when(myRunningBuild.isPersonal()).thenReturn(false);
     when(myBranch.isDefaultBranch()).thenReturn(true);
 
     myBsDispatcher.getMulticaster().buildFinished(myRunningBuild);
-
+    Thread.sleep(50);
     verifyMarkOfPassForBuildFinished(1);
   }
 
@@ -156,6 +160,6 @@ public class FailedTestAndBuildProblemsDispatcherTest {
   }
 
   private void verifyMarkOfPassForBuildFinished(int expectedExecutions) {
-    verify(myRunningBuild, times(expectedExecutions)).getBuildId();
+    verify(mySBuildType, times(expectedExecutions)).getInternalId();
   }
 }
