@@ -16,11 +16,12 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.utils;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
-import jetbrains.buildServer.parameters.ParametersProvider;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SBuildFeatureDescriptor;
 import org.mockito.Mockito;
@@ -78,19 +79,29 @@ public class CustomParametersTest extends BaseTestCase {
   @Test
   public void testGetBuildProblemTypesToIgnoreNotSpecified() {
     SBuild sBuildMock = Mockito.mock(SBuild.class);
-    ParametersProvider parametersProvider = Mockito.mock(ParametersProvider.class);
-    Mockito.when(sBuildMock.getParametersProvider()).thenReturn(parametersProvider);
-    Mockito.when(parametersProvider.get(Constants.BUILD_PROBLEMS_TO_IGNORE)).thenReturn(null);
+    Mockito.when(sBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE)).thenReturn(Collections.emptyList());
+    assertTrue(myCustomParameters.getBuildProblemTypesToIgnore(sBuildMock).isEmpty());
 
+    SBuildFeatureDescriptor sBuildFeatureDescriptor =
+      Mockito.mock(jetbrains.buildServer.serverSide.SBuildFeatureDescriptor.class);
+    Mockito.when(sBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE))
+           .thenReturn(Collections.singletonList(sBuildFeatureDescriptor));
+    Map<String, String> params = new HashMap<>();
+    params.put(Constants.BUILD_PROBLEMS_TO_IGNORE, null);
+    Mockito.when(sBuildFeatureDescriptor.getParameters()).thenReturn(params);
     assertTrue(myCustomParameters.getBuildProblemTypesToIgnore(sBuildMock).isEmpty());
   }
 
   @Test
   public void testGetBuildProblemTypesToIgnoreOneSpecified() {
     SBuild sBuildMock = Mockito.mock(SBuild.class);
-    ParametersProvider parametersProvider = Mockito.mock(ParametersProvider.class);
-    Mockito.when(sBuildMock.getParametersProvider()).thenReturn(parametersProvider);
-    Mockito.when(parametersProvider.get(Constants.BUILD_PROBLEMS_TO_IGNORE)).thenReturn(BuildProblemTypes.TC_EXIT_CODE_TYPE);
+    SBuildFeatureDescriptor sBuildFeatureDescriptor =
+      Mockito.mock(jetbrains.buildServer.serverSide.SBuildFeatureDescriptor.class);
+    Mockito.when(sBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE))
+           .thenReturn(Collections.singletonList(sBuildFeatureDescriptor));
+    Map<String, String> params = new HashMap<>();
+    params.put(Constants.BUILD_PROBLEMS_TO_IGNORE, BuildProblemTypes.TC_EXIT_CODE_TYPE);
+    Mockito.when(sBuildFeatureDescriptor.getParameters()).thenReturn(params);
 
     assertListEquals(myCustomParameters.getBuildProblemTypesToIgnore(sBuildMock), BuildProblemTypes.TC_EXIT_CODE_TYPE);
   }
@@ -98,10 +109,14 @@ public class CustomParametersTest extends BaseTestCase {
   @Test
   public void testGetBuildProblemTypesToIgnoreTwoSpecified() {
     SBuild sBuildMock = Mockito.mock(SBuild.class);
-    ParametersProvider parametersProvider = Mockito.mock(ParametersProvider.class);
-    Mockito.when(sBuildMock.getParametersProvider()).thenReturn(parametersProvider);
-    Mockito.when(parametersProvider.get(Constants.BUILD_PROBLEMS_TO_IGNORE)).
-      thenReturn(BuildProblemTypes.TC_EXIT_CODE_TYPE + "\n" + BuildProblemTypes.TC_COMPILATION_ERROR_TYPE);
+    SBuildFeatureDescriptor sBuildFeatureDescriptor =
+      Mockito.mock(jetbrains.buildServer.serverSide.SBuildFeatureDescriptor.class);
+    Mockito.when(sBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE))
+           .thenReturn(Collections.singletonList(sBuildFeatureDescriptor));
+    Map<String, String> params = new HashMap<>();
+    params.put(Constants.BUILD_PROBLEMS_TO_IGNORE,
+               BuildProblemTypes.TC_EXIT_CODE_TYPE + "\n" + BuildProblemTypes.TC_COMPILATION_ERROR_TYPE);
+    Mockito.when(sBuildFeatureDescriptor.getParameters()).thenReturn(params);
 
     assertListEquals(myCustomParameters.getBuildProblemTypesToIgnore(sBuildMock),
                      BuildProblemTypes.TC_EXIT_CODE_TYPE,

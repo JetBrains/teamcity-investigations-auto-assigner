@@ -42,3 +42,16 @@
     <span class="smallNote">The newline-separated list of usernames to exclude from investigation auto-assignment.</span>
   </td>
 </tr>
+<tr class="advancedSetting">
+  <th>
+    <label for="<%= Constants.BUILD_PROBLEMS_TO_IGNORE%>">Build problem types to ignore:</label>
+  </th>
+  <td>
+    <props:multilineProperty name="<%= Constants.BUILD_PROBLEMS_TO_IGNORE%>" cols="58" rows="6"
+                             linkTitle="Edit build problem to ignore" expanded="true" className="longField"/>
+    <span class="smallNote">The newline-separated list of build problem types to ignore in investigation auto-assignment.</span>
+    <bs:projectData type="BuildProblemTypesList" sourceFieldId="<%= Constants.BUILD_PROBLEMS_TO_IGNORE%>"
+                    targetFieldId="<%= Constants.BUILD_PROBLEMS_TO_IGNORE%>" popupTitle="Select build problem types"
+                    selectionMode="multiple" />
+  </td>
+</tr>

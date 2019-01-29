@@ -37,8 +37,14 @@ public class BuildProblemsFilter {
   private final BuildProblemUtils myBuildProblemUtils;
   private CustomParameters myCustomParameters;
   private InvestigationsManager myInvestigationsManager;
-  private final Set<String> supportedTypes = Collections.unmodifiableSet(
-    new HashSet<>(Arrays.asList(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE, BuildProblemTypes.TC_EXIT_CODE_TYPE)));
+  public static final Map<String, String> SUPPORTED_TYPES;
+
+  static {
+    Map<String, String> supportedTypes = new HashMap<>();
+    supportedTypes.put(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE, "TeamCity compilation error build problem");
+    supportedTypes.put(BuildProblemTypes.TC_EXIT_CODE_TYPE, "TeamCity exit code build problem");
+    SUPPORTED_TYPES = Collections.unmodifiableMap(supportedTypes);
+  }
 
   public BuildProblemsFilter(@NotNull final InvestigationsManager investigationsManager,
                              @NotNull final BuildProblemUtils buildProblemUtils,
@@ -92,12 +98,12 @@ public class BuildProblemsFilter {
       reason = "is muted";
     } else if (!myBuildProblemUtils.isNew(problem)) {
       reason = "occurs not for the first time";
-    } else if (!supportedTypes.contains(buildProblemType)) {
+    } else if (!SUPPORTED_TYPES.keySet().contains(buildProblemType)) {
       reason = String.format("has an unsupported type %s. Supported types: %s",
-                             problem.getBuildProblemData().getType(), supportedTypes);
+                             problem.getBuildProblemData().getType(), SUPPORTED_TYPES);
     } else if (myInvestigationsManager.checkUnderInvestigation(project, sBuild, problem)) {
       reason = "is already under an investigation";
-    } else if (myCustomParameters.getBuildProblemTypesToIgnore(sBuild).contains(buildProblemType)){
+    } else if (myCustomParameters.getBuildProblemTypesToIgnore(sBuild).contains(buildProblemType)) {
       reason = "is among build problem types to ignore";
     }
 

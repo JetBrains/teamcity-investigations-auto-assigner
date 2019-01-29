@@ -132,7 +132,12 @@ public class CustomParameters {
 
   @NotNull
   public List<String> getBuildProblemTypesToIgnore(final SBuild sBuild) {
-    String buildProblemsToIgnore = sBuild.getParametersProvider().get(Constants.BUILD_PROBLEMS_TO_IGNORE);
+    final SBuildFeatureDescriptor sBuildFeature = getBuildFeatureDescriptor(sBuild);
+    if (sBuildFeature == null) {
+      return Collections.emptyList();
+    }
+
+    String buildProblemsToIgnore = sBuildFeature.getParameters().get(Constants.BUILD_PROBLEMS_TO_IGNORE);
     if (buildProblemsToIgnore == null) {
       return Collections.emptyList();
     }
