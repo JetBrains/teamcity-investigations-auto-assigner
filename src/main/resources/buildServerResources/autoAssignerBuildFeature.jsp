@@ -33,7 +33,7 @@
       <props:option value="false">Immediate assignment</props:option>
       <props:option value="true">Delayed assignment</props:option>
     </props:selectProperty>
-    <span class="smallNote">Specify strategy of investigations assignment. Immediate assignment - assigns investigations
+    <span class="smallNote">Strategy of investigations assignment. Immediate assignment - assigns investigations
       right after they were found. Delayed assignment - assigns investigations after the problem appears for second time.</span>
   </td>
 </tr>
@@ -53,19 +53,18 @@
   <td>
     <props:multilineProperty name="<%= Constants.USERS_TO_IGNORE%>" cols="58" rows="6" linkTitle="Edit users to ignore"
                              expanded="true" className="longField"/>
-    <span class="smallNote">The newline-separated list of usernames to exclude from investigation auto-assignment.</span>
+    <span class="smallNote">The newline-separated list of usernames to exclude from investigations auto-assignment.</span>
   </td>
 </tr>
 <tr class="advancedSetting">
   <th>
-    <label for="<%= Constants.BUILD_PROBLEMS_TO_IGNORE%>">Build problems to ignore:</label>
+    <label>Build problems to ignore:</label>
   </th>
   <td>
-    <props:multilineProperty name="<%= Constants.BUILD_PROBLEMS_TO_IGNORE%>" cols="58" rows="6"
-                             linkTitle="Edit build problem types to ignore" expanded="true" className="longField"/>
-    <span class="smallNote">The newline-separated list of build problem types to ignore in investigation auto-assignment.</span>
-    <bs:projectData type="BuildProblemTypesList" sourceFieldId="<%= Constants.BUILD_PROBLEMS_TO_IGNORE%>"
-                    targetFieldId="<%= Constants.BUILD_PROBLEMS_TO_IGNORE%>" popupTitle="Select build problem types"
-                    selectionMode="multiple" />
-  </td>
+    <props:checkboxProperty name="<%= Constants.SHOULD_IGNORE_COMPILATION_PROBLEMS%>"/>
+      <label for="<%= Constants.SHOULD_IGNORE_COMPILATION_PROBLEMS%>">Compilation error build problems</label>
+      <br/>
+    <props:checkboxProperty name="<%=Constants.SHOULD_IGNORE_EXITCODE_PROBLEMS%>"/>
+      <label for="<%=Constants.SHOULD_IGNORE_EXITCODE_PROBLEMS%>">Exit code build problems</label>
+      <span class="smallNote">Type of build problems to ignore in investigations auto-assignment.</span>
 </tr>

@@ -26,7 +26,8 @@ public class Constants {
   // Build feature parameters
   public static final String DEFAULT_RESPONSIBLE = "defaultAssignee.username";
   public static final String USERS_TO_IGNORE = "excludeAssignees.usernames";
-  public static final String BUILD_PROBLEMS_TO_IGNORE = "ignoreBuildProblems.types";
+  public static final String SHOULD_IGNORE_COMPILATION_PROBLEMS = "ignoreBuildProblems.compilation";
+  public static final String SHOULD_IGNORE_EXITCODE_PROBLEMS = "ignoreBuildProblems.exitCode";
   public static final String SHOULD_DELAY_ASSIGNMENTS = "delayAssignments.enabled";
 
   // Build configuration parameter and internal property

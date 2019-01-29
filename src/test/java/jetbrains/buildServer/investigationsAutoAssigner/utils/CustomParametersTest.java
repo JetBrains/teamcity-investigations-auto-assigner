@@ -87,7 +87,8 @@ public class CustomParametersTest extends BaseTestCase {
     Mockito.when(sBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE))
            .thenReturn(Collections.singletonList(sBuildFeatureDescriptor));
     Map<String, String> params = new HashMap<>();
-    params.put(Constants.BUILD_PROBLEMS_TO_IGNORE, null);
+    params.put(Constants.SHOULD_IGNORE_EXITCODE_PROBLEMS, null);
+    params.put(Constants.SHOULD_IGNORE_COMPILATION_PROBLEMS, null);
     Mockito.when(sBuildFeatureDescriptor.getParameters()).thenReturn(params);
     assertTrue(myCustomParameters.getBuildProblemTypesToIgnore(sBuildMock).isEmpty());
   }
@@ -100,7 +101,7 @@ public class CustomParametersTest extends BaseTestCase {
     Mockito.when(sBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE))
            .thenReturn(Collections.singletonList(sBuildFeatureDescriptor));
     Map<String, String> params = new HashMap<>();
-    params.put(Constants.BUILD_PROBLEMS_TO_IGNORE, BuildProblemTypes.TC_EXIT_CODE_TYPE);
+    params.put(Constants.SHOULD_IGNORE_EXITCODE_PROBLEMS, "true");
     Mockito.when(sBuildFeatureDescriptor.getParameters()).thenReturn(params);
 
     assertListEquals(myCustomParameters.getBuildProblemTypesToIgnore(sBuildMock), BuildProblemTypes.TC_EXIT_CODE_TYPE);
@@ -114,12 +115,13 @@ public class CustomParametersTest extends BaseTestCase {
     Mockito.when(sBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE))
            .thenReturn(Collections.singletonList(sBuildFeatureDescriptor));
     Map<String, String> params = new HashMap<>();
-    params.put(Constants.BUILD_PROBLEMS_TO_IGNORE,
-               BuildProblemTypes.TC_EXIT_CODE_TYPE + "\n" + BuildProblemTypes.TC_COMPILATION_ERROR_TYPE);
+    params.put(Constants.SHOULD_IGNORE_EXITCODE_PROBLEMS, "true");
+    params.put(Constants.SHOULD_IGNORE_COMPILATION_PROBLEMS, "true");
+
     Mockito.when(sBuildFeatureDescriptor.getParameters()).thenReturn(params);
 
     assertListEquals(myCustomParameters.getBuildProblemTypesToIgnore(sBuildMock),
-                     BuildProblemTypes.TC_EXIT_CODE_TYPE,
-                     BuildProblemTypes.TC_COMPILATION_ERROR_TYPE);
+                     BuildProblemTypes.TC_COMPILATION_ERROR_TYPE,
+                     BuildProblemTypes.TC_EXIT_CODE_TYPE);
   }
 }

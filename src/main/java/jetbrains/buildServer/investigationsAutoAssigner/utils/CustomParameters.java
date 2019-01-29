@@ -18,6 +18,7 @@ package jetbrains.buildServer.investigationsAutoAssigner.utils;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SBuildFeatureDescriptor;
@@ -142,11 +143,21 @@ public class CustomParameters {
       return Collections.emptyList();
     }
 
-    String buildProblemsToIgnore = sBuildFeature.getParameters().get(Constants.BUILD_PROBLEMS_TO_IGNORE);
-    if (buildProblemsToIgnore == null) {
-      return Collections.emptyList();
+    boolean shouldIgnoreCompilation = "true".equals(sBuildFeature.getParameters().get(Constants.SHOULD_IGNORE_COMPILATION_PROBLEMS));
+    boolean shouldIgnoreExitCode = "true".equals(sBuildFeature.getParameters().get(Constants.SHOULD_IGNORE_EXITCODE_PROBLEMS));
+
+    if (shouldIgnoreExitCode || shouldIgnoreCompilation) {
+      ArrayList<String> result = new ArrayList<>();
+      if (shouldIgnoreCompilation) {
+        result.add(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE);
+      }
+      if (shouldIgnoreExitCode) {
+        result.add(BuildProblemTypes.TC_EXIT_CODE_TYPE);
+      }
+
+      return result;
     }
 
-    return Arrays.stream(buildProblemsToIgnore.split("\n")).map(String::trim).collect(Collectors.toList());
+    return Collections.emptyList();
   }
 }

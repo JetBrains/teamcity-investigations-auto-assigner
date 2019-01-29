@@ -23,14 +23,19 @@
         The newline-separated list of usernames to exclude from investigation auto-assignment.
       </description>
     </param>
-    <param name="ignoreBuildProblems.types" dslName="ignoreBuildProblems">
+    <param name="ignoreBuildProblems.compilation" dslName="ignoreCompilationProblems">
       <description>
-        The newline-separated list of build problem types to exclude from investigation auto-assignment.
+        Whether investigation auto-assignment should ignore compilation build problems.
+      </description>
+    </param>
+    <param name="ignoreBuildProblems.exitCode" dslName="ignoreExitCodeProblems">
+      <description>
+        Whether investigation auto-assignment should ignore exit code build problems.
       </description>
     </param>
     <param name="delayAssignments.enabled" dslName="enableDelayAssignments">
       <description>
-        Specify whether investigations auto-assigner should use delayed assignment strategy
+        Whether investigations auto-assigner should use delayed assignment strategy.
       </description>
     </param>
   </params>
