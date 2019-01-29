@@ -176,7 +176,15 @@ public class EmailReporterTest extends BaseTestCase {
   }
 
   private void assertEqualsIgnoreNewLineType(String expected, String actual) {
-    assertEquals(expected.replace("\n", " "), actual.replace("\n", " "));
+    expected = expected.replace("\r\n", " ");
+    actual = actual.replace("\r\n", " ");
+    if (expected.equals(actual)) {
+      assertTrue(true);
+      return;
+    }
+    expected = expected.replace("\n", " ");
+    actual = actual.replace("\n", " ");
+    assertEquals(expected, actual);
   }
 
   private String getHtmlReportGold(String fileName) {
