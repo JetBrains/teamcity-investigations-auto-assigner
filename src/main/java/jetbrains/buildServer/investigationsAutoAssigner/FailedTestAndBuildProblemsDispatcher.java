@@ -84,8 +84,14 @@ public class FailedTestAndBuildProblemsDispatcher {
       }
 
       @Override
+      public void buildInterrupted(@NotNull final SRunningBuild build) {
+        myFailedBuilds.remove(build.getBuildId());
+      }
+
+      @Override
       public void buildFinished(@NotNull SRunningBuild build) {
         if (shouldIgnore(build)) {
+          myFailedBuilds.remove(build.getBuildId());
           return;
         }
         myExecutor.execute(() -> instance.processDelayedAssignmentsOneThread(build));
