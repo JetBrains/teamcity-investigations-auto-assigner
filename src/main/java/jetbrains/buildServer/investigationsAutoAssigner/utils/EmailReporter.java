@@ -73,7 +73,7 @@ public class EmailReporter {
     @Nullable
     SBuildType sBuildType = sBuild.getBuildType();
     if (sBuildType != null) {
-      sb.append(" Project '").append(sBuildType.getProject().describe(false)).append("'");
+      sb.append(" Project '").append(sBuildType.getProject().getFullName()).append("'");
     }
 
     return sb.toString();
@@ -96,7 +96,7 @@ public class EmailReporter {
     SBuildType sBuildType = sBuild.getBuildType();
     if (sBuildType != null) {
       projectUrl = myWebLinks.getProjectPageUrl(sBuildType.getProject().getExternalId());
-      projectName = sBuildType.getProject().getName();
+      projectName = sBuildType.getProject().getFullName();
     }
 
     return String.format("<!DOCTYPE html>\n" +
