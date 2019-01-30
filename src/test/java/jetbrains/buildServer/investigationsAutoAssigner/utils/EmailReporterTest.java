@@ -145,15 +145,15 @@ public class EmailReporterTest extends BaseTestCase {
     assertEquals(testEmail, myMockedEmailSender.usedAddress);
   }
 
-  public void TestTopicContainsBuildLink() {
-    String projectDescription = "Project Test description.";
-    when(mySProjectMock.describe(false)).thenReturn(projectDescription);
+  public void TestTopicContainsProjectName() {
+    String projectFullName = "Project Test description.";
+    when(mySProjectMock.getFullName()).thenReturn(projectFullName);
 
     myFailedBuildInfo.addHeuristicsResult(myHeuristicResult);
     myEmailReporter.sendResults(myFailedBuildInfo);
 
     assertTrue(myMockedEmailSender.called);
-    assertTrue(myMockedEmailSender.usedSubject.contains(projectDescription));
+    assertTrue(myMockedEmailSender.usedSubject.contains(projectFullName));
   }
 
   public void TestCompareWithGold() {
