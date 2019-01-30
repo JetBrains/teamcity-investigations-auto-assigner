@@ -91,16 +91,19 @@ public class EmailReporter {
   private String generateHtmlReport(final SBuild sBuild, final HeuristicResult heuristicsResult) {
     String buildRunResultsUrl = myWebLinks.getViewResultsUrl(sBuild);
 
+    String projectUrl = sBuild.getProjectId();
     String projectName = sBuild.getProjectId();
     SBuildType sBuildType = sBuild.getBuildType();
     if (sBuildType != null) {
-      projectName = sBuildType.getProject().describe(false);
+      projectUrl = myWebLinks.getProjectPageUrl(sBuildType.getProject().getExternalId());
+      projectName = sBuildType.getProject().getName();
     }
+
     return String.format("<!DOCTYPE html>\n" +
                          "<html>\n" +
                          "<body>\n" +
                          "<h3>Report for <a href=\"%s\">%s#%s</a></h3>\n" +
-                         "<p>Found %s entries for project '%s':</p>\n" +
+                         "<p>Found %s entries for project <a href=\"%s\">%s</a>:</p>\n" +
                          "<ol>\n%s%s</ol>\n" +
                          "%s\n" +
                          "</body>\n" +
@@ -109,6 +112,7 @@ public class EmailReporter {
                          sBuild.getBuildTypeName(),
                          sBuild.getBuildId(),
                          heuristicsResult.getAllResponsibilities().size(),
+                         projectUrl,
                          projectName,
                          generateForFailedTests(sBuild, heuristicsResult),
                          generateForBuildProblems(sBuild, heuristicsResult),

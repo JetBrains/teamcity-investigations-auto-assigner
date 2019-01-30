@@ -99,7 +99,8 @@ public class EmailReporterTest extends BaseTestCase {
     when(mySBuildMock.getParametersProvider()).thenReturn(parametersProvider);
     when(mySBuildMock.getBuildType()).thenReturn(sBuildTypeMock);
     when(sBuildTypeMock.getProject()).thenReturn(mySProjectMock);
-    when(mySProjectMock.describe(false)).thenReturn("The test project!");
+    when(myWebLinks.getProjectPageUrl(any())).thenReturn("test.project.url");
+    when(mySProjectMock.getName()).thenReturn("The test project!");
 
     myHeuristicResult = new HeuristicResult();
     myHeuristicResult.addResponsibility(sTestRun1, myResponsibility1);

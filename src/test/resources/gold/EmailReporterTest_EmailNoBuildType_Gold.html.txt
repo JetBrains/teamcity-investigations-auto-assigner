@@ -2,7 +2,7 @@
 <html>
 <body>
 <h3>Report for <a href="testLinkUrl.com">testBuildTypeName#239</a></h3>
-<p>Found 2 entries for project '239':</p>
+<p>Found 2 entries for project <a href="239">239</a>:</p>
 <ol>
 <li><a href="testLinkUrl.com#testNameId1">Test entry</a> for null. The user testDescription.</li>
 <li><a href="testLinkUrl.com#testNameId2">Test entry</a> for null. The user testDescription2.</li>
