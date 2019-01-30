@@ -51,7 +51,7 @@ public class EmailReporter {
     SBuild sBuild = failedBuildInfo.getBuild();
     HeuristicResult heuristicsResult = failedBuildInfo.getHeuristicsResult();
 
-    if (mySupervisorEmail != null && !heuristicsResult.isEmpty() && failedBuildInfo.shouldDelayAssignments()) {
+    if (mySupervisorEmail != null && !heuristicsResult.isEmpty()) {
       trySendEmail(mySupervisorEmail, getTitle(failedBuildInfo), generateHtmlReport(sBuild, heuristicsResult));
     }
   }
