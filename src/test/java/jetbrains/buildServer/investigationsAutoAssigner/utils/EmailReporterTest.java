@@ -161,8 +161,8 @@ public class EmailReporterTest extends BaseTestCase {
     myEmailReporter.sendResults(myFailedBuildInfo);
 
     assertTrue(myMockedEmailSender.called);
-    assertEqualsIgnoreNewLineType(getHtmlReportGold("EmailReporterTest_Email_Gold.html.txt"),
-                                  myMockedEmailSender.usedHtml);
+    assertEqualsIgnoreWinLinuxSeparators(getHtmlReportGold("EmailReporterTest_Email_Gold.html.txt"),
+                                         myMockedEmailSender.usedHtml);
   }
 
   public void TestNoBuildTypeCase() {
@@ -172,20 +172,12 @@ public class EmailReporterTest extends BaseTestCase {
     myEmailReporter.sendResults(myFailedBuildInfo);
 
     assertTrue(myMockedEmailSender.called);
-    assertEqualsIgnoreNewLineType(getHtmlReportGold("EmailReporterTest_EmailNoBuildType_Gold.html.txt"),
-                                  myMockedEmailSender.usedHtml);
+    assertEqualsIgnoreWinLinuxSeparators(getHtmlReportGold("EmailReporterTest_EmailNoBuildType_Gold.html.txt"),
+                                         myMockedEmailSender.usedHtml);
   }
 
-  private void assertEqualsIgnoreNewLineType(String expected, String actual) {
-    expected = expected.replace("\r\n", " ");
-    actual = actual.replace("\r\n", " ");
-    if (expected.equals(actual)) {
-      assertTrue(true);
-      return;
-    }
-    expected = expected.replace("\n", " ");
-    actual = actual.replace("\n", " ");
-    assertEquals(expected, actual);
+  private void assertEqualsIgnoreWinLinuxSeparators(String expected, String actual) {
+    assertEquals(expected.replace("\r\n", "\n"), actual.replace("\n\r", "\n"));
   }
 
   private String getHtmlReportGold(String fileName) {
