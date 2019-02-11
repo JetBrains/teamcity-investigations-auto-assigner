@@ -61,7 +61,7 @@ public class AutoAssignerBuildFeature extends BuildFeature {
 
     StringBuilder sb = new StringBuilder();
     if (StringUtil.isTrue(shouldDelayAssignments)) {
-      sb.append("Delayed assignments strategy").append("\n");
+      sb.append("On second failure strategy").append("\n");
     }
     if (StringUtil.isNotEmpty(userName)) {
       sb.append("Default assignee: ").append(userName).append("\n");
