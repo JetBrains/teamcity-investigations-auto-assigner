@@ -98,7 +98,8 @@ public class EmailReporterTest extends BaseTestCase {
     when(mySBuildMock.getParametersProvider()).thenReturn(parametersProvider);
     when(mySBuildMock.getBuildType()).thenReturn(sBuildTypeMock);
     when(sBuildTypeMock.getProject()).thenReturn(mySProjectMock);
-    when(mySProjectMock.describe(false)).thenReturn("The test project!");
+    when(myWebLinks.getProjectPageUrl(any())).thenReturn("test.project.url");
+    when(mySProjectMock.getFullName()).thenReturn("The test project!");
 
     myHeuristicResult = new HeuristicResult();
     myHeuristicResult.addResponsibility(sTestRun1, myResponsibility1);
@@ -142,15 +143,15 @@ public class EmailReporterTest extends BaseTestCase {
     assertEquals(testEmail, myMockedEmailSender.usedAddress);
   }
 
-  public void TestTopicContainsBuildLink() {
-    String projectDescription = "Project Test description.";
-    when(mySProjectMock.describe(false)).thenReturn(projectDescription);
+  public void TestTopicContainsProjectName() {
+    String projectFullName = "Project Test description.";
+    when(mySProjectMock.getFullName()).thenReturn(projectFullName);
 
     myFailedBuildInfo.addHeuristicsResult(myHeuristicResult);
     myEmailReporter.sendResults(myFailedBuildInfo);
 
     assertTrue(myMockedEmailSender.called);
-    assertTrue(myMockedEmailSender.usedSubject.contains(projectDescription));
+    assertTrue(myMockedEmailSender.usedSubject.contains(projectFullName));
   }
 
   public void TestCompareWithGold() {
@@ -158,8 +159,8 @@ public class EmailReporterTest extends BaseTestCase {
     myEmailReporter.sendResults(myFailedBuildInfo);
 
     assertTrue(myMockedEmailSender.called);
-    assertEqualsIgnoreNewLineType(getHtmlReportGold("EmailReporterTest_Email_Gold.html.txt"),
-                                  myMockedEmailSender.usedHtml);
+    assertEqualsIgnoreWinLinuxSeparators(getHtmlReportGold("EmailReporterTest_Email_Gold.html.txt"),
+                                         myMockedEmailSender.usedHtml);
   }
 
   public void TestNoBuildTypeCase() {
@@ -169,12 +170,12 @@ public class EmailReporterTest extends BaseTestCase {
     myEmailReporter.sendResults(myFailedBuildInfo);
 
     assertTrue(myMockedEmailSender.called);
-    assertEqualsIgnoreNewLineType(getHtmlReportGold("EmailReporterTest_EmailNoBuildType_Gold.html.txt"),
-                                  myMockedEmailSender.usedHtml);
+    assertEqualsIgnoreWinLinuxSeparators(getHtmlReportGold("EmailReporterTest_EmailNoBuildType_Gold.html.txt"),
+                                         myMockedEmailSender.usedHtml);
   }
 
-  private void assertEqualsIgnoreNewLineType(String expected, String actual) {
-    assertEquals(expected.replace("\n", " "), actual.replace("\n", " "));
+  private void assertEqualsIgnoreWinLinuxSeparators(String expected, String actual) {
+    assertEquals(expected.replace("\r\n", "\n"), actual.replace("\n\r", "\n"));
   }
 
   private String getHtmlReportGold(String fileName) {
