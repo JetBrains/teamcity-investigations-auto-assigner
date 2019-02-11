@@ -48,5 +48,4 @@
         destroy-method="unregister"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.persistent.SuggestionsDao"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerResultsFilePath"/>
-  <bean class="jetbrains.buildServer.investigationsAutoAssigner.representation.BuildProblemTypesFetcher"/>
 </beans>
