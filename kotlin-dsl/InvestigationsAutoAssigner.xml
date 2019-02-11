@@ -25,17 +25,17 @@
     </param>
     <param name="ignoreBuildProblems.compilation" dslName="ignoreCompilationProblems">
       <description>
-        Whether investigation auto-assignment should ignore compilation build problems.
+        When 'true', compilation build problems are ignored.
       </description>
     </param>
     <param name="ignoreBuildProblems.exitCode" dslName="ignoreExitCodeProblems">
       <description>
-        Whether investigation auto-assignment should ignore exit code build problems.
+        When 'true', exit code build problems are ignored.
       </description>
     </param>
     <param name="delayAssignments.enabled" dslName="enableDelayAssignments">
       <description>
-        Whether investigations auto-assigner should use delayed assignment strategy.
+        Whether investigations auto-assigner should use "on second failure" strategy.
       </description>
     </param>
   </params>

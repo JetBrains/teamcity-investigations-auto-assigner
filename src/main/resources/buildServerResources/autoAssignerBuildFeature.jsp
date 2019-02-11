@@ -26,15 +26,15 @@
 <tr>
 <tr class="advancedSetting">
   <th>
-    <label for="<%= Constants.SHOULD_DELAY_ASSIGNMENTS%>">Assign strategy: </label>
+    <label for="<%= Constants.SHOULD_DELAY_ASSIGNMENTS%>">Assign: </label>
   </th>
   <td>
     <props:selectProperty name="${Constants.SHOULD_DELAY_ASSIGNMENTS}">
-      <props:option value="false">Immediate assignment</props:option>
-      <props:option value="true">Delayed assignment</props:option>
+      <props:option value="false">Immediately</props:option>
+      <props:option value="true">On second failure</props:option>
     </props:selectProperty>
-    <span class="smallNote">Strategy of investigations assignment. Immediate assignment - assigns investigations
-      right after they were found. Delayed assignment - assigns investigations after the problem appears for second time.</span>
+    <span class="smallNote">"On second failure" option prevents assignment for the flaky tests/problems as the assignment
+      is only done when the failure repeats for the second time in a row.</span>
   </td>
 </tr>
 
