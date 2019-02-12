@@ -83,7 +83,7 @@ public class FailedTestsFilterTest extends BaseTestCase {
 
     myTestsWrapper = Collections.singletonList(mySTestRun);
     when(mySBuild.getParametersProvider()).thenReturn(Mockito.mock(ParametersProvider.class));
-    myFailedBuildInfo = new FailedBuildInfo(mySBuild);
+    myFailedBuildInfo = new FailedBuildInfo(mySBuild, false);
     myFailedTestFilter = new FailedTestFilter(myFlakyTestDetector, myInvestigationsManager);
 
   }

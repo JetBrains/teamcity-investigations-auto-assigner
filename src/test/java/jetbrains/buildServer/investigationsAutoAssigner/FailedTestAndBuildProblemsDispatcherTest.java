@@ -17,10 +17,10 @@
 package jetbrains.buildServer.investigationsAutoAssigner;
 
 import java.util.Collections;
-import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.DelayedAssignmentsProcessor;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.FailedTestAndBuildProblemsProcessor;
+import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.EmailReporter;
 import jetbrains.buildServer.parameters.ParametersProvider;
 import jetbrains.buildServer.serverSide.*;
@@ -40,6 +40,7 @@ public class FailedTestAndBuildProblemsDispatcherTest {
   private ParametersProvider myParametersProvider;
   private BuildEx mySecondBuild;
   private SRunningBuild myRunningBuild;
+  private CustomParameters myCustomParameters;
   private DelayedAssignmentsProcessor myDelayedAssignmentsProcessor;
   private SBuildType mySBuildType;
 
@@ -87,9 +88,16 @@ public class FailedTestAndBuildProblemsDispatcherTest {
     myDelayedAssignmentsProcessor = mock(DelayedAssignmentsProcessor.class);
 
     EmailReporter emailReporter = mock(EmailReporter.class);
-    StatisticsReporter sr = mock(StatisticsReporter.class);
+    myCustomParameters = mock(CustomParameters.class);
+    StatisticsReporter statisticsReporter = mock(StatisticsReporter.class);
 
-    new FailedTestAndBuildProblemsDispatcher(myBsDispatcher, processor, myDelayedAssignmentsProcessor, emailReporter, sr);
+    new FailedTestAndBuildProblemsDispatcher(myBsDispatcher,
+                                             processor,
+                                             myDelayedAssignmentsProcessor,
+                                             emailReporter,
+                                             statisticsReporter,
+                                             myCustomParameters);
+
   }
 
   public void Test_BuildProblemsChanged_PersonalBuildFiltered() throws InterruptedException {
@@ -156,7 +164,7 @@ public class FailedTestAndBuildProblemsDispatcherTest {
   }
 
   private void verifyMarkOfPassBuildProblemsChanged(int expectedExecutions) {
-    verify(myParametersProvider, times(expectedExecutions)).get(Constants.SHOULD_DELAY_ASSIGNMENTS);
+    verify(myCustomParameters, times(expectedExecutions)).shouldDelayAssignments(any());
   }
 
   private void verifyMarkOfPassForBuildFinished(int expectedExecutions) {

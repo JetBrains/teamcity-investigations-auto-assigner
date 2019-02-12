@@ -17,7 +17,6 @@
 package jetbrains.buildServer.investigationsAutoAssigner.common;
 
 import jetbrains.buildServer.ArtifactsConstants;
-import jetbrains.buildServer.BuildProblemTypes;
 
 public class Constants {
   // Plugin's ids
@@ -27,9 +26,9 @@ public class Constants {
   // Build feature parameters
   public static final String DEFAULT_RESPONSIBLE = "defaultAssignee.username";
   public static final String USERS_TO_IGNORE = "excludeAssignees.usernames";
-
-  // Experimental configuration parameter
-  public static final String SHOULD_DELAY_ASSIGNMENTS = "teamcity.investigationsAutoAssigner.delayAssignments";
+  public static final String SHOULD_IGNORE_COMPILATION_PROBLEMS = "ignoreBuildProblems.compilation";
+  public static final String SHOULD_IGNORE_EXITCODE_PROBLEMS = "ignoreBuildProblems.exitCode";
+  public static final String SHOULD_DELAY_ASSIGNMENTS = "delayAssignments.enabled";
 
   // Build configuration parameter and internal property
   public static final String DEFAULT_SILENT_MODE_ENABLED = "teamcity.investigationsAutoAssigner.suggestions.enabledByDefault";
@@ -44,7 +43,6 @@ public class Constants {
   public static final String STATISTICS_ENABLED = "teamcity.investigationsAutoAssigner.statisticsEnabled";
 
   //Constants
-  public static final String TC_COMPILATION_ERROR_TYPE = BuildProblemTypes.TC_COMPILATION_ERROR_TYPE;
   public final static String TEAMCITY_DIRECTORY = ArtifactsConstants.TEAMCITY_ARTIFACTS_DIR;
   public final static String TEST_RUN_IN_REQUEST = "loadedTestRun";
   public final static int DEFAULT_TEST_COUNT_THRESHOLD = 100;

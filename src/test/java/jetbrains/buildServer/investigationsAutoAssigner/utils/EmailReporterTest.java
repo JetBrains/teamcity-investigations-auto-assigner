@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Arrays;
 import jetbrains.buildServer.BaseTestCase;
-import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
@@ -109,8 +108,7 @@ public class EmailReporterTest extends BaseTestCase {
     String testEmail = "test.mail.com";
     when(myCustomParameters.getEmailForEmailReporter()).thenReturn(testEmail);
     when(myWebLinks.getViewResultsUrl(mySBuildMock)).thenReturn(TEST_LINK_URL);
-    when(parametersProvider.get(Constants.SHOULD_DELAY_ASSIGNMENTS)).thenReturn("true");
-    myFailedBuildInfo = new FailedBuildInfo(mySBuildMock);
+    myFailedBuildInfo = new FailedBuildInfo(mySBuildMock, false);
     when(myStatisticsReporterMock.generateReport()).thenReturn(myStatisticReport);
 
     myEmailReporter = new EmailReporter(myMockedEmailSender, myWebLinks, myCustomParameters, myStatisticsReporterMock);

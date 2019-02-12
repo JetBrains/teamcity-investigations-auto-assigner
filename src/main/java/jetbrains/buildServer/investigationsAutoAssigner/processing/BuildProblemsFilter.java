@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.BuildProblemUtils;
+import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.InvestigationsManager;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
@@ -34,15 +35,17 @@ public class BuildProblemsFilter {
 
   private static final Logger LOGGER = Logger.getInstance(BuildProblemsFilter.class.getName());
   private final BuildProblemUtils myBuildProblemUtils;
+  private CustomParameters myCustomParameters;
   private InvestigationsManager myInvestigationsManager;
   private final Set<String> supportedTypes = Collections.unmodifiableSet(
     new HashSet<>(Arrays.asList(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE, BuildProblemTypes.TC_EXIT_CODE_TYPE)));
 
-
   public BuildProblemsFilter(@NotNull final InvestigationsManager investigationsManager,
-                             @NotNull final BuildProblemUtils buildProblemUtils) {
+                             @NotNull final BuildProblemUtils buildProblemUtils,
+                             @NotNull final CustomParameters customParameters) {
     myInvestigationsManager = investigationsManager;
     myBuildProblemUtils = buildProblemUtils;
+    myCustomParameters = customParameters;
   }
 
   List<BuildProblem> apply(final FailedBuildInfo failedBuildInfo,
@@ -83,15 +86,19 @@ public class BuildProblemsFilter {
                                @NotNull final SBuild sBuild,
                                @NotNull final BuildProblem problem) {
     String reason = null;
+    String buildProblemType = problem.getBuildProblemData().getType();
+
     if (problem.isMuted()) {
       reason = "is muted";
     } else if (!myBuildProblemUtils.isNew(problem)) {
       reason = "occurs not for the first time";
-    } else if (!supportedTypes.contains(problem.getBuildProblemData().getType())) {
+    } else if (!supportedTypes.contains(buildProblemType)) {
       reason = String.format("has an unsupported type %s. Supported types: %s",
                              problem.getBuildProblemData().getType(), supportedTypes);
     } else if (myInvestigationsManager.checkUnderInvestigation(project, sBuild, problem)) {
       reason = "is already under an investigation";
+    } else if (myCustomParameters.getBuildProblemTypesToIgnore(sBuild).contains(buildProblemType)) {
+      reason = "is among build problem types to ignore";
     }
 
     boolean isApplicable = reason == null;

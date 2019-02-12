@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import jetbrains.buildServer.BaseTestCase;
+import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SBuildFeatureDescriptor;
@@ -30,9 +31,12 @@ import org.testng.annotations.Test;
 @Test
 public class CustomParametersTest extends BaseTestCase {
 
+  private CustomParameters myCustomParameters;
+
   @BeforeMethod
   @Override
   protected void setUp() throws Exception {
+    myCustomParameters = new CustomParameters();
     super.setUp();
   }
 
@@ -70,5 +74,54 @@ public class CustomParametersTest extends BaseTestCase {
     params.put(Constants.USERS_TO_IGNORE, "username1\nusername2\nusername3");
     Mockito.when(sBuildFeatureDescriptor.getParameters()).thenReturn(params);
     assertListEquals(CustomParameters.getUsersToIgnore(sBuildMock), "username1", "username2", "username3");
+  }
+
+  @Test
+  public void testGetBuildProblemTypesToIgnoreNotSpecified() {
+    SBuild sBuildMock = Mockito.mock(SBuild.class);
+    Mockito.when(sBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE)).thenReturn(Collections.emptyList());
+    assertTrue(myCustomParameters.getBuildProblemTypesToIgnore(sBuildMock).isEmpty());
+
+    SBuildFeatureDescriptor sBuildFeatureDescriptor =
+      Mockito.mock(jetbrains.buildServer.serverSide.SBuildFeatureDescriptor.class);
+    Mockito.when(sBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE))
+           .thenReturn(Collections.singletonList(sBuildFeatureDescriptor));
+    Map<String, String> params = new HashMap<>();
+    params.put(Constants.SHOULD_IGNORE_EXITCODE_PROBLEMS, null);
+    params.put(Constants.SHOULD_IGNORE_COMPILATION_PROBLEMS, null);
+    Mockito.when(sBuildFeatureDescriptor.getParameters()).thenReturn(params);
+    assertTrue(myCustomParameters.getBuildProblemTypesToIgnore(sBuildMock).isEmpty());
+  }
+
+  @Test
+  public void testGetBuildProblemTypesToIgnoreOneSpecified() {
+    SBuild sBuildMock = Mockito.mock(SBuild.class);
+    SBuildFeatureDescriptor sBuildFeatureDescriptor =
+      Mockito.mock(jetbrains.buildServer.serverSide.SBuildFeatureDescriptor.class);
+    Mockito.when(sBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE))
+           .thenReturn(Collections.singletonList(sBuildFeatureDescriptor));
+    Map<String, String> params = new HashMap<>();
+    params.put(Constants.SHOULD_IGNORE_EXITCODE_PROBLEMS, "true");
+    Mockito.when(sBuildFeatureDescriptor.getParameters()).thenReturn(params);
+
+    assertListEquals(myCustomParameters.getBuildProblemTypesToIgnore(sBuildMock), BuildProblemTypes.TC_EXIT_CODE_TYPE);
+  }
+
+  @Test
+  public void testGetBuildProblemTypesToIgnoreTwoSpecified() {
+    SBuild sBuildMock = Mockito.mock(SBuild.class);
+    SBuildFeatureDescriptor sBuildFeatureDescriptor =
+      Mockito.mock(jetbrains.buildServer.serverSide.SBuildFeatureDescriptor.class);
+    Mockito.when(sBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE))
+           .thenReturn(Collections.singletonList(sBuildFeatureDescriptor));
+    Map<String, String> params = new HashMap<>();
+    params.put(Constants.SHOULD_IGNORE_EXITCODE_PROBLEMS, "true");
+    params.put(Constants.SHOULD_IGNORE_COMPILATION_PROBLEMS, "true");
+
+    Mockito.when(sBuildFeatureDescriptor.getParameters()).thenReturn(params);
+
+    assertListEquals(myCustomParameters.getBuildProblemTypesToIgnore(sBuildMock),
+                     BuildProblemTypes.TC_COMPILATION_ERROR_TYPE,
+                     BuildProblemTypes.TC_EXIT_CODE_TYPE);
   }
 }

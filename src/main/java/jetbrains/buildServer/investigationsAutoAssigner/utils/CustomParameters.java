@@ -18,6 +18,7 @@ package jetbrains.buildServer.investigationsAutoAssigner.utils;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SBuildFeatureDescriptor;
@@ -101,9 +102,14 @@ public class CustomParameters {
     return parsedValue >= 0 ? parsedValue : Integer.MAX_VALUE;
   }
 
-  public static boolean shouldDelayAssignments(final SBuild sBuild) {
+  public boolean shouldDelayAssignments(final SBuild sBuild) {
+    final SBuildFeatureDescriptor sBuildFeature = getBuildFeatureDescriptor(sBuild);
+    if (sBuildFeature == null) {
+      return false;
+    }
+
     @Nullable
-    String shouldDelayAssignments = sBuild.getParametersProvider().get(Constants.SHOULD_DELAY_ASSIGNMENTS);
+    String shouldDelayAssignments = sBuildFeature.getParameters().get(Constants.SHOULD_DELAY_ASSIGNMENTS);
     return StringUtil.isTrue(shouldDelayAssignments);
   }
 
@@ -128,5 +134,30 @@ public class CustomParameters {
     }
 
     return Boolean.valueOf(TeamCityProperties.getProperty(Constants.ENABLE_FEATURE_BRANCHES_SUPPORT, "false"));
+  }
+
+  @NotNull
+  public List<String> getBuildProblemTypesToIgnore(final SBuild sBuild) {
+    final SBuildFeatureDescriptor sBuildFeature = getBuildFeatureDescriptor(sBuild);
+    if (sBuildFeature == null) {
+      return Collections.emptyList();
+    }
+
+    boolean shouldIgnoreCompilation = "true".equals(sBuildFeature.getParameters().get(Constants.SHOULD_IGNORE_COMPILATION_PROBLEMS));
+    boolean shouldIgnoreExitCode = "true".equals(sBuildFeature.getParameters().get(Constants.SHOULD_IGNORE_EXITCODE_PROBLEMS));
+
+    if (shouldIgnoreExitCode || shouldIgnoreCompilation) {
+      ArrayList<String> result = new ArrayList<>();
+      if (shouldIgnoreCompilation) {
+        result.add(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE);
+      }
+      if (shouldIgnoreExitCode) {
+        result.add(BuildProblemTypes.TC_EXIT_CODE_TYPE);
+      }
+
+      return result;
+    }
+
+    return Collections.emptyList();
   }
 }

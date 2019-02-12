@@ -23,5 +23,20 @@
         The newline-separated list of usernames to exclude from investigation auto-assignment.
       </description>
     </param>
+    <param name="ignoreBuildProblems.compilation" dslName="ignoreCompilationProblems">
+      <description>
+        When 'true', compilation build problems are ignored.
+      </description>
+    </param>
+    <param name="ignoreBuildProblems.exitCode" dslName="ignoreExitCodeProblems">
+      <description>
+        When 'true', exit code build problems are ignored.
+      </description>
+    </param>
+    <param name="delayAssignments.enabled" dslName="enableDelayAssignments">
+      <description>
+        Whether investigations auto-assigner should use "on second failure" strategy.
+      </description>
+    </param>
   </params>
 </dsl-extension>

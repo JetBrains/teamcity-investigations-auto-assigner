@@ -60,7 +60,8 @@ public class FailedTestAndBuildProblemsDispatcher {
                                               @NotNull final FailedTestAndBuildProblemsProcessor processor,
                                               @NotNull final DelayedAssignmentsProcessor delayedAssignmentsProcessor,
                                               @NotNull final EmailReporter emailReporter,
-                                              @NotNull final StatisticsReporter statisticsReporter) {
+                                              @NotNull final StatisticsReporter statisticsReporter,
+                                              @NotNull final CustomParameters customParameters) {
     myProcessor = processor;
     myDelayedAssignmentsProcessor = delayedAssignmentsProcessor;
     myEmailReporter = emailReporter;
@@ -79,8 +80,8 @@ public class FailedTestAndBuildProblemsDispatcher {
         if (myFailedBuilds.containsKey(sBuild.getBuildId()) || shouldIgnore(sBuild) || !(sBuild instanceof BuildEx)) {
           return;
         }
-
-        myFailedBuilds.put(sBuild.getBuildId(), new FailedBuildInfo(sBuild));
+        boolean shouldDelayAssignments = customParameters.shouldDelayAssignments(sBuild);
+        myFailedBuilds.put(sBuild.getBuildId(), new FailedBuildInfo(sBuild, shouldDelayAssignments));
       }
 
       @Override

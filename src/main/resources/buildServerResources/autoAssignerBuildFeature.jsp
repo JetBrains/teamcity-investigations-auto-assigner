@@ -24,7 +24,21 @@
   </td>
 </tr>
 <tr>
+<tr class="advancedSetting">
   <th>
+    <label for="<%= Constants.SHOULD_DELAY_ASSIGNMENTS%>">Assign: </label>
+  </th>
+  <td>
+    <props:selectProperty name="${Constants.SHOULD_DELAY_ASSIGNMENTS}">
+      <props:option value="false">Immediately</props:option>
+      <props:option value="true">On second failure</props:option>
+    </props:selectProperty>
+    <span class="smallNote">"On second failure" option prevents assignment for the flaky tests/problems as the assignment
+      is only done when the failure repeats for the second time in a row.</span>
+  </td>
+</tr>
+
+<th>
     <label for="<%= Constants.DEFAULT_RESPONSIBLE%>">Default assignee:</label>
   </th>
   <td>
@@ -39,6 +53,18 @@
   <td>
     <props:multilineProperty name="<%= Constants.USERS_TO_IGNORE%>" cols="58" rows="6" linkTitle="Edit users to ignore"
                              expanded="true" className="longField"/>
-    <span class="smallNote">The newline-separated list of usernames to exclude from investigation auto-assignment.</span>
+    <span class="smallNote">The newline-separated list of usernames to exclude from investigations auto-assignment.</span>
   </td>
+</tr>
+<tr class="advancedSetting">
+  <th>
+    <label>Build problems to ignore:</label>
+  </th>
+  <td>
+    <props:checkboxProperty name="<%= Constants.SHOULD_IGNORE_COMPILATION_PROBLEMS%>"/>
+      <label for="<%= Constants.SHOULD_IGNORE_COMPILATION_PROBLEMS%>">Compilation error build problems</label>
+      <br/>
+    <props:checkboxProperty name="<%=Constants.SHOULD_IGNORE_EXITCODE_PROBLEMS%>"/>
+      <label for="<%=Constants.SHOULD_IGNORE_EXITCODE_PROBLEMS%>">Exit code build problems</label>
+      <span class="smallNote">Type of build problems to ignore in investigations auto-assignment.</span>
 </tr>
