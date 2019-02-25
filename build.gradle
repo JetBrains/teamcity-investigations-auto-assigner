@@ -22,7 +22,7 @@ project.plugins.withType(JavaPlugin) {
 }
 
 repositories {
-  maven { url "http://download.jetbrains.com/teamcity-repository" }
+  maven { url "https://download.jetbrains.com/teamcity-repository" }
   mavenCentral()
   mavenLocal()
 }
@@ -54,7 +54,7 @@ teamcity {
       displayName = 'Investigations Auto-Assigner'
       version = project.version
       vendorName = 'JetBrains, s.r.o.'
-      vendorUrl = 'http://www.jetbrains.com/'
+      vendorUrl = 'https://www.jetbrains.com/'
       description = 'Executes auto assigning investigations according to a set of rules.'
 
       useSeparateClassloader = true
