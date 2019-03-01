@@ -26,7 +26,7 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.ProblemTextExtractor;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
-import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.util.FileUtil;
 import jetbrains.buildServer.vcs.SVcsModification;
 import jetbrains.buildServer.vcs.SelectPrevBuildPolicy;
@@ -67,18 +67,18 @@ public class BrokenFileHeuristic implements Heuristic {
                                                                           .collect(Collectors.toList());
     for (STestRun sTestRun : heuristicContext.getTestRuns()) {
       String problemText = myProblemTextExtractor.getBuildProblemText(sTestRun);
-      Responsibility responsibility =
-        findResponsibleUser(vcsChanges, sBuild, problemText, heuristicContext.getUserFilter());
-      if (responsibility != null)
+      Responsibility responsibility = findResponsibleUser(vcsChanges, problemText, heuristicContext);
+      if (responsibility != null) {
         result.addResponsibility(sTestRun, responsibility);
+      }
     }
 
     for (BuildProblem buildProblem : heuristicContext.getBuildProblems()) {
       String problemText = myProblemTextExtractor.getBuildProblemText(buildProblem, sBuild);
-      Responsibility responsibility =
-        findResponsibleUser(vcsChanges, sBuild, problemText, heuristicContext.getUserFilter());
-      if (responsibility != null)
+      Responsibility responsibility = findResponsibleUser(vcsChanges, problemText, heuristicContext);
+      if (responsibility != null) {
         result.addResponsibility(buildProblem, responsibility);
+      }
     }
 
     return result;
@@ -86,28 +86,28 @@ public class BrokenFileHeuristic implements Heuristic {
 
   @Nullable
   private Responsibility findResponsibleUser(List<SVcsModification> vcsChanges,
-                                             SBuild sBuild,
                                              String problemText,
-                                             List<String> usernamesBlackList) {
-    SUser responsibleUser = null;
+                                             HeuristicContext heuristicContext) {
+    User responsibleUser = null;
     String brokenFile = null;
     for (SVcsModification vcsChange : vcsChanges) {
-      final String foundBrokenFile = findBrokenFile(vcsChange, problemText);
+      //TODO: Pair<User, String> tt = getBroken();
+      //if tt == null -> continue;
+      //if tt.first != onlyCommitter -> return
+      final String foundBrokenFile = findBrokenFile(vcsChange, problemText); //TODO: vcsChangeWrapper.getBrokenFile(problemText)
       if (foundBrokenFile == null) continue;
 
-      final Collection<SUser> changeCommitters = vcsChange.getCommitters()
-                                                          .stream()
-                                                          .filter(user->!usernamesBlackList.contains(user.getUsername()))
-                                                          .collect(Collectors.toList());
-      if (changeCommitters.size() == 0) continue;
-      if (changeCommitters.size() > 1) return null;
+      List<User> knownCommitters = getKnownCommitters(vcsChange, heuristicContext.getUserFilter());
 
-      final SUser foundResponsibleUser = changeCommitters.iterator().next();
-      if (responsibleUser != null && !responsibleUser.equals(foundResponsibleUser)) {
-        LOGGER.debug(String.format("Build %s: There are more than one committer since last build",
-                                   sBuild.getBuildId()));
+      if (shouldSkip(vcsChange, knownCommitters)) { //TODO: vcsChangeWrapper.shouldSkip() - cache knownCommitters
+        continue;
+      }
+
+      User foundResponsibleUser = findOrNull(knownCommitters, heuristicContext.getBuild(), responsibleUser);
+      if (foundResponsibleUser == null) { //TODO: vcsChangeWrapper.shouldReturn() - cache knownCommitters if needed
         return null;
       }
+
       responsibleUser = foundResponsibleUser;
       brokenFile = foundBrokenFile;
     }
@@ -116,6 +116,35 @@ public class BrokenFileHeuristic implements Heuristic {
 
     String description = String.format("changed the suspicious file \"%s\" which probably broke the build", brokenFile);
     return new Responsibility(responsibleUser, description);
+  }
+
+  private List<User> getKnownCommitters(final SVcsModification vcsChange, final List<String> usersToIgnore) {
+    return vcsChange.getCommitters()
+                    .stream()
+                    .filter(user -> !usersToIgnore.contains(user.getUsername()))
+                    .collect(Collectors.toList());
+  }
+
+  private boolean shouldSkip(final SVcsModification vcsChange, final List<User> knownCommitters) {
+    return knownCommitters.size() == 0 && vcsChange.getUserName() == null;
+  }
+
+  @Nullable
+  private User findOrNull(List<User> knownCommitters, SBuild build, User previouslyFound) {
+    if (knownCommitters.size() == 0) {
+      LOGGER.debug(String.format("There are at least one unknown for TeamCity user for failed build #%s",
+                                 build.getBuildId()));
+      return null;
+    }
+
+    User probableResponsible = knownCommitters.get(0);
+    if (knownCommitters.size() > 1 ||
+        (previouslyFound != null && !previouslyFound.equals(probableResponsible))) {
+      LOGGER.debug(String.format("There are more than one committers for failed build #%s", build.getBuildId()));
+      return null;
+    }
+
+    return probableResponsible;
   }
 
   @Nullable
@@ -134,6 +163,7 @@ public class BrokenFileHeuristic implements Heuristic {
   /**
    * This method is required to separate path1/path2/fileName with path3/path4/fileName.
    * Also it allows to handle different separators. Currently supported: '.','/','\' separators.
+   *
    * @param filePath - filePath of the modification
    * @return various combination of fileName and its parents(up to 2th level) with separators.
    */

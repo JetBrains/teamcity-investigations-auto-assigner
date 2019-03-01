@@ -17,6 +17,8 @@
 package jetbrains.buildServer.investigationsAutoAssigner.heuristics;
 
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -24,9 +26,11 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
 import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.users.SUser;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.users.UserModelEx;
 import jetbrains.buildServer.vcs.Modification;
+import jetbrains.buildServer.vcs.SVcsModification;
 import jetbrains.buildServer.vcs.SelectPrevBuildPolicy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -48,9 +52,8 @@ public class OneCommitterHeuristic implements Heuristic {
   @Override
   public HeuristicResult findResponsibleUser(@NotNull HeuristicContext heuristicContext) {
     HeuristicResult result = new HeuristicResult();
-    final Set<String> usernames = getCommitterUsernames(heuristicContext);
+    @Nullable User responsible = getOnlyKnownCommitterOrNull(heuristicContext);
 
-    @Nullable final User responsible = getOnlyUserOrNull(usernames, heuristicContext.getBuild());
     if (responsible != null) {
       Responsibility responsibility = new Responsibility(responsible, "was the only committer to the build");
       heuristicContext.getTestRuns().forEach(sTestRun -> result.addResponsibility(sTestRun, responsibility));
@@ -61,38 +64,39 @@ public class OneCommitterHeuristic implements Heuristic {
     return result;
   }
 
-  @NotNull
-  private Set<String> getCommitterUsernames(@NotNull HeuristicContext heuristicContext) {
-    SBuild build = heuristicContext.getBuild();
-
-    final SelectPrevBuildPolicy selectPrevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
-    return build.getChanges(selectPrevBuildPolicy, true)
-                .stream().map(Modification::getUserName)
-                .filter(Objects::nonNull)
-                .filter(userName -> !heuristicContext.getUserFilter().contains(userName))
-                .collect(Collectors.toSet());
-  }
-
   @Nullable
-  private User getOnlyUserOrNull(final Set<String> usernames, SBuild build) {
-    if (usernames.isEmpty()) {
-      LOGGER.debug("There are no committers since last build for failed build #" + build.getBuildId());
-      return null;
-    }
-    if (usernames.size() > 1) {
-      LOGGER.debug(String.format("There are more than one committer (total: %d) since last build for failed build #%s",
-                                 usernames.size(), build.getBuildId()));
-      return null;
+  private SUser getOnlyKnownCommitterOrNull(@NotNull HeuristicContext heuristicContext) {
+    SBuild build = heuristicContext.getBuild();
+    SUser onlyCommitter = null;
+    final SelectPrevBuildPolicy selectPrevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
+    for (SVcsModification vcsChange : build.getChanges(selectPrevBuildPolicy, true)) {
+      Collection<SUser> knownCommitters = vcsChange.getCommitters();
+      if (knownCommitters.size() == 0 && vcsChange.getUserName() != null) {
+        LOGGER.debug(String.format("There are at least one unknown for TeamCity user with vcs name '%s' " +
+                                   "for failed build #%s", vcsChange.getUserName(), build.getBuildId()));
+        return null;
+      }
+
+      if (knownCommitters.size() > 1) {
+        LOGGER.debug(String.format("There are more than one committer since last build for failed build #%s",
+                                   build.getBuildId()));
+        return null;
+      }
+
+      SUser probableResponsible = knownCommitters.iterator().next();
+      if (heuristicContext.getUserFilter().contains(probableResponsible.getUsername())) {
+        continue;
+      }
+
+      if (onlyCommitter != null && !onlyCommitter.equals(probableResponsible)) {
+        LOGGER.debug(String.format("There are more than one committer since last build for failed build #%s",
+                                   build.getBuildId()));
+        return null;
+      }
+
+      onlyCommitter = probableResponsible;
     }
 
-    String username = usernames.iterator().next();
-    @Nullable
-    User responsible = myUserModel.findUserAccount(null, username);
-    if (responsible == null) {
-      LOGGER.debug(String.format("Changes from Unknown TeamCity user '%s' in build #%s", username, build.getBuildId()));
-      return null;
-    }
-
-    return responsible;
+    return onlyCommitter;
   }
 }
