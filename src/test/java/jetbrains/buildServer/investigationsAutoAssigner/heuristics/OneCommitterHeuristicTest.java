@@ -16,17 +16,19 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.heuristics;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.List;
 import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STestRun;
-import jetbrains.buildServer.users.SUser;
-import jetbrains.buildServer.users.UserSet;
+import jetbrains.buildServer.users.UserModelEx;
+import jetbrains.buildServer.users.impl.UserEx;
+import jetbrains.buildServer.vcs.SVcsModification;
 import jetbrains.buildServer.vcs.SelectPrevBuildPolicy;
 import org.mockito.Mockito;
 import org.testng.Assert;
@@ -39,47 +41,63 @@ import static org.mockito.Mockito.when;
 public class OneCommitterHeuristicTest extends BaseTestCase {
 
   private OneCommitterHeuristic myHeuristic;
-  private UserSet<SUser> myUserSetMock;
-  private SUser myFirstUser;
-  private SUser mySecondUser;
+  private UserEx myFirstUser;
+  private UserEx mySecondUser;
   private STestRun mySTestRun;
   private HeuristicContext myHeuristicContext;
-  private SProject mySProject;
   private SBuild mySBuild;
+  private List<SVcsModification> myChanges;
+  private UserModelEx myUserModelEx;
+  private SVcsModification myMod1;
+  private SVcsModification myMod2;
 
   @BeforeMethod
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myHeuristic = new OneCommitterHeuristic();
+    myUserModelEx = Mockito.mock(UserModelEx.class);
+    myHeuristic = new OneCommitterHeuristic(myUserModelEx);
     mySBuild = Mockito.mock(SBuild.class);
-    mySProject = Mockito.mock(SProject.class);
 
-    myUserSetMock = Mockito.mock(UserSet.class);
-    myFirstUser = Mockito.mock(SUser.class);
-    mySecondUser = Mockito.mock(SUser.class);
-    when(mySBuild.getCommitters(SelectPrevBuildPolicy.SINCE_LAST_BUILD)).thenReturn(myUserSetMock);
+    String firstUserUsername = "myFirstUser";
+    myFirstUser = Mockito.mock(UserEx.class);
+    myMod1 = Mockito.mock(SVcsModification.class);
+    when(myFirstUser.getUsername()).thenReturn(firstUserUsername);
+    when(myMod1.getUserName()).thenReturn("myFirstUser");
+    when(myUserModelEx.findUserAccount(null, myFirstUser.getUsername())).thenReturn(myFirstUser);
+
+
+    String secondUserUsername = "mySecondUser";
+    mySecondUser = Mockito.mock(UserEx.class);
+    myMod2 = Mockito.mock(SVcsModification.class);
+    when(mySecondUser.getUsername()).thenReturn(secondUserUsername);
+    when(myMod2.getUserName()).thenReturn(secondUserUsername);
+    when(myUserModelEx.findUserAccount(null, mySecondUser.getUsername())).thenReturn(mySecondUser);
+
+    myChanges = new ArrayList<>();
+    when(mySBuild.getChanges(SelectPrevBuildPolicy.SINCE_LAST_BUILD, true))
+      .thenReturn(myChanges);
     mySTestRun = Mockito.mock(STestRun.class);
     myHeuristicContext = new HeuristicContext(mySBuild,
-                                              mySProject,
+                                              Mockito.mock(SProject.class),
                                               Collections.emptyList(),
                                               Collections.singletonList(mySTestRun),
                                               Collections.emptyList());
-    when(myFirstUser.getUsername()).thenReturn("myFirstUser");
-    when(mySecondUser.getUsername()).thenReturn("mySecondUser");
   }
 
   public void TestWithOneResponsible() {
-    when(myUserSetMock.getUsers()).thenReturn(new HashSet<>(Collections.singletonList(myFirstUser)));
+    myChanges.add(myMod1);
+
     HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
+    Responsibility responsibility = heuristicResult.getResponsibility(mySTestRun);
 
     Assert.assertFalse(heuristicResult.isEmpty());
-    Assert.assertNotNull(heuristicResult.getResponsibility(mySTestRun));
-    Assert.assertEquals(heuristicResult.getResponsibility(mySTestRun).getUser(), myFirstUser);
+    Assert.assertNotNull(responsibility);
+    Assert.assertEquals(responsibility.getUser(), myFirstUser);
   }
 
   public void TestWithoutResponsible() {
-    when(myUserSetMock.getUsers()).thenReturn(new HashSet<>());
+    assert myChanges.isEmpty();
 
     HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 
@@ -87,22 +105,39 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
   }
 
   public void TestWithManyResponsible() {
-    when(myUserSetMock.getUsers()).thenReturn(new HashSet<>(Arrays.asList(myFirstUser, mySecondUser)));
+    myChanges.add(myMod1);
+    myChanges.add(myMod2);
 
     HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 
     Assert.assertTrue(heuristicResult.isEmpty());
   }
 
-  public void TestWhiteList() {
-    when(myUserSetMock.getUsers()).thenReturn(new HashSet<>(Arrays.asList(myFirstUser, mySecondUser)));
+  public void TestUsersToIgnore() {
+    myChanges.add(myMod1);
+    myChanges.add(myMod2);
+
     HeuristicContext hc = new HeuristicContext(mySBuild,
-                                               mySProject,
+                                               Mockito.mock(SProject.class),
                                                Collections.emptyList(),
                                                Collections.singletonList(mySTestRun),
                                                Collections.singletonList(myFirstUser.getUsername()));
     HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(hc);
+    Responsibility responsibility = heuristicResult.getResponsibility(mySTestRun);
 
     Assert.assertFalse(heuristicResult.isEmpty());
+    Assert.assertNotNull(responsibility);
+    Assert.assertEquals(responsibility.getUser(), mySecondUser);
+  }
+
+  public void TestUnknownUser() {
+    myChanges.add(myMod1);
+    myChanges.add(myMod2);
+    when(myMod2.getUserName()).thenReturn("myUnknownUser");
+    when(myUserModelEx.findUserAccount(null, "myUnknownUser")).thenReturn(null);
+
+    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
+
+    Assert.assertTrue(heuristicResult.isEmpty());
   }
 }
