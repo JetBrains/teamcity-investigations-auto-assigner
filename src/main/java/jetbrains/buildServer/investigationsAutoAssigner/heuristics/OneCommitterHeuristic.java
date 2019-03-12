@@ -20,6 +20,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
+import jetbrains.buildServer.investigationsAutoAssigner.processing.VcsChangeWrapperFactory;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.vcs.SVcsModification;

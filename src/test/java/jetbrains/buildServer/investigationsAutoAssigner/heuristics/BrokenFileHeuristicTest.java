@@ -23,6 +23,7 @@ import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
+import jetbrains.buildServer.investigationsAutoAssigner.processing.VcsChangeWrapperFactory;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.ProblemTextExtractor;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.users.SUser;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package jetbrains.buildServer.investigationsAutoAssigner.heuristics;
+package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
 import com.intellij.openapi.util.Pair;
 import java.io.File;
@@ -40,11 +40,11 @@ import static com.intellij.openapi.util.text.StringUtil.join;
 public class VcsChangeWrapperFactory {
   private static final int TOO_SMALL_PATTERN_THRESHOLD = 15;
 
-  VcsChangeWrapper wrap(SVcsModification vcsChange) {
+  public VcsChangeWrapper wrap(SVcsModification vcsChange) {
     return new VcsChangeWrapper(vcsChange);
   }
 
-  class VcsChangeWrapper {
+  public class VcsChangeWrapper {
     private SVcsModification myVcsChange;
 
     private VcsChangeWrapper(SVcsModification vcsChange) {
@@ -52,7 +52,7 @@ public class VcsChangeWrapperFactory {
     }
 
     @Nullable
-    Pair<User, String> findProblematicFile(String problemText, List<String> usersToIgnore)
+    public Pair<User, String> findProblematicFile(String problemText, List<String> usersToIgnore)
       throws IllegalStateException {
       String filePath = findBrokenFile(myVcsChange, problemText);
       if (filePath == null) {
@@ -70,7 +70,7 @@ public class VcsChangeWrapperFactory {
     }
 
     @Nullable
-    User getOnlyCommitter(List<String> usersToIgnore) throws IllegalStateException {
+    public User getOnlyCommitter(List<String> usersToIgnore) throws IllegalStateException {
       Collection<SUser> committers = myVcsChange.getCommitters();
       if (committers.size() == 0) {
         throw new IllegalStateException("There are at least one unknown for TeamCity user");
