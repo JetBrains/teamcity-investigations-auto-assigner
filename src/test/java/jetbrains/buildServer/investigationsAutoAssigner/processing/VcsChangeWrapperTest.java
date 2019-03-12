@@ -16,12 +16,14 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
+import com.intellij.openapi.util.Pair;
 import java.util.Arrays;
 import java.util.Collections;
 import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.users.impl.UserEx;
 import jetbrains.buildServer.vcs.SVcsModification;
+import jetbrains.buildServer.vcs.VcsFileModification;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -36,28 +38,32 @@ public class VcsChangeWrapperTest extends BaseTestCase {
   private UserEx mySecondUser;
   private SVcsModification myMod;
   private VcsChangeWrapperFactory.VcsChangeWrapper myWrappedVcsChange;
+  private String myFilePath =  "./path1/path1/path1/filename";
 
   @BeforeMethod
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    VcsChangeWrapperFactory vcsChangeWrapperFactory = new VcsChangeWrapperFactory();
-    
+
     String firstUserUsername = "myFirstUser";
     myFirstUser = Mockito.mock(UserEx.class);
-    myMod = Mockito.mock(SVcsModification.class);
-    myWrappedVcsChange = vcsChangeWrapperFactory.wrap(myMod);
-
     when(myFirstUser.getUsername()).thenReturn(firstUserUsername);
-    when(myMod.getCommitters()).thenReturn(Collections.singletonList(myFirstUser));
 
     String secondUserUsername = "mySecondUser";
     mySecondUser = Mockito.mock(UserEx.class);
     when(mySecondUser.getUsername()).thenReturn(secondUserUsername);
 
+    VcsFileModification changeMod = Mockito.mock(VcsFileModification.class);
+    when(changeMod.getRelativeFileName()).thenReturn(myFilePath);
+    myMod = Mockito.mock(SVcsModification.class);
+    when(myMod.getCommitters()).thenReturn(Collections.singletonList(myFirstUser));
+    when(myMod.getChanges()).thenReturn(Collections.singletonList(changeMod));
+
+    VcsChangeWrapperFactory vcsChangeWrapperFactory = new VcsChangeWrapperFactory();
+    myWrappedVcsChange = vcsChangeWrapperFactory.wrap(myMod);
   }
 
-  public void TestWithOneResponsible() {
+  public void TestGetOnlyCommitter_OneResponsible() {
     when(myMod.getCommitters()).thenReturn(Collections.singletonList(myFirstUser));
     User user = myWrappedVcsChange.getOnlyCommitter(Collections.emptyList());
 
@@ -65,19 +71,90 @@ public class VcsChangeWrapperTest extends BaseTestCase {
     Assert.assertEquals(user, myFirstUser);
   }
 
+  public void TestBrokenFile_CorrectCase() {
+    String problematicText = "I contain " + myFilePath;
+    Pair<User, String> result = myWrappedVcsChange.findProblematicFile(problematicText, Collections.emptyList());
+    Assert.assertNotNull(result);
+    Assert.assertEquals(result.first, myFirstUser);
+    Assert.assertEquals(result.second, myFilePath);
+  }
+
+  public void TestBrokenFile_GitIgnoreCase() {
+    String problematicText = "I contain ./no/file/here";
+    VcsFileModification mod = Mockito.mock(VcsFileModification.class);
+    when(myMod.getChanges()).thenReturn(Collections.singletonList(mod));
+    when(mod.getRelativeFileName()).thenReturn(".gitignore");
+
+    Pair<User, String> result = myWrappedVcsChange.findProblematicFile(problematicText, Collections.emptyList());
+
+    Assert.assertNull(result);
+  }
+
   @Test(expectedExceptions = IllegalStateException.class)
-  public void TestUnknownUser() {
+  public void TestBrokenFile_ManyCommitters() {
+    String problematicText = "I contain " + myFilePath;
+
+    when(myMod.getCommitters()).thenReturn(Arrays.asList(myFirstUser, mySecondUser));
+
+    myWrappedVcsChange.findProblematicFile(problematicText, Collections.emptyList());
+  }
+
+  public void TestBrokenFile_UsersToIgnore() {
+    String problematicText = "I contain " + myFilePath;
+
+    when(myMod.getCommitters()).thenReturn(Arrays.asList(myFirstUser, mySecondUser));
+
+    Pair<User, String> result = myWrappedVcsChange.findProblematicFile(problematicText, Collections.singletonList(mySecondUser.getUsername()));
+
+    Assert.assertNotNull(result);
+    Assert.assertEquals(result.first, myFirstUser);
+    Assert.assertEquals(result.second, "./path1/path1/path1/filename");
+  }
+
+  public void TestBrokenFile_SmallFilePaths() {
+    String problematicText = "I contain any/other/build/path";
+
+    VcsFileModification mod = Mockito.mock(VcsFileModification.class);
+    when(myMod.getChanges()).thenReturn(Collections.singletonList(mod));
+    when(mod.getRelativeFileName()).thenReturn("build.gradle");
+
+    Pair<User, String> result = myWrappedVcsChange.findProblematicFile(problematicText, Collections.emptyList());
+    Assert.assertNull(result);
+  }
+
+  public void TestBrokenFile_SmallFilePaths2() {
+    String problematicText = "I contain ./any/hmbrm/build.gradle";
+
+    VcsFileModification mod = Mockito.mock(VcsFileModification.class);
+    when(myMod.getChanges()).thenReturn(Collections.singletonList(mod));
+    when(mod.getRelativeFileName()).thenReturn("build.gradle");
+
+    Pair<User, String> result = myWrappedVcsChange.findProblematicFile(problematicText, Collections.emptyList());
+    Assert.assertNotNull(result);
+  }
+
+  @Test(expectedExceptions = IllegalStateException.class)
+  public void TestGetOnlyCommitter_UnknownVcsUsername() {
     when(myMod.getCommitters()).thenReturn(Collections.emptyList());
     myWrappedVcsChange.getOnlyCommitter(Collections.emptyList());
   }
 
   @Test(expectedExceptions = IllegalStateException.class)
-  public void TestWithManyResponsible() {
+  public void TestBrokenFile_UnknownVcsUsername() {
+    when(myMod.getCommitters()).thenReturn(Collections.emptyList());
+    VcsFileModification mod = Mockito.mock(VcsFileModification.class);
+    when(myMod.getChanges()).thenReturn(Collections.singletonList(mod));
+    when(mod.getRelativeFileName()).thenReturn("file.path");
+    myWrappedVcsChange.findProblematicFile("any file.path", Collections.emptyList());
+  }
+
+  @Test(expectedExceptions = IllegalStateException.class)
+  public void TestGetOnlyCommitter_ManyResponsible() {
     when(myMod.getCommitters()).thenReturn(Arrays.asList(myFirstUser, mySecondUser));
     myWrappedVcsChange.getOnlyCommitter(Collections.emptyList());
   }
 
-  public void TestUsersToIgnore() {
+  public void TestGetOnlyCommitter_UsersToIgnore() {
     when(myMod.getCommitters()).thenReturn(Collections.singletonList(myFirstUser));
     User user = myWrappedVcsChange.getOnlyCommitter(Collections.singletonList(myFirstUser.getUsername()));
 
