@@ -59,7 +59,7 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     myProblemTextExtractor = Mockito.mock(ProblemTextExtractor.class);
-    myHeuristic = new BrokenFileHeuristic(myProblemTextExtractor);
+    myHeuristic = new BrokenFileHeuristic(myProblemTextExtractor, new VcsChangeWrapperFactory());
     mySBuild = Mockito.mock(jetbrains.buildServer.serverSide.SBuild.class);
     mySProject = Mockito.mock(jetbrains.buildServer.serverSide.SProject.class);
     myUser = Mockito.mock(SUser.class);

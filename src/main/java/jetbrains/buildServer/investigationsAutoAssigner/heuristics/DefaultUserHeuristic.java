@@ -46,6 +46,7 @@ public class DefaultUserHeuristic implements Heuristic {
     return "Default User Heuristic";
   }
 
+  @NotNull
   @Override
   public HeuristicResult findResponsibleUser(@NotNull HeuristicContext heuristicContext) {
     HeuristicResult result = new HeuristicResult();

@@ -17,33 +17,32 @@
 package jetbrains.buildServer.investigationsAutoAssigner.heuristics;
 
 import com.intellij.openapi.diagnostic.Logger;
-import java.io.File;
-import java.util.*;
+import com.intellij.openapi.util.Pair;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
-import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
+import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.ProblemTextExtractor;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.users.User;
-import jetbrains.buildServer.util.FileUtil;
 import jetbrains.buildServer.vcs.SVcsModification;
 import jetbrains.buildServer.vcs.SelectPrevBuildPolicy;
-import jetbrains.buildServer.vcs.VcsFileModification;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import static com.intellij.openapi.util.text.StringUtil.join;
 
 public class BrokenFileHeuristic implements Heuristic {
 
   private static final Logger LOGGER = Logger.getInstance(BrokenFileHeuristic.class.getName());
-  private static final int SMALL_PATTERN_THRESHOLD = 15;
   private final ProblemTextExtractor myProblemTextExtractor;
+  private VcsChangeWrapperFactory myVcsChangeWrapperFactory;
 
-  public BrokenFileHeuristic(ProblemTextExtractor problemTextExtractor) {
+  public BrokenFileHeuristic(ProblemTextExtractor problemTextExtractor,
+                             VcsChangeWrapperFactory vcsChangeWrapperFactory) {
     myProblemTextExtractor = problemTextExtractor;
+    myVcsChangeWrapperFactory = vcsChangeWrapperFactory;
   }
 
   @Override
@@ -52,6 +51,7 @@ public class BrokenFileHeuristic implements Heuristic {
     return "Detect Broken File Heuristic";
   }
 
+  @NotNull
   public HeuristicResult findResponsibleUser(@NotNull HeuristicContext heuristicContext) {
     HeuristicResult result = new HeuristicResult();
     SBuild sBuild = heuristicContext.getBuild();
@@ -88,123 +88,35 @@ public class BrokenFileHeuristic implements Heuristic {
   private Responsibility findResponsibleUser(List<SVcsModification> vcsChanges,
                                              String problemText,
                                              HeuristicContext heuristicContext) {
-    User responsibleUser = null;
-    String brokenFile = null;
+    Pair<User, String> foundBrokenFile = null;
     for (SVcsModification vcsChange : vcsChanges) {
-      //TODO: Pair<User, String> tt = getBroken();
-      //if tt == null -> continue;
-      //if tt.first != onlyCommitter -> return
-      final String foundBrokenFile = findBrokenFile(vcsChange, problemText); //TODO: vcsChangeWrapper.getBrokenFile(problemText)
-      if (foundBrokenFile == null) continue;
+      try {
+        VcsChangeWrapperFactory.VcsChangeWrapper vcsChangeWrapped = myVcsChangeWrapperFactory.wrap(vcsChange);
+        Pair<User, String> brokenFile = vcsChangeWrapped.findProblematicFile(problemText, heuristicContext.getUserFilter());
+        if (brokenFile == null) continue;
 
-      List<User> knownCommitters = getKnownCommitters(vcsChange, heuristicContext.getUserFilter());
-
-      if (shouldSkip(vcsChange, knownCommitters)) { //TODO: vcsChangeWrapper.shouldSkip() - cache knownCommitters
-        continue;
-      }
-
-      User foundResponsibleUser = findOrNull(knownCommitters, heuristicContext.getBuild(), responsibleUser);
-      if (foundResponsibleUser == null) { //TODO: vcsChangeWrapper.shouldReturn() - cache knownCommitters if needed
+        ensureSameUsers(foundBrokenFile, brokenFile);
+        foundBrokenFile = brokenFile;
+      } catch (IllegalStateException ex) {
+        LOGGER.warn(ex.getMessage() + ". build: " + heuristicContext.getBuild().getBuildId());
         return null;
       }
-
-      responsibleUser = foundResponsibleUser;
-      brokenFile = foundBrokenFile;
     }
 
-    if (responsibleUser == null) return null;
+    if (foundBrokenFile == null) return null;
 
-    String description = String.format("changed the suspicious file \"%s\" which probably broke the build", brokenFile);
-    return new Responsibility(responsibleUser, description);
+    String description =
+      String.format("changed the suspicious file \"%s\" which probably broke the build", foundBrokenFile.second);
+    return new Responsibility(foundBrokenFile.first, description);
   }
 
-  private List<User> getKnownCommitters(final SVcsModification vcsChange, final List<String> usersToIgnore) {
-    return vcsChange.getCommitters()
-                    .stream()
-                    .filter(user -> !usersToIgnore.contains(user.getUsername()))
-                    .collect(Collectors.toList());
-  }
-
-  private boolean shouldSkip(final SVcsModification vcsChange, final List<User> knownCommitters) {
-    return knownCommitters.size() == 0 && vcsChange.getUserName() == null;
-  }
-
-  @Nullable
-  private User findOrNull(List<User> knownCommitters, SBuild build, User previouslyFound) {
-    if (knownCommitters.size() == 0) {
-      LOGGER.debug(String.format("There are at least one unknown for TeamCity user for failed build #%s",
-                                 build.getBuildId()));
-      return null;
+  private void ensureSameUsers(@Nullable Pair<User, String> foundBrokenFile,
+                               @Nullable final Pair<User, String> broken) {
+    if (foundBrokenFile != null &&
+        broken != null &&
+        !foundBrokenFile.first.equals(broken.first)) {
+      throw new IllegalStateException("There are at least one unknown for TeamCity user");
     }
-
-    User probableResponsible = knownCommitters.get(0);
-    if (knownCommitters.size() > 1 ||
-        (previouslyFound != null && !previouslyFound.equals(probableResponsible))) {
-      LOGGER.debug(String.format("There are more than one committers for failed build #%s", build.getBuildId()));
-      return null;
-    }
-
-    return probableResponsible;
-  }
-
-  @Nullable
-  private static String findBrokenFile(@NotNull final SVcsModification vcsChange, @NotNull final String problemText) {
-    for (VcsFileModification modification : vcsChange.getChanges()) {
-      final String filePath = modification.getRelativeFileName();
-      for (String pattern : getPatterns(filePath)) {
-        if (problemText.contains(pattern)) {
-          return filePath;
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
-   * This method is required to separate path1/path2/fileName with path3/path4/fileName.
-   * Also it allows to handle different separators. Currently supported: '.','/','\' separators.
-   *
-   * @param filePath - filePath of the modification
-   * @return various combination of fileName and its parents(up to 2th level) with separators.
-   */
-  @NotNull
-  private static List<String> getPatterns(@NotNull final String filePath) {
-    final List<String> parts = new ArrayList<>();
-    String withoutExtension = FileUtil.getNameWithoutExtension(new File(filePath));
-    if (withoutExtension.length() == 0) {
-      return Collections.emptyList();
-    }
-    parts.add(withoutExtension);
-
-    String path = getParentPath(filePath);
-    if (path != null) {
-      parts.add(0, new File(path).getName());
-      path = getParentPath(path);
-      if (path != null) {
-        parts.add(0, new File(path).getName());
-      }
-    }
-
-    if (isSmallPattern(parts)) {
-      String withExtension = FileUtil.getName(filePath);
-      parts.set(0, withExtension);
-    }
-
-    return parts.isEmpty() ?
-           Collections.emptyList() :
-           Arrays.asList(join(parts, "."), join(parts, "/"), join(parts, "\\"));
-  }
-
-  private static boolean isSmallPattern(final List<String> parts) {
-    return join(parts, ".").length() <= SMALL_PATTERN_THRESHOLD;
-  }
-
-  // we do not use File#getParentFile() instead because we must not take current
-  // working directory into account, i.e. getParentPath("abc") must return null
-  @Nullable
-  private static String getParentPath(@NotNull final String path) {
-    final int lastSlashPos = path.replace('\\', '/').lastIndexOf('/');
-    return lastSlashPos == -1 ? null : path.substring(0, lastSlashPos);
   }
 }
 

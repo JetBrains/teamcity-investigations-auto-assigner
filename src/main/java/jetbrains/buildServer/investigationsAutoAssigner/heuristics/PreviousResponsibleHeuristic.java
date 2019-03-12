@@ -46,6 +46,7 @@ public class PreviousResponsibleHeuristic implements Heuristic {
     return "Previous Responsible Heuristic";
   }
 
+  @NotNull
   public HeuristicResult findResponsibleUser(@NotNull HeuristicContext heuristicContext) {
     HeuristicResult result = new HeuristicResult();
     SBuild sBuild = heuristicContext.getBuild();

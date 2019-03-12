@@ -56,23 +56,21 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     myUserModelEx = Mockito.mock(UserModelEx.class);
-    myHeuristic = new OneCommitterHeuristic(myUserModelEx);
+    myHeuristic = new OneCommitterHeuristic(new VcsChangeWrapperFactory());
     mySBuild = Mockito.mock(SBuild.class);
 
     String firstUserUsername = "myFirstUser";
     myFirstUser = Mockito.mock(UserEx.class);
     myMod1 = Mockito.mock(SVcsModification.class);
     when(myFirstUser.getUsername()).thenReturn(firstUserUsername);
-    when(myMod1.getUserName()).thenReturn("myFirstUser");
-    when(myUserModelEx.findUserAccount(null, myFirstUser.getUsername())).thenReturn(myFirstUser);
+    when(myMod1.getCommitters()).thenReturn(Collections.singletonList(myFirstUser));
 
 
     String secondUserUsername = "mySecondUser";
     mySecondUser = Mockito.mock(UserEx.class);
     myMod2 = Mockito.mock(SVcsModification.class);
     when(mySecondUser.getUsername()).thenReturn(secondUserUsername);
-    when(myMod2.getUserName()).thenReturn(secondUserUsername);
-    when(myUserModelEx.findUserAccount(null, mySecondUser.getUsername())).thenReturn(mySecondUser);
+    when(myMod2.getCommitters()).thenReturn(Collections.singletonList(mySecondUser));
 
     myChanges = new ArrayList<>();
     when(mySBuild.getChanges(SelectPrevBuildPolicy.SINCE_LAST_BUILD, true))
