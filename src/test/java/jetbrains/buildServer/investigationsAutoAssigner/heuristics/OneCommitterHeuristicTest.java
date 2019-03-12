@@ -36,6 +36,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 @Test
@@ -48,30 +49,33 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
   private HeuristicContext myHeuristicContext;
   private SBuild mySBuild;
   private List<SVcsModification> myChanges;
-  private UserModelEx myUserModelEx;
   private SVcsModification myMod1;
   private SVcsModification myMod2;
+  private VcsChangeWrapperFactory.VcsChangeWrapper myFirstVcsChangeWrapper;
+  private VcsChangeWrapperFactory.VcsChangeWrapper mySecondVcsChangeWrapper;
 
   @BeforeMethod
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myUserModelEx = Mockito.mock(UserModelEx.class);
-    myHeuristic = new OneCommitterHeuristic(new VcsChangeWrapperFactory());
+    VcsChangeWrapperFactory vcsChangeWrapperFactory = Mockito.mock(VcsChangeWrapperFactory.class);
+    myFirstVcsChangeWrapper = Mockito.mock(VcsChangeWrapperFactory.VcsChangeWrapper.class);
+    mySecondVcsChangeWrapper = Mockito.mock(VcsChangeWrapperFactory.VcsChangeWrapper.class);
+    myHeuristic = new OneCommitterHeuristic(vcsChangeWrapperFactory);
     mySBuild = Mockito.mock(SBuild.class);
 
     String firstUserUsername = "myFirstUser";
     myFirstUser = Mockito.mock(UserEx.class);
     myMod1 = Mockito.mock(SVcsModification.class);
-    when(myFirstUser.getUsername()).thenReturn(firstUserUsername);
-    when(myMod1.getCommitters()).thenReturn(Collections.singletonList(myFirstUser));
 
+    when(myFirstUser.getUsername()).thenReturn(firstUserUsername);
+    when(vcsChangeWrapperFactory.wrap(myMod1)).thenReturn(myFirstVcsChangeWrapper);
 
     String secondUserUsername = "mySecondUser";
     mySecondUser = Mockito.mock(UserEx.class);
     myMod2 = Mockito.mock(SVcsModification.class);
     when(mySecondUser.getUsername()).thenReturn(secondUserUsername);
-    when(myMod2.getCommitters()).thenReturn(Collections.singletonList(mySecondUser));
+    when(vcsChangeWrapperFactory.wrap(myMod2)).thenReturn(mySecondVcsChangeWrapper);
 
     myChanges = new ArrayList<>();
     when(mySBuild.getChanges(SelectPrevBuildPolicy.SINCE_LAST_BUILD, true))
@@ -86,6 +90,7 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
 
   public void TestWithOneResponsible() {
     myChanges.add(myMod1);
+    when(myFirstVcsChangeWrapper.getOnlyCommitter(anyList())).thenReturn(myFirstUser);
 
     HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
     Responsibility responsibility = heuristicResult.getResponsibility(mySTestRun);
@@ -106,6 +111,8 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
   public void TestWithManyResponsible() {
     myChanges.add(myMod1);
     myChanges.add(myMod2);
+    when(myFirstVcsChangeWrapper.getOnlyCommitter(anyList())).thenReturn(myFirstUser);
+    when(mySecondVcsChangeWrapper.getOnlyCommitter(anyList())).thenReturn(mySecondUser);
 
     HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 
@@ -115,6 +122,8 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
   public void TestUsersToIgnore() {
     myChanges.add(myMod1);
     myChanges.add(myMod2);
+    when(myFirstVcsChangeWrapper.getOnlyCommitter(anyList())).thenReturn(null);
+    when(mySecondVcsChangeWrapper.getOnlyCommitter(anyList())).thenReturn(mySecondUser);
 
     HeuristicContext hc = new HeuristicContext(mySBuild,
                                                Mockito.mock(SProject.class),
@@ -132,8 +141,8 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
   public void TestUnknownUser() {
     myChanges.add(myMod1);
     myChanges.add(myMod2);
-    when(myMod2.getUserName()).thenReturn("myUnknownUser");
-    when(myUserModelEx.findUserAccount(null, "myUnknownUser")).thenReturn(null);
+    when(myFirstVcsChangeWrapper.getOnlyCommitter(anyList())).thenReturn(myFirstUser);
+    when(mySecondVcsChangeWrapper.getOnlyCommitter(anyList())).thenThrow(IllegalStateException.class);
 
     HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 
