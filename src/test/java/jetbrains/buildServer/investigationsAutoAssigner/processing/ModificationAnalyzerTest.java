@@ -32,12 +32,12 @@ import org.testng.annotations.Test;
 import static org.mockito.Mockito.when;
 
 @Test
-public class VcsChangeWrapperTest extends BaseTestCase {
+public class ModificationAnalyzerTest extends BaseTestCase {
 
   private UserEx myFirstUser;
   private UserEx mySecondUser;
   private SVcsModification myMod;
-  private VcsChangeWrapperFactory.VcsChangeWrapper myWrappedVcsChange;
+  private ModificationAnalyzerFactory.ModificationAnalyzer myWrappedVcsChange;
   private String myFilePath =  "./path1/path1/path1/filename";
 
   @BeforeMethod
@@ -59,8 +59,8 @@ public class VcsChangeWrapperTest extends BaseTestCase {
     when(myMod.getCommitters()).thenReturn(Collections.singletonList(myFirstUser));
     when(myMod.getChanges()).thenReturn(Collections.singletonList(changeMod));
 
-    VcsChangeWrapperFactory vcsChangeWrapperFactory = new VcsChangeWrapperFactory();
-    myWrappedVcsChange = vcsChangeWrapperFactory.wrap(myMod);
+    ModificationAnalyzerFactory modificationAnalyzerFactory = new ModificationAnalyzerFactory();
+    myWrappedVcsChange = modificationAnalyzerFactory.getInstance(myMod);
   }
 
   public void TestGetOnlyCommitter_OneResponsible() {

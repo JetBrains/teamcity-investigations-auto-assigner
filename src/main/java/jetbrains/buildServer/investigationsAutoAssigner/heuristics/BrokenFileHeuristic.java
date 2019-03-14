@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
-import jetbrains.buildServer.investigationsAutoAssigner.processing.VcsChangeWrapperFactory;
+import jetbrains.buildServer.investigationsAutoAssigner.processing.ModificationAnalyzerFactory;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.ProblemTextExtractor;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
@@ -38,12 +38,12 @@ public class BrokenFileHeuristic implements Heuristic {
 
   private static final Logger LOGGER = Logger.getInstance(BrokenFileHeuristic.class.getName());
   private final ProblemTextExtractor myProblemTextExtractor;
-  private VcsChangeWrapperFactory myVcsChangeWrapperFactory;
+  private ModificationAnalyzerFactory myModificationAnalyzerFactory;
 
   public BrokenFileHeuristic(ProblemTextExtractor problemTextExtractor,
-                             VcsChangeWrapperFactory vcsChangeWrapperFactory) {
+                             ModificationAnalyzerFactory modificationAnalyzerFactory) {
     myProblemTextExtractor = problemTextExtractor;
-    myVcsChangeWrapperFactory = vcsChangeWrapperFactory;
+    myModificationAnalyzerFactory = modificationAnalyzerFactory;
   }
 
   @Override
@@ -92,7 +92,7 @@ public class BrokenFileHeuristic implements Heuristic {
     Pair<User, String> foundBrokenFile = null;
     for (SVcsModification vcsChange : vcsChanges) {
       try {
-        VcsChangeWrapperFactory.VcsChangeWrapper vcsChangeWrapped = myVcsChangeWrapperFactory.wrap(vcsChange);
+        ModificationAnalyzerFactory.ModificationAnalyzer vcsChangeWrapped = myModificationAnalyzerFactory.getInstance(vcsChange);
         Pair<User, String> brokenFile = vcsChangeWrapped.findProblematicFile(problemText, heuristicContext.getUserFilter());
         if (brokenFile == null) continue;
 

@@ -23,11 +23,10 @@ import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
-import jetbrains.buildServer.investigationsAutoAssigner.processing.VcsChangeWrapperFactory;
+import jetbrains.buildServer.investigationsAutoAssigner.processing.ModificationAnalyzerFactory;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STestRun;
-import jetbrains.buildServer.users.UserModelEx;
 import jetbrains.buildServer.users.impl.UserEx;
 import jetbrains.buildServer.vcs.SVcsModification;
 import jetbrains.buildServer.vcs.SelectPrevBuildPolicy;
@@ -51,17 +50,17 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
   private List<SVcsModification> myChanges;
   private SVcsModification myMod1;
   private SVcsModification myMod2;
-  private VcsChangeWrapperFactory.VcsChangeWrapper myFirstVcsChangeWrapper;
-  private VcsChangeWrapperFactory.VcsChangeWrapper mySecondVcsChangeWrapper;
+  private ModificationAnalyzerFactory.ModificationAnalyzer myFirstModificationAnalyzer;
+  private ModificationAnalyzerFactory.ModificationAnalyzer mySecondModificationAnalyzer;
 
   @BeforeMethod
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    VcsChangeWrapperFactory vcsChangeWrapperFactory = Mockito.mock(VcsChangeWrapperFactory.class);
-    myFirstVcsChangeWrapper = Mockito.mock(VcsChangeWrapperFactory.VcsChangeWrapper.class);
-    mySecondVcsChangeWrapper = Mockito.mock(VcsChangeWrapperFactory.VcsChangeWrapper.class);
-    myHeuristic = new OneCommitterHeuristic(vcsChangeWrapperFactory);
+    ModificationAnalyzerFactory modificationAnalyzerFactory = Mockito.mock(ModificationAnalyzerFactory.class);
+    myFirstModificationAnalyzer = Mockito.mock(ModificationAnalyzerFactory.ModificationAnalyzer.class);
+    mySecondModificationAnalyzer = Mockito.mock(ModificationAnalyzerFactory.ModificationAnalyzer.class);
+    myHeuristic = new OneCommitterHeuristic(modificationAnalyzerFactory);
     mySBuild = Mockito.mock(SBuild.class);
 
     String firstUserUsername = "myFirstUser";
@@ -69,13 +68,13 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
     myMod1 = Mockito.mock(SVcsModification.class);
 
     when(myFirstUser.getUsername()).thenReturn(firstUserUsername);
-    when(vcsChangeWrapperFactory.wrap(myMod1)).thenReturn(myFirstVcsChangeWrapper);
+    when(modificationAnalyzerFactory.getInstance(myMod1)).thenReturn(myFirstModificationAnalyzer);
 
     String secondUserUsername = "mySecondUser";
     mySecondUser = Mockito.mock(UserEx.class);
     myMod2 = Mockito.mock(SVcsModification.class);
     when(mySecondUser.getUsername()).thenReturn(secondUserUsername);
-    when(vcsChangeWrapperFactory.wrap(myMod2)).thenReturn(mySecondVcsChangeWrapper);
+    when(modificationAnalyzerFactory.getInstance(myMod2)).thenReturn(mySecondModificationAnalyzer);
 
     myChanges = new ArrayList<>();
     when(mySBuild.getChanges(SelectPrevBuildPolicy.SINCE_LAST_BUILD, true))
@@ -90,7 +89,7 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
 
   public void TestWithOneResponsible() {
     myChanges.add(myMod1);
-    when(myFirstVcsChangeWrapper.getOnlyCommitter(anyList())).thenReturn(myFirstUser);
+    when(myFirstModificationAnalyzer.getOnlyCommitter(anyList())).thenReturn(myFirstUser);
 
     HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
     Responsibility responsibility = heuristicResult.getResponsibility(mySTestRun);
@@ -111,8 +110,8 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
   public void TestWithManyResponsible() {
     myChanges.add(myMod1);
     myChanges.add(myMod2);
-    when(myFirstVcsChangeWrapper.getOnlyCommitter(anyList())).thenReturn(myFirstUser);
-    when(mySecondVcsChangeWrapper.getOnlyCommitter(anyList())).thenReturn(mySecondUser);
+    when(myFirstModificationAnalyzer.getOnlyCommitter(anyList())).thenReturn(myFirstUser);
+    when(mySecondModificationAnalyzer.getOnlyCommitter(anyList())).thenReturn(mySecondUser);
 
     HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 
@@ -122,8 +121,8 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
   public void TestUsersToIgnore() {
     myChanges.add(myMod1);
     myChanges.add(myMod2);
-    when(myFirstVcsChangeWrapper.getOnlyCommitter(anyList())).thenReturn(null);
-    when(mySecondVcsChangeWrapper.getOnlyCommitter(anyList())).thenReturn(mySecondUser);
+    when(myFirstModificationAnalyzer.getOnlyCommitter(anyList())).thenReturn(null);
+    when(mySecondModificationAnalyzer.getOnlyCommitter(anyList())).thenReturn(mySecondUser);
 
     HeuristicContext hc = new HeuristicContext(mySBuild,
                                                Mockito.mock(SProject.class),
@@ -141,8 +140,8 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
   public void TestUnknownUser() {
     myChanges.add(myMod1);
     myChanges.add(myMod2);
-    when(myFirstVcsChangeWrapper.getOnlyCommitter(anyList())).thenReturn(myFirstUser);
-    when(mySecondVcsChangeWrapper.getOnlyCommitter(anyList())).thenThrow(IllegalStateException.class);
+    when(myFirstModificationAnalyzer.getOnlyCommitter(anyList())).thenReturn(myFirstUser);
+    when(mySecondModificationAnalyzer.getOnlyCommitter(anyList())).thenThrow(IllegalStateException.class);
 
     HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 

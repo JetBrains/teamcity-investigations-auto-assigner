@@ -20,7 +20,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
-import jetbrains.buildServer.investigationsAutoAssigner.processing.VcsChangeWrapperFactory;
+import jetbrains.buildServer.investigationsAutoAssigner.processing.ModificationAnalyzerFactory;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.vcs.SVcsModification;
@@ -30,10 +30,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class OneCommitterHeuristic implements Heuristic {
   private static final Logger LOGGER = Logger.getInstance(OneCommitterHeuristic.class.getName());
-  private VcsChangeWrapperFactory myVcsChangeWrapperFactory;
+  private ModificationAnalyzerFactory myModificationAnalyzerFactory;
 
-  public OneCommitterHeuristic(VcsChangeWrapperFactory vcsChangeWrapperFactory) {
-    myVcsChangeWrapperFactory = vcsChangeWrapperFactory;
+  public OneCommitterHeuristic(ModificationAnalyzerFactory modificationAnalyzerFactory) {
+    myModificationAnalyzerFactory = modificationAnalyzerFactory;
   }
 
   @Override
@@ -51,7 +51,7 @@ public class OneCommitterHeuristic implements Heuristic {
     final SelectPrevBuildPolicy selectPrevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
     for (SVcsModification vcsChange : build.getChanges(selectPrevBuildPolicy, true)) {
       try {
-        VcsChangeWrapperFactory.VcsChangeWrapper vcsChangeWrapped = myVcsChangeWrapperFactory.wrap(vcsChange);
+        ModificationAnalyzerFactory.ModificationAnalyzer vcsChangeWrapped = myModificationAnalyzerFactory.getInstance(vcsChange);
         User probableResponsible = vcsChangeWrapped.getOnlyCommitter(heuristicContext.getUserFilter());
         if (probableResponsible == null) continue;
         ensureSameUsers(responsible, probableResponsible);

@@ -37,17 +37,17 @@ import static com.intellij.openapi.util.text.StringUtil.join;
  * - null when nothing was found;
  * - IllegalStateException when more then one committers were found (so we cannot chose from them with these heuristics.
  */
-public class VcsChangeWrapperFactory {
+public class ModificationAnalyzerFactory {
   private static final int TOO_SMALL_PATTERN_THRESHOLD = 15;
 
-  public VcsChangeWrapper wrap(SVcsModification vcsChange) {
-    return new VcsChangeWrapper(vcsChange);
+  public ModificationAnalyzer getInstance(SVcsModification vcsChange) {
+    return new ModificationAnalyzer(vcsChange);
   }
 
-  public class VcsChangeWrapper {
+  public class ModificationAnalyzer {
     private SVcsModification myVcsChange;
 
-    private VcsChangeWrapper(SVcsModification vcsChange) {
+    private ModificationAnalyzer(SVcsModification vcsChange) {
       myVcsChange = vcsChange;
     }
 

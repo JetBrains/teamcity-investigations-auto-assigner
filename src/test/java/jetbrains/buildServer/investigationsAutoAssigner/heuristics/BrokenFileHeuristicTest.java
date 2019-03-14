@@ -24,7 +24,7 @@ import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
-import jetbrains.buildServer.investigationsAutoAssigner.processing.VcsChangeWrapperFactory;
+import jetbrains.buildServer.investigationsAutoAssigner.processing.ModificationAnalyzerFactory;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.ProblemTextExtractor;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.users.SUser;
@@ -52,16 +52,16 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
   private HeuristicContext myHeuristicContext;
   private STestRun mySTestRun;
   private ProblemTextExtractor myProblemTextExtractor;
-  private VcsChangeWrapperFactory.VcsChangeWrapper myFirstVcsChangeWrapped;
-  private VcsChangeWrapperFactory.VcsChangeWrapper myFirstVcsChangeWrapped2;
+  private ModificationAnalyzerFactory.ModificationAnalyzer myFirstVcsChangeWrapped;
+  private ModificationAnalyzerFactory.ModificationAnalyzer myFirstVcsChangeWrapped2;
 
   @BeforeMethod
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     myProblemTextExtractor = Mockito.mock(ProblemTextExtractor.class);
-    VcsChangeWrapperFactory vcsChangeWrapperFactory = Mockito.mock(VcsChangeWrapperFactory.class);
-    myHeuristic = new BrokenFileHeuristic(myProblemTextExtractor, vcsChangeWrapperFactory);
+    ModificationAnalyzerFactory modificationAnalyzerFactory = Mockito.mock(ModificationAnalyzerFactory.class);
+    myHeuristic = new BrokenFileHeuristic(myProblemTextExtractor, modificationAnalyzerFactory);
     final SBuild SBuild = Mockito.mock(jetbrains.buildServer.serverSide.SBuild.class);
     final SProject SProject = Mockito.mock(jetbrains.buildServer.serverSide.SProject.class);
     myUser = Mockito.mock(SUser.class);
@@ -80,14 +80,14 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
     myChangeDescriptor = Mockito.mock(ChangeDescriptor.class);
     final SVcsModification vcsModification = Mockito.mock(SVcsModification.class);
     when(myChangeDescriptor.getRelatedVcsChange()).thenReturn(vcsModification);
-    myFirstVcsChangeWrapped = Mockito.mock(VcsChangeWrapperFactory.VcsChangeWrapper.class);
-    when(vcsChangeWrapperFactory.wrap(vcsModification)).thenReturn(myFirstVcsChangeWrapped);
+    myFirstVcsChangeWrapped = Mockito.mock(ModificationAnalyzerFactory.ModificationAnalyzer.class);
+    when(modificationAnalyzerFactory.getInstance(vcsModification)).thenReturn(myFirstVcsChangeWrapped);
 
     myChangeDescriptor2 = Mockito.mock(ChangeDescriptor.class);
     final SVcsModification vcsModification2 = Mockito.mock(SVcsModification.class);
     when(myChangeDescriptor2.getRelatedVcsChange()).thenReturn(vcsModification2);
-    myFirstVcsChangeWrapped2 = Mockito.mock(VcsChangeWrapperFactory.VcsChangeWrapper.class);
-    when(vcsChangeWrapperFactory.wrap(vcsModification2)).thenReturn(myFirstVcsChangeWrapped2);
+    myFirstVcsChangeWrapped2 = Mockito.mock(ModificationAnalyzerFactory.ModificationAnalyzer.class);
+    when(modificationAnalyzerFactory.getInstance(vcsModification2)).thenReturn(myFirstVcsChangeWrapped2);
 
     List<ChangeDescriptor> descriptors = Arrays.asList(myChangeDescriptor, myChangeDescriptor2);
     when(myBuildPromotion.getDetectedChanges(SelectPrevBuildPolicy.SINCE_LAST_BUILD, false))
