@@ -16,16 +16,19 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.heuristics;
 
+import com.intellij.openapi.util.Pair;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import jetbrains.buildServer.BaseTestCase;
+import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
-import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
+import jetbrains.buildServer.investigationsAutoAssigner.processing.ModificationAnalyzerFactory;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.ProblemTextExtractor;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.vcs.SVcsModification;
 import jetbrains.buildServer.vcs.SelectPrevBuildPolicy;
 import jetbrains.buildServer.vcs.VcsFileModification;
@@ -34,7 +37,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 @Test
@@ -46,62 +49,58 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
   private BuildPromotionEx myBuildPromotion;
   private ChangeDescriptor myChangeDescriptor;
   private ChangeDescriptor myChangeDescriptor2;
-  private SVcsModification myVcsModification;
-  private SVcsModification myVcsModification2;
   private HeuristicContext myHeuristicContext;
   private STestRun mySTestRun;
   private ProblemTextExtractor myProblemTextExtractor;
-  private SBuild mySBuild;
-  private SProject mySProject;
+  private ModificationAnalyzerFactory.ModificationAnalyzer myFirstVcsChangeWrapped;
+  private ModificationAnalyzerFactory.ModificationAnalyzer myFirstVcsChangeWrapped2;
 
   @BeforeMethod
   @Override
   protected void setUp() throws Exception {
     super.setUp();
     myProblemTextExtractor = Mockito.mock(ProblemTextExtractor.class);
-    myHeuristic = new BrokenFileHeuristic(myProblemTextExtractor);
-    mySBuild = Mockito.mock(jetbrains.buildServer.serverSide.SBuild.class);
-    mySProject = Mockito.mock(jetbrains.buildServer.serverSide.SProject.class);
+    ModificationAnalyzerFactory modificationAnalyzerFactory = Mockito.mock(ModificationAnalyzerFactory.class);
+    myHeuristic = new BrokenFileHeuristic(myProblemTextExtractor, modificationAnalyzerFactory);
+    final SBuild SBuild = Mockito.mock(jetbrains.buildServer.serverSide.SBuild.class);
+    final SProject SProject = Mockito.mock(jetbrains.buildServer.serverSide.SProject.class);
     myUser = Mockito.mock(SUser.class);
     when(myUser.getUsername()).thenReturn("myUser1");
     mySecondUser = Mockito.mock(SUser.class);
     when(mySecondUser.getUsername()).thenReturn("myUser2");
     mySTestRun = Mockito.mock(STestRun.class);
-    myHeuristicContext = new HeuristicContext(mySBuild,
-                                              mySProject,
+    myHeuristicContext = new HeuristicContext(SBuild,
+                                              SProject,
                                               Collections.emptyList(),
                                               Collections.singletonList(mySTestRun),
-                                              Collections.emptyList());
+                                              Collections.emptySet());
     myBuildPromotion = Mockito.mock(BuildPromotionEx.class);
-    when(mySBuild.getBuildPromotion()).thenReturn(myBuildPromotion);
+    when(SBuild.getBuildPromotion()).thenReturn(myBuildPromotion);
     when(myProblemTextExtractor.getBuildProblemText(any())).thenReturn("I contain ./path1/path1/path1/filename");
     myChangeDescriptor = Mockito.mock(ChangeDescriptor.class);
-    myVcsModification = Mockito.mock(SVcsModification.class);
-    when(myChangeDescriptor.getRelatedVcsChange()).thenReturn(myVcsModification);
+    final SVcsModification vcsModification = Mockito.mock(SVcsModification.class);
+    when(myChangeDescriptor.getRelatedVcsChange()).thenReturn(vcsModification);
+    myFirstVcsChangeWrapped = Mockito.mock(ModificationAnalyzerFactory.ModificationAnalyzer.class);
+    when(modificationAnalyzerFactory.getInstance(vcsModification)).thenReturn(myFirstVcsChangeWrapped);
 
     myChangeDescriptor2 = Mockito.mock(ChangeDescriptor.class);
-    myVcsModification2 = Mockito.mock(SVcsModification.class);
-    when(myChangeDescriptor2.getRelatedVcsChange()).thenReturn(myVcsModification2);
+    final SVcsModification vcsModification2 = Mockito.mock(SVcsModification.class);
+    when(myChangeDescriptor2.getRelatedVcsChange()).thenReturn(vcsModification2);
+    myFirstVcsChangeWrapped2 = Mockito.mock(ModificationAnalyzerFactory.ModificationAnalyzer.class);
+    when(modificationAnalyzerFactory.getInstance(vcsModification2)).thenReturn(myFirstVcsChangeWrapped2);
 
     List<ChangeDescriptor> descriptors = Arrays.asList(myChangeDescriptor, myChangeDescriptor2);
     when(myBuildPromotion.getDetectedChanges(SelectPrevBuildPolicy.SINCE_LAST_BUILD, false))
       .thenReturn(descriptors);
 
     VcsFileModification mod1 = Mockito.mock(VcsFileModification.class);
-    VcsFileModification mod2 = Mockito.mock(VcsFileModification.class);
-    VcsFileModification mod3 = Mockito.mock(VcsFileModification.class);
     when(mod1.getRelativeFileName()).thenReturn("./path1/path1/path1/filename");
-    when(mod2.getRelativeFileName()).thenReturn("./path2/path2/path2/filename2");
-    when(mod3.getRelativeFileName()).thenReturn("./path3/path3/path3/filename3");
-    when(myVcsModification.getChanges()).thenReturn(Arrays.asList(mod1, mod2, mod3));
+    when(vcsModification.getChanges()).thenReturn(Collections.singletonList(mod1));
 
     VcsFileModification mod4 = Mockito.mock(VcsFileModification.class);
-    VcsFileModification mod5 = Mockito.mock(VcsFileModification.class);
-    VcsFileModification mod6 = Mockito.mock(VcsFileModification.class);
     when(mod4.getRelativeFileName()).thenReturn("./path4/path4/path4/filename4");
-    when(mod5.getRelativeFileName()).thenReturn("./path5/path5/path5/filename5");
-    when(mod6.getRelativeFileName()).thenReturn("./path6/path6/path6/filename6");
-    when(myVcsModification2.getChanges()).thenReturn(Arrays.asList(mod4, mod5, mod6));
+    when(vcsModification2.getChanges()).thenReturn(Collections.singletonList(mod4));
+
   }
 
   public void TestNoDetectedChanges() {
@@ -122,8 +121,8 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
     Assert.assertTrue(heuristicResult.isEmpty());
   }
 
-  public void TestWithDetectedBrokenFileWithoutCommitters() {
-    when(myVcsModification.getCommitters()).thenReturn(Collections.emptyList());
+  public void TestUnknownVcsUsername() {
+    when(myFirstVcsChangeWrapped.findProblematicFile(anyString(), anySet())).thenThrow(IllegalStateException.class);
 
     HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 
@@ -131,100 +130,43 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
   }
 
   public void TestCorrectCase() {
-    when(myProblemTextExtractor.getBuildProblemText(any())).thenReturn("I contain ./path1/path1/path1/filename");
+    String filePath = "./path1/path1/path1/filename";
+    String theProblemText = "I contain " + filePath;
+    when(myProblemTextExtractor.getBuildProblemText(any())).thenReturn(theProblemText);
 
-    when(myVcsModification.getCommitters()).thenReturn(Collections.singletonList(myUser));
-    when(myVcsModification2.getCommitters()).thenReturn(Collections.emptyList());
+    Pair<User, String> result = Pair.create(myUser, filePath);
+    when(myFirstVcsChangeWrapped.findProblematicFile(theProblemText, Collections.emptySet())).thenReturn(result);
+    when(myFirstVcsChangeWrapped2.findProblematicFile(theProblemText, Collections.emptySet())).thenReturn(null);
 
     HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 
     Assert.assertFalse(heuristicResult.isEmpty());
     Responsibility responsibility = heuristicResult.getResponsibility(mySTestRun);
-    assert  responsibility != null;
+    Assert.assertNotNull(responsibility);
     Assert.assertEquals(responsibility.getUser(), myUser);
 
-    when(myProblemTextExtractor.getBuildProblemText(any())).thenReturn("I contain ./path1/path1/path1/filename and " +
-                                                                       "./path4/path4/path4/filename4");
+    when(myFirstVcsChangeWrapped.findProblematicFile(theProblemText, Collections.emptySet())).thenReturn(result);
+    when(myFirstVcsChangeWrapped2.findProblematicFile(theProblemText, Collections.emptySet())).thenReturn(result);
 
-    when(myVcsModification.getCommitters()).thenReturn(Collections.singletonList(myUser));
-    when(myVcsModification2.getCommitters()).thenReturn(Collections.singletonList(myUser));
     heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
     Assert.assertFalse(heuristicResult.isEmpty());
     responsibility = heuristicResult.getResponsibility(mySTestRun);
-    assert responsibility != null;
+    Assert.assertNotNull(responsibility);
     Assert.assertEquals(responsibility.getUser(), myUser);
   }
 
-  public void TestGitIgnoreCase() {
-    when(myProblemTextExtractor.getBuildProblemText(any())).thenReturn("I contain ./no/file/here");
-    VcsFileModification mod = Mockito.mock(VcsFileModification.class);
-    when(myVcsModification.getChanges()).thenReturn(Collections.singletonList(mod));
-    when(mod.getRelativeFileName()).thenReturn(".gitignore");
-
-    when(myVcsModification.getCommitters()).thenReturn(Collections.singletonList(myUser));
-    when(myVcsModification2.getCommitters()).thenReturn(Collections.singletonList(mySecondUser));
-
-    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
-
-    Assert.assertTrue(heuristicResult.isEmpty());
-  }
-
   public void TestManyCommitters() {
-    when(myProblemTextExtractor.getBuildProblemText(any())).thenReturn("I contain ./path1/path1/path1/filename" +
-                                                                       "and ./path4/path4/path4/filename4");
-    when(myVcsModification.getCommitters()).thenReturn(Collections.singletonList(myUser));
-    when(myVcsModification2.getCommitters()).thenReturn(Collections.singletonList(mySecondUser));
+    String firstFilePath = "./path1/path1/path1/filename";
+    String secondFilePath = "./path4/path4/path4/filename";
+    String theProblemText = "I contain " + firstFilePath + "and" + secondFilePath;
+    when(myProblemTextExtractor.getBuildProblemText(any())).thenReturn(theProblemText);
+
+    Pair<User, String> firstResult = Pair.create(myUser, firstFilePath);
+    Pair<User, String> secondResult = Pair.create(mySecondUser, secondFilePath);
+    when(myFirstVcsChangeWrapped.findProblematicFile(theProblemText, Collections.emptySet())).thenReturn(firstResult);
+    when(myFirstVcsChangeWrapped2.findProblematicFile(theProblemText, Collections.emptySet())).thenReturn(secondResult);
+
     HeuristicResult result = myHeuristic.findResponsibleUser(myHeuristicContext);
     Assert.assertTrue(result.isEmpty());
-
-    when(myVcsModification.getCommitters()).thenReturn(Arrays.asList(myUser, mySecondUser));
-    result = myHeuristic.findResponsibleUser(myHeuristicContext);
-    Assert.assertTrue(result.isEmpty());
-  }
-
-  public void TestWhiteList() {
-    when(myProblemTextExtractor.getBuildProblemText(any())).thenReturn("I contain ./path1/path1/path1/filename" +
-                                                                       "and ./path4/path4/path4/filename4");
-    when(myVcsModification.getCommitters()).thenReturn(Collections.singletonList(myUser));
-    when(myVcsModification2.getCommitters()).thenReturn(Collections.singletonList(mySecondUser));
-    HeuristicContext heuristicContexts = new HeuristicContext(mySBuild,
-                                                              mySProject,
-                                                              Collections.emptyList(),
-                                                              Collections.singletonList(mySTestRun),
-                                                              Collections.singletonList(myUser.getUsername()));
-    HeuristicResult result = myHeuristic.findResponsibleUser(heuristicContexts);
-    Assert.assertFalse(result.isEmpty());
-
-    when(myVcsModification.getCommitters()).thenReturn(Arrays.asList(myUser, mySecondUser));
-    result = myHeuristic.findResponsibleUser(heuristicContexts);
-    Assert.assertFalse(result.isEmpty());
-  }
-
-  public void TestSmallFilePaths() {
-    when(myProblemTextExtractor.getBuildProblemText(any())).thenReturn("I contain ./any/other/build/text");
-    VcsFileModification mod = Mockito.mock(VcsFileModification.class);
-    when(myVcsModification.getChanges()).thenReturn(Collections.singletonList(mod));
-    when(mod.getRelativeFileName()).thenReturn("build.gradle");
-
-    when(myVcsModification.getCommitters()).thenReturn(Collections.singletonList(myUser));
-    when(myVcsModification2.getCommitters()).thenReturn(Collections.singletonList(mySecondUser));
-
-    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
-
-    Assert.assertTrue(heuristicResult.isEmpty());
-  }
-
-  public void TestSmallFilePaths2() {
-    when(myProblemTextExtractor.getBuildProblemText(any())).thenReturn("I contain ./any/hmbrm/build.gradle");
-    VcsFileModification mod = Mockito.mock(VcsFileModification.class);
-    when(myVcsModification.getChanges()).thenReturn(Collections.singletonList(mod));
-    when(mod.getRelativeFileName()).thenReturn("build.gradle");
-
-    when(myVcsModification.getCommitters()).thenReturn(Collections.singletonList(myUser));
-    when(myVcsModification2.getCommitters()).thenReturn(Collections.singletonList(mySecondUser));
-
-    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
-
-    Assert.assertFalse(heuristicResult.isEmpty());
   }
 }

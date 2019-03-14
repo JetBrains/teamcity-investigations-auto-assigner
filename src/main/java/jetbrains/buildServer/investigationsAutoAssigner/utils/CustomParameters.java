@@ -43,18 +43,18 @@ public class CustomParameters {
   }
 
   @NotNull
-  public static List<String> getUsersToIgnore(final SBuild build) {
+  public static Set<String> getUsersToIgnore(final SBuild build) {
     final SBuildFeatureDescriptor sBuildFeature = getBuildFeatureDescriptor(build);
     if (sBuildFeature == null) {
-      return Collections.emptyList();
+      return Collections.emptySet();
     }
 
     String usersToIgnore = sBuildFeature.getParameters().get(Constants.USERS_TO_IGNORE);
     if (usersToIgnore == null) {
-      return Collections.emptyList();
+      return Collections.emptySet();
     }
 
-    return Arrays.stream(usersToIgnore.split("\n")).map(String::trim).collect(Collectors.toList());
+    return Arrays.stream(usersToIgnore.split("\n")).map(String::trim).collect(Collectors.toSet());
   }
 
   public static boolean isDefaultSilentModeEnabled(final SBuild build) {

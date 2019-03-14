@@ -76,12 +76,12 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
                                                    mySProject,
                                                    Collections.singletonList(myBuildProblem),
                                                    Collections.emptyList(),
-                                                   Collections.emptyList());
+                                                   Collections.emptySet());
     myTestHeuristicContext = new HeuristicContext(mySBuild,
                                                   mySProject,
                                                   Collections.emptyList(),
                                                   Collections.singletonList(mySTestRun),
-                                                  Collections.emptyList());
+                                                  Collections.emptySet());
   }
 
   public void TestBuildProblemInfo_ResponsibleFound() {
@@ -129,12 +129,12 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
                                                    mySProject,
                                                    Collections.singletonList(myBuildProblem),
                                                    Collections.emptyList(),
-                                                   Collections.singletonList(myUser.getUsername()));
+                                                   Collections.singleton(myUser.getUsername()));
     HeuristicContext buildProblemsHc = new HeuristicContext(mySBuild,
                                                             mySProject,
                                                             Collections.emptyList(),
                                                             Collections.singletonList(mySTestRun),
-                                                            Collections.singletonList(myUser.getUsername()));
+                                                            Collections.singleton(myUser.getUsername()));
     HeuristicResult result = myHeuristic.findResponsibleUser(testHC);
     Assert.assertTrue(result.isEmpty());
 

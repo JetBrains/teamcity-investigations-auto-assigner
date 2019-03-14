@@ -43,7 +43,7 @@ public class CustomParametersTest extends BaseTestCase {
   public void getUsersToIgnoreTestNoDescriptor() {
     SBuild sBuildMock = Mockito.mock(SBuild.class);
     Mockito.when(sBuildMock.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE)).thenReturn(Collections.emptyList());
-    assertListEquals(CustomParameters.getUsersToIgnore(sBuildMock));
+    assertSetEquals(CustomParameters.getUsersToIgnore(sBuildMock));
   }
 
   public void getUsersToIgnoreTestHasOneInList() {
@@ -55,13 +55,13 @@ public class CustomParametersTest extends BaseTestCase {
     Map<String, String> params = new HashMap<>();
     params.put(Constants.USERS_TO_IGNORE, "username1");
     Mockito.when(sBuildFeatureDescriptor.getParameters()).thenReturn(params);
-    assertListEquals(CustomParameters.getUsersToIgnore(sBuildMock), "username1");
+    assertSetEquals(CustomParameters.getUsersToIgnore(sBuildMock), "username1");
 
     params.put(Constants.USERS_TO_IGNORE, "username2 ");
-    assertListEquals(CustomParameters.getUsersToIgnore(sBuildMock), "username2");
+    assertSetEquals(CustomParameters.getUsersToIgnore(sBuildMock), "username2");
 
     params.put(Constants.USERS_TO_IGNORE, "  username3    ");
-    assertListEquals(CustomParameters.getUsersToIgnore(sBuildMock), "username3");
+    assertSetEquals(CustomParameters.getUsersToIgnore(sBuildMock), "username3");
   }
 
   public void getUsersToIgnoreTestHasTwo() {
@@ -73,7 +73,7 @@ public class CustomParametersTest extends BaseTestCase {
     Map<String, String> params = new HashMap<>();
     params.put(Constants.USERS_TO_IGNORE, "username1\nusername2\nusername3");
     Mockito.when(sBuildFeatureDescriptor.getParameters()).thenReturn(params);
-    assertListEquals(CustomParameters.getUsersToIgnore(sBuildMock), "username1", "username2", "username3");
+    assertSetEquals(CustomParameters.getUsersToIgnore(sBuildMock), "username1", "username2", "username3");
   }
 
   @Test

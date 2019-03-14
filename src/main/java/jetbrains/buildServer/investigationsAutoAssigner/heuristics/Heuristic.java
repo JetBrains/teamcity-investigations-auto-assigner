@@ -36,5 +36,6 @@ public interface Heuristic {
    * Try to detect which person is probably responsible.
    * @param heuristicContext {@link HeuristicContext} object which presents known information about the problem.
    */
+  @NotNull
   HeuristicResult findResponsibleUser(@NotNull HeuristicContext heuristicContext);
 }
