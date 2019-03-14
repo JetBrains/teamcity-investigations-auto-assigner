@@ -52,7 +52,7 @@ public class ModificationAnalyzerFactory {
     }
 
     @Nullable
-    public Pair<User, String> findProblematicFile(String problemText, List<String> usersToIgnore)
+    public Pair<User, String> findProblematicFile(String problemText, Set<String> usersToIgnore)
       throws IllegalStateException {
       String filePath = findBrokenFile(myVcsChange, problemText);
       if (filePath == null) {
@@ -70,7 +70,7 @@ public class ModificationAnalyzerFactory {
     }
 
     @Nullable
-    public User getOnlyCommitter(List<String> usersToIgnore) throws IllegalStateException {
+    public User getOnlyCommitter(Set<String> usersToIgnore) throws IllegalStateException {
       Collection<SUser> committers = myVcsChange.getCommitters();
       if (committers.size() == 0) {
         throw new IllegalStateException("There are at least one unknown for TeamCity user");

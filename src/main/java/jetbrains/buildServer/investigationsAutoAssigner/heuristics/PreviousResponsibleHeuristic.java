@@ -63,7 +63,7 @@ public class PreviousResponsibleHeuristic implements Heuristic {
         responsibleUser = testId2Responsible.get(sTest.getTestNameId());
       }
 
-      if (responsibleUser != null && heuristicContext.getUserFilter().contains(responsibleUser.getUsername())) {
+      if (responsibleUser != null && heuristicContext.getUsersToIgnore().contains(responsibleUser.getUsername())) {
         LOGGER.debug(
           String.format("Build %s: Found PreviousResponsibleHeuristic for user `%s` from black list. Skip him.",
                         sBuild.getBuildId(),
@@ -80,7 +80,7 @@ public class PreviousResponsibleHeuristic implements Heuristic {
 
     for (BuildProblem buildProblem : heuristicContext.getBuildProblems()) {
       User responsibleUser = myInvestigationsManager.findPreviousResponsible(sProject, sBuild, buildProblem);
-      if (responsibleUser != null && heuristicContext.getUserFilter().contains(responsibleUser.getUsername())) {
+      if (responsibleUser != null && heuristicContext.getUsersToIgnore().contains(responsibleUser.getUsername())) {
         LOGGER.debug(
           String.format("Build %s: Found PreviousResponsibleHeuristic for user `%s` from black list. Skip him.",
                         sBuild.getBuildId(),

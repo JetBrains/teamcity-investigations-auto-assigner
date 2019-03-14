@@ -65,7 +65,7 @@ public class ModificationAnalyzerTest extends BaseTestCase {
 
   public void TestGetOnlyCommitter_OneResponsible() {
     when(myMod.getCommitters()).thenReturn(Collections.singletonList(myFirstUser));
-    User user = myWrappedVcsChange.getOnlyCommitter(Collections.emptyList());
+    User user = myWrappedVcsChange.getOnlyCommitter(Collections.emptySet());
 
     Assert.assertNotNull(user);
     Assert.assertEquals(user, myFirstUser);
@@ -73,7 +73,7 @@ public class ModificationAnalyzerTest extends BaseTestCase {
 
   public void TestBrokenFile_CorrectCase() {
     String problematicText = "I contain " + myFilePath;
-    Pair<User, String> result = myWrappedVcsChange.findProblematicFile(problematicText, Collections.emptyList());
+    Pair<User, String> result = myWrappedVcsChange.findProblematicFile(problematicText, Collections.emptySet());
     Assert.assertNotNull(result);
     Assert.assertEquals(result.first, myFirstUser);
     Assert.assertEquals(result.second, myFilePath);
@@ -85,7 +85,7 @@ public class ModificationAnalyzerTest extends BaseTestCase {
     when(myMod.getChanges()).thenReturn(Collections.singletonList(mod));
     when(mod.getRelativeFileName()).thenReturn(".gitignore");
 
-    Pair<User, String> result = myWrappedVcsChange.findProblematicFile(problematicText, Collections.emptyList());
+    Pair<User, String> result = myWrappedVcsChange.findProblematicFile(problematicText, Collections.emptySet());
 
     Assert.assertNull(result);
   }
@@ -96,7 +96,7 @@ public class ModificationAnalyzerTest extends BaseTestCase {
 
     when(myMod.getCommitters()).thenReturn(Arrays.asList(myFirstUser, mySecondUser));
 
-    myWrappedVcsChange.findProblematicFile(problematicText, Collections.emptyList());
+    myWrappedVcsChange.findProblematicFile(problematicText, Collections.emptySet());
   }
 
   public void TestBrokenFile_UsersToIgnore() {
@@ -104,7 +104,7 @@ public class ModificationAnalyzerTest extends BaseTestCase {
 
     when(myMod.getCommitters()).thenReturn(Arrays.asList(myFirstUser, mySecondUser));
 
-    Pair<User, String> result = myWrappedVcsChange.findProblematicFile(problematicText, Collections.singletonList(mySecondUser.getUsername()));
+    Pair<User, String> result = myWrappedVcsChange.findProblematicFile(problematicText, Collections.singleton(mySecondUser.getUsername()));
 
     Assert.assertNotNull(result);
     Assert.assertEquals(result.first, myFirstUser);
@@ -118,7 +118,7 @@ public class ModificationAnalyzerTest extends BaseTestCase {
     when(myMod.getChanges()).thenReturn(Collections.singletonList(mod));
     when(mod.getRelativeFileName()).thenReturn("build.gradle");
 
-    Pair<User, String> result = myWrappedVcsChange.findProblematicFile(problematicText, Collections.emptyList());
+    Pair<User, String> result = myWrappedVcsChange.findProblematicFile(problematicText, Collections.emptySet());
     Assert.assertNull(result);
   }
 
@@ -129,14 +129,14 @@ public class ModificationAnalyzerTest extends BaseTestCase {
     when(myMod.getChanges()).thenReturn(Collections.singletonList(mod));
     when(mod.getRelativeFileName()).thenReturn("build.gradle");
 
-    Pair<User, String> result = myWrappedVcsChange.findProblematicFile(problematicText, Collections.emptyList());
+    Pair<User, String> result = myWrappedVcsChange.findProblematicFile(problematicText, Collections.emptySet());
     Assert.assertNotNull(result);
   }
 
   @Test(expectedExceptions = IllegalStateException.class)
   public void TestGetOnlyCommitter_UnknownVcsUsername() {
     when(myMod.getCommitters()).thenReturn(Collections.emptyList());
-    myWrappedVcsChange.getOnlyCommitter(Collections.emptyList());
+    myWrappedVcsChange.getOnlyCommitter(Collections.emptySet());
   }
 
   @Test(expectedExceptions = IllegalStateException.class)
@@ -145,18 +145,18 @@ public class ModificationAnalyzerTest extends BaseTestCase {
     VcsFileModification mod = Mockito.mock(VcsFileModification.class);
     when(myMod.getChanges()).thenReturn(Collections.singletonList(mod));
     when(mod.getRelativeFileName()).thenReturn("file.path");
-    myWrappedVcsChange.findProblematicFile("any file.path", Collections.emptyList());
+    myWrappedVcsChange.findProblematicFile("any file.path", Collections.emptySet());
   }
 
   @Test(expectedExceptions = IllegalStateException.class)
   public void TestGetOnlyCommitter_ManyResponsible() {
     when(myMod.getCommitters()).thenReturn(Arrays.asList(myFirstUser, mySecondUser));
-    myWrappedVcsChange.getOnlyCommitter(Collections.emptyList());
+    myWrappedVcsChange.getOnlyCommitter(Collections.emptySet());
   }
 
   public void TestGetOnlyCommitter_UsersToIgnore() {
     when(myMod.getCommitters()).thenReturn(Collections.singletonList(myFirstUser));
-    User user = myWrappedVcsChange.getOnlyCommitter(Collections.singletonList(myFirstUser.getUsername()));
+    User user = myWrappedVcsChange.getOnlyCommitter(Collections.singleton(myFirstUser.getUsername()));
 
     Assert.assertNull(user);
   }

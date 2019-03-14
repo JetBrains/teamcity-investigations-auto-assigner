@@ -21,9 +21,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import jetbrains.buildServer.BaseTestCase;
+import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
-import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.ModificationAnalyzerFactory;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.ProblemTextExtractor;
 import jetbrains.buildServer.serverSide.*;
@@ -73,7 +73,7 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
                                               SProject,
                                               Collections.emptyList(),
                                               Collections.singletonList(mySTestRun),
-                                              Collections.emptyList());
+                                              Collections.emptySet());
     myBuildPromotion = Mockito.mock(BuildPromotionEx.class);
     when(SBuild.getBuildPromotion()).thenReturn(myBuildPromotion);
     when(myProblemTextExtractor.getBuildProblemText(any())).thenReturn("I contain ./path1/path1/path1/filename");
@@ -122,7 +122,7 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
   }
 
   public void TestUnknownVcsUsername() {
-    when(myFirstVcsChangeWrapped.findProblematicFile(anyString(), anyList())).thenThrow(IllegalStateException.class);
+    when(myFirstVcsChangeWrapped.findProblematicFile(anyString(), anySet())).thenThrow(IllegalStateException.class);
 
     HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 
@@ -135,8 +135,8 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
     when(myProblemTextExtractor.getBuildProblemText(any())).thenReturn(theProblemText);
 
     Pair<User, String> result = Pair.create(myUser, filePath);
-    when(myFirstVcsChangeWrapped.findProblematicFile(theProblemText, Collections.emptyList())).thenReturn(result);
-    when(myFirstVcsChangeWrapped2.findProblematicFile(theProblemText, Collections.emptyList())).thenReturn(null);
+    when(myFirstVcsChangeWrapped.findProblematicFile(theProblemText, Collections.emptySet())).thenReturn(result);
+    when(myFirstVcsChangeWrapped2.findProblematicFile(theProblemText, Collections.emptySet())).thenReturn(null);
 
     HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 
@@ -145,8 +145,8 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
     Assert.assertNotNull(responsibility);
     Assert.assertEquals(responsibility.getUser(), myUser);
 
-    when(myFirstVcsChangeWrapped.findProblematicFile(theProblemText, Collections.emptyList())).thenReturn(result);
-    when(myFirstVcsChangeWrapped2.findProblematicFile(theProblemText, Collections.emptyList())).thenReturn(result);
+    when(myFirstVcsChangeWrapped.findProblematicFile(theProblemText, Collections.emptySet())).thenReturn(result);
+    when(myFirstVcsChangeWrapped2.findProblematicFile(theProblemText, Collections.emptySet())).thenReturn(result);
 
     heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
     Assert.assertFalse(heuristicResult.isEmpty());
@@ -163,8 +163,8 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
 
     Pair<User, String> firstResult = Pair.create(myUser, firstFilePath);
     Pair<User, String> secondResult = Pair.create(mySecondUser, secondFilePath);
-    when(myFirstVcsChangeWrapped.findProblematicFile(theProblemText, Collections.emptyList())).thenReturn(firstResult);
-    when(myFirstVcsChangeWrapped2.findProblematicFile(theProblemText, Collections.emptyList())).thenReturn(secondResult);
+    when(myFirstVcsChangeWrapped.findProblematicFile(theProblemText, Collections.emptySet())).thenReturn(firstResult);
+    when(myFirstVcsChangeWrapped2.findProblematicFile(theProblemText, Collections.emptySet())).thenReturn(secondResult);
 
     HeuristicResult result = myHeuristic.findResponsibleUser(myHeuristicContext);
     Assert.assertTrue(result.isEmpty());

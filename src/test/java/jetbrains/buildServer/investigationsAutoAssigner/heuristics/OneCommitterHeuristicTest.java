@@ -35,7 +35,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.when;
 
 @Test
@@ -84,12 +84,12 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
                                               Mockito.mock(SProject.class),
                                               Collections.emptyList(),
                                               Collections.singletonList(mySTestRun),
-                                              Collections.emptyList());
+                                              Collections.emptySet());
   }
 
   public void TestWithOneResponsible() {
     myChanges.add(myMod1);
-    when(myFirstModificationAnalyzer.getOnlyCommitter(anyList())).thenReturn(myFirstUser);
+    when(myFirstModificationAnalyzer.getOnlyCommitter(anySet())).thenReturn(myFirstUser);
 
     HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
     Responsibility responsibility = heuristicResult.getResponsibility(mySTestRun);
@@ -110,8 +110,8 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
   public void TestWithManyResponsible() {
     myChanges.add(myMod1);
     myChanges.add(myMod2);
-    when(myFirstModificationAnalyzer.getOnlyCommitter(anyList())).thenReturn(myFirstUser);
-    when(mySecondModificationAnalyzer.getOnlyCommitter(anyList())).thenReturn(mySecondUser);
+    when(myFirstModificationAnalyzer.getOnlyCommitter(anySet())).thenReturn(myFirstUser);
+    when(mySecondModificationAnalyzer.getOnlyCommitter(anySet())).thenReturn(mySecondUser);
 
     HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 
@@ -121,14 +121,14 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
   public void TestUsersToIgnore() {
     myChanges.add(myMod1);
     myChanges.add(myMod2);
-    when(myFirstModificationAnalyzer.getOnlyCommitter(anyList())).thenReturn(null);
-    when(mySecondModificationAnalyzer.getOnlyCommitter(anyList())).thenReturn(mySecondUser);
+    when(myFirstModificationAnalyzer.getOnlyCommitter(anySet())).thenReturn(null);
+    when(mySecondModificationAnalyzer.getOnlyCommitter(anySet())).thenReturn(mySecondUser);
 
     HeuristicContext hc = new HeuristicContext(mySBuild,
                                                Mockito.mock(SProject.class),
                                                Collections.emptyList(),
                                                Collections.singletonList(mySTestRun),
-                                               Collections.singletonList(myFirstUser.getUsername()));
+                                               Collections.singleton(myFirstUser.getUsername()));
     HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(hc);
     Responsibility responsibility = heuristicResult.getResponsibility(mySTestRun);
 
@@ -140,8 +140,8 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
   public void TestUnknownUser() {
     myChanges.add(myMod1);
     myChanges.add(myMod2);
-    when(myFirstModificationAnalyzer.getOnlyCommitter(anyList())).thenReturn(myFirstUser);
-    when(mySecondModificationAnalyzer.getOnlyCommitter(anyList())).thenThrow(IllegalStateException.class);
+    when(myFirstModificationAnalyzer.getOnlyCommitter(anySet())).thenReturn(myFirstUser);
+    when(mySecondModificationAnalyzer.getOnlyCommitter(anySet())).thenThrow(IllegalStateException.class);
 
     HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 

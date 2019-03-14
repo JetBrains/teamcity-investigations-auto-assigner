@@ -52,7 +52,7 @@ public class OneCommitterHeuristic implements Heuristic {
     for (SVcsModification vcsChange : build.getChanges(selectPrevBuildPolicy, true)) {
       try {
         ModificationAnalyzerFactory.ModificationAnalyzer vcsChangeWrapped = myModificationAnalyzerFactory.getInstance(vcsChange);
-        User probableResponsible = vcsChangeWrapped.getOnlyCommitter(heuristicContext.getUserFilter());
+        User probableResponsible = vcsChangeWrapped.getOnlyCommitter(heuristicContext.getUsersToIgnore());
         if (probableResponsible == null) continue;
         ensureSameUsers(responsible, probableResponsible);
         responsible = probableResponsible;

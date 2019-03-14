@@ -17,6 +17,7 @@
 package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
 import java.util.List;
+import java.util.Set;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STestRun;
@@ -28,18 +29,18 @@ public final class HeuristicContext {
   private final List<BuildProblem> myBuildProblems;
   private final List<STestRun> mySTestRuns;
   private final SBuild mySBuild;
-  private final List<String> myBlackList;
+  private final Set<String> myUsersToIgnore;
 
   public HeuristicContext(SBuild sBuild,
                           SProject sProject,
                           List<BuildProblem> buildProblems,
                           List<STestRun> sTestRuns,
-                          @NotNull List<String> usernameBlackList) {
+                          @NotNull Set<String> usernameBlackList) {
     mySBuild = sBuild;
     mySProject = sProject;
     myBuildProblems = buildProblems;
     mySTestRuns = sTestRuns;
-    myBlackList = usernameBlackList;
+    myUsersToIgnore = usernameBlackList;
   }
 
   @NotNull
@@ -61,8 +62,8 @@ public final class HeuristicContext {
   }
 
   @NotNull
-  public List<String> getUserFilter() {
-    return myBlackList;
+  public Set<String> getUsersToIgnore() {
+    return myUsersToIgnore;
   }
 }
 

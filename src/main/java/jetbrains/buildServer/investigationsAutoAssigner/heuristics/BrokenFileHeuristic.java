@@ -93,7 +93,7 @@ public class BrokenFileHeuristic implements Heuristic {
     for (SVcsModification vcsChange : vcsChanges) {
       try {
         ModificationAnalyzerFactory.ModificationAnalyzer vcsChangeWrapped = myModificationAnalyzerFactory.getInstance(vcsChange);
-        Pair<User, String> brokenFile = vcsChangeWrapped.findProblematicFile(problemText, heuristicContext.getUserFilter());
+        Pair<User, String> brokenFile = vcsChangeWrapped.findProblematicFile(problemText, heuristicContext.getUsersToIgnore());
         if (brokenFile == null) continue;
 
         ensureSameUsers(foundBrokenFile, brokenFile);

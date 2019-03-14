@@ -70,7 +70,7 @@ public class DefaultUserHeuristicTest extends BaseTestCase {
                            sProject,
                            Collections.emptyList(),
                            Collections.singletonList(mySTestRun),
-                           Collections.emptyList());
+                           Collections.emptySet());
 
     myBuildFeatureParams = new HashMap<>();
     when(

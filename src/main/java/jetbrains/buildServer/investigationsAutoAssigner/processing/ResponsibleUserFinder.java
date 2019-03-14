@@ -17,6 +17,7 @@
 package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.heuristics.Heuristic;
@@ -44,7 +45,7 @@ public class ResponsibleUserFinder {
     }
 
     HeuristicResult result = new HeuristicResult();
-    List<String> usernamesBlackList = CustomParameters.getUsersToIgnore(sBuild);
+    Set<String> usernamesBlackList = CustomParameters.getUsersToIgnore(sBuild);
     for (Heuristic heuristic : myOrderedHeuristics) {
       HeuristicContext heuristicContext =
         new HeuristicContext(sBuild, sProject, buildProblems, testRuns, usernamesBlackList);
