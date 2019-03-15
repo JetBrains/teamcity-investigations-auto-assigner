@@ -27,10 +27,10 @@ import org.jetbrains.annotations.NotNull;
 public interface Heuristic {
 
   /**
-   * @return short user-readable id of the heuristic. Should be suitable for part of internal property.
+   * @return short user-readable name of the heuristic.
    */
   @NotNull
-  String getId();
+  String getName();
 
   /**
    * Try to detect which person is probably responsible.

@@ -38,8 +38,8 @@ public class OneCommitterHeuristic implements Heuristic {
 
   @Override
   @NotNull
-  public String getId() {
-    return "OneCommitter";
+  public String getName() {
+    return "Only One Committer Heuristic";
   }
 
   @NotNull

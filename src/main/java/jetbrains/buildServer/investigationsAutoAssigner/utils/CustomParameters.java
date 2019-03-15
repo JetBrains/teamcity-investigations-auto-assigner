@@ -160,9 +160,4 @@ public class CustomParameters {
 
     return Collections.emptyList();
   }
-
-  public boolean  isHeuristicsDisabled(@NotNull final String heuristicId) {
-    String propertyName = "teamcity.investigationsAutoAssigner.heuristics." + heuristicId + ".enabled";
-    return !Boolean.valueOf(TeamCityProperties.getProperty(propertyName, "true"));
-  }
 }
