@@ -25,13 +25,14 @@ import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static jetbrains.buildServer.investigationsAutoAssigner.common.Constants.MY_AUTO_ASSIGNER_CONTROLLER_URL;
+
 public class AutoAssignerBuildFeature extends BuildFeature {
 
   private final String myEditUrl;
 
-  public AutoAssignerBuildFeature(
-    @NotNull final PluginDescriptor descriptor) {
-    myEditUrl = descriptor.getPluginResourcesPath("autoAssignerBuildFeature.jsp");
+  public AutoAssignerBuildFeature(@NotNull final PluginDescriptor descriptor) {
+    myEditUrl = descriptor.getPluginResourcesPath(MY_AUTO_ASSIGNER_CONTROLLER_URL);
   }
 
   @NotNull
