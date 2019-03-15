@@ -30,9 +30,12 @@ import org.jetbrains.annotations.NotNull;
 
 public class ResponsibleUserFinder {
   private List<Heuristic> myOrderedHeuristics;
+  private CustomParameters myCustomParameters;
 
-  public ResponsibleUserFinder(@NotNull final List<Heuristic> orderedHeuristics) {
+  public ResponsibleUserFinder(@NotNull final List<Heuristic> orderedHeuristics,
+                               @NotNull final CustomParameters customParameters) {
     myOrderedHeuristics = orderedHeuristics;
+    myCustomParameters = customParameters;
   }
 
   HeuristicResult findResponsibleUser(SBuild sBuild,
@@ -47,6 +50,10 @@ public class ResponsibleUserFinder {
     HeuristicResult result = new HeuristicResult();
     Set<String> usernamesBlackList = CustomParameters.getUsersToIgnore(sBuild);
     for (Heuristic heuristic : myOrderedHeuristics) {
+      if (myCustomParameters.isHeuristicsDisabled(heuristic.getId())) {
+        continue;
+      }
+
       HeuristicContext heuristicContext =
         new HeuristicContext(sBuild, sProject, buildProblems, testRuns, usernamesBlackList);
       HeuristicResult heuristicResult = heuristic.findResponsibleUser(heuristicContext);

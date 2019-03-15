@@ -42,8 +42,8 @@ public class PreviousResponsibleHeuristic implements Heuristic {
 
   @NotNull
   @Override
-  public String getName() {
-    return "Previous Responsible Heuristic";
+  public String getId() {
+    return "PreviousResponsible";
   }
 
   @NotNull

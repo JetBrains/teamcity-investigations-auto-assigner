@@ -42,8 +42,8 @@ public class DefaultUserHeuristic implements Heuristic {
 
   @Override
   @NotNull
-  public String getName() {
-    return "Default User Heuristic";
+  public String getId() {
+    return "DefaultUser";
   }
 
   @NotNull
