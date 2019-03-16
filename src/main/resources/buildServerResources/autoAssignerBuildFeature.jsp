@@ -37,6 +37,7 @@
       is only done when the failure repeats for the second time in a row.</span>
   </td>
 </tr>
+
 <th>
     <label for="<%= Constants.DEFAULT_RESPONSIBLE%>">Default assignee:</label>
   </th>
@@ -66,18 +67,4 @@
     <props:checkboxProperty name="<%=Constants.SHOULD_IGNORE_EXITCODE_PROBLEMS%>"/>
       <label for="<%=Constants.SHOULD_IGNORE_EXITCODE_PROBLEMS%>">Exit code build problems</label>
       <span class="smallNote">Type of build problems to ignore in investigations auto-assignment.</span>
-</tr>
-<tr class="advancedSetting">
-  <th>
-    <label for="<%= Constants.PROJECT_SCOPE_EXTERNAL_ID%>">Project scope:</label>
-  </th>
-  <td>
-    <props:selectProperty name="${Constants.PROJECT_SCOPE_EXTERNAL_ID}" className="longField" enableFilter="true">
-      <props:option value="">&lt;Default&gt;</props:option>
-      <c:forEach var="project" items="${projectAndParents}">
-        <props:option value="${project.externalId}"><c:out value="${project.fullName}"/></props:option>
-      </c:forEach>
-    </props:selectProperty>
-    <span class="smallNote">Project scope for automatic investigations. Default project scope is the lowest level project for the build.</span>
-  </td>
 </tr>
