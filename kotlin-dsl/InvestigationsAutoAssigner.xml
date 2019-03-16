@@ -38,5 +38,10 @@
         Whether investigations auto-assigner should use "on second failure" strategy.
       </description>
     </param>
+    <param name="projectScope.externalId" dslName="defaultProjectScope">
+      <description>
+        External id of the project for automatic investigations.
+      </description>
+    </param>
   </params>
 </dsl-extension>

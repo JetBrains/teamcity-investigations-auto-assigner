@@ -24,6 +24,7 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.DefaultUserRespon
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter;
+import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityFacade;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
@@ -78,9 +79,12 @@ public class BuildProblemsAssignerTest extends BaseTestCase {
     when(userSetMock.getUsers()).thenReturn(new HashSet<>(Arrays.asList(myUser1, myUser2)));
     when(mySBuild.getCommitters(any())).thenReturn(userSetMock);
 
+    CustomParameters customParameters = Mockito.mock(CustomParameters.class);
+    when(customParameters.getProjectScope(any(), any())).thenReturn(mySProject);
     myBuildProblemsAssigner = new BuildProblemsAssigner(myBuildProblemResponsibilityFacade,
                                                         Mockito.mock(WebLinks.class),
-                                                        Mockito.mock(StatisticsReporter.class));
+                                                        Mockito.mock(StatisticsReporter.class),
+                                                        customParameters);
   }
 
   public void Test_NoBuildProblems() {

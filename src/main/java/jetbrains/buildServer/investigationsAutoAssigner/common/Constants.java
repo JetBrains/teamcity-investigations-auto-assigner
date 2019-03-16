@@ -29,6 +29,7 @@ public class Constants {
   public static final String SHOULD_IGNORE_COMPILATION_PROBLEMS = "ignoreBuildProblems.compilation";
   public static final String SHOULD_IGNORE_EXITCODE_PROBLEMS = "ignoreBuildProblems.exitCode";
   public static final String SHOULD_DELAY_ASSIGNMENTS = "delayAssignments.enabled";
+  public static final String PROJECT_SCOPE_EXTERNAL_ID = "projectScope.externalId";
 
   // Build configuration parameter and internal property
   public static final String DEFAULT_SILENT_MODE_ENABLED = "teamcity.investigationsAutoAssigner.suggestions.enabledByDefault";

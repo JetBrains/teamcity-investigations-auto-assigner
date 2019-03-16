@@ -20,9 +20,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
-import jetbrains.buildServer.serverSide.SBuild;
-import jetbrains.buildServer.serverSide.SBuildFeatureDescriptor;
-import jetbrains.buildServer.serverSide.TeamCityProperties;
+import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,6 +28,11 @@ import org.jetbrains.annotations.Nullable;
 public class CustomParameters {
   private final static Integer MINIMAL_PROCESSING_DELAY = 5;
   private final static Integer DEFAULT_PROCESSING_DELAY_IN_SECONDS = 10 * 60;
+  private ProjectManager myProjectManager;
+
+  public CustomParameters(@NotNull final ProjectManager projectManager) {
+    myProjectManager = projectManager;
+  }
 
   @NotNull
   public static List<String> getDefaultResponsible(final SBuild build) {
@@ -161,8 +164,21 @@ public class CustomParameters {
     return Collections.emptyList();
   }
 
-  public boolean  isHeuristicsDisabled(@NotNull final String heuristicId) {
+  public boolean isHeuristicsDisabled(@NotNull final String heuristicId) {
     String propertyName = "teamcity.investigationsAutoAssigner.heuristics." + heuristicId + ".enabled";
     return !Boolean.valueOf(TeamCityProperties.getProperty(propertyName, "true"));
+  }
+
+  @NotNull
+  public SProject getProjectScope(@NotNull final SBuild build, @NotNull final SProject defaultProject) {
+    final SBuildFeatureDescriptor sBuildFeature = getBuildFeatureDescriptor(build);
+    if (sBuildFeature == null) {
+      return defaultProject;
+    }
+
+    String projectScopeExternalId = sBuildFeature.getParameters().get(Constants.PROJECT_SCOPE_EXTERNAL_ID);
+    SProject project = myProjectManager.findProjectByExternalId(projectScopeExternalId);
+
+    return project != null ? project : defaultProject;
   }
 }

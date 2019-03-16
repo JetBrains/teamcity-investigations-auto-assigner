@@ -24,6 +24,7 @@ import java.util.Set;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter;
+import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityFacade;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntryEx;
@@ -41,13 +42,16 @@ public class BuildProblemsAssigner extends BaseAssigner {
   @NotNull private final BuildProblemResponsibilityFacade myBuildProblemResponsibilityFacade;
   private final StatisticsReporter myStatisticsReporter;
   private WebLinks myWebLinks;
+  private CustomParameters myCustomParameters;
 
   public BuildProblemsAssigner(@NotNull final BuildProblemResponsibilityFacade buildProblemResponsibilityFacade,
                                @NotNull final WebLinks webLinks,
-                               @NotNull final StatisticsReporter statisticsReporter) {
+                               @NotNull final StatisticsReporter statisticsReporter,
+                               @NotNull final CustomParameters customParameters) {
     myBuildProblemResponsibilityFacade = buildProblemResponsibilityFacade;
     myStatisticsReporter = statisticsReporter;
     myWebLinks = webLinks;
+    myCustomParameters = customParameters;
   }
 
   void assign(final HeuristicResult heuristicsResult,
@@ -69,16 +73,17 @@ public class BuildProblemsAssigner extends BaseAssigner {
     Set<Responsibility> uniqueResponsibilities = responsibilityToBuildProblem.keySet();
     for (Responsibility responsibility : uniqueResponsibilities) {
       if (shouldAssignInvestigation(responsibility, committersIds)) {
+        SProject projectScope = myCustomParameters.getProjectScope(sBuild, sProject);
         LOGGER.info(String.format("Automatically assigning investigation(s) to %s in %s because user %s",
                                   responsibility.getUser().getUsername(),
-                                  sProject.describe(false),
+                                  projectScope.describe(false),
                                   responsibility.getDescription()));
         List<BuildProblemInfo> buildProblemList = responsibilityToBuildProblem.get(responsibility);
 
         String linkToBuild = myWebLinks.getViewResultsUrl(sBuild);
         myBuildProblemResponsibilityFacade.setBuildProblemResponsibility(
           buildProblemList,
-          sProject.getProjectId(),
+          projectScope.getProjectId(),
           new ResponsibilityEntryEx(
             ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
             responsibility.getAssignDescription(linkToBuild), ResponsibilityEntry.RemoveMethod.WHEN_FIXED)

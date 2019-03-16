@@ -24,6 +24,7 @@ import java.util.Set;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter;
+import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntryEx;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityFacade;
@@ -39,14 +40,17 @@ public class FailedTestAssigner extends BaseAssigner {
   @NotNull private final TestNameResponsibilityFacade myTestNameResponsibilityFacade;
   private WebLinks myWebLinks;
   private StatisticsReporter myStatisticsReporter;
+  private CustomParameters myCustomParameters;
   private static final Logger LOGGER = Logger.getInstance(FailedTestAssigner.class.getName());
 
   public FailedTestAssigner(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade,
                             @NotNull final WebLinks webLinks,
-                            @NotNull final StatisticsReporter statisticsReporter) {
+                            @NotNull final StatisticsReporter statisticsReporter,
+                            @NotNull final CustomParameters customParameters) {
     myTestNameResponsibilityFacade = testNameResponsibilityFacade;
     myWebLinks = webLinks;
     myStatisticsReporter = statisticsReporter;
+    myCustomParameters = customParameters;
   }
 
   void assign(final HeuristicResult heuristicsResult,
@@ -69,15 +73,18 @@ public class FailedTestAssigner extends BaseAssigner {
     for (Responsibility responsibility : uniqueResponsibilities) {
       if (shouldAssignInvestigation(responsibility, committersIds)) {
         List<TestName> testNameList = responsibilityToTestNames.get(responsibility);
+        SProject projectScope = myCustomParameters.getProjectScope(sBuild, sProject);
+
         LOGGER.info(String.format("Automatically assigning investigation(s) to %s in %s # %s because user %s",
                                   responsibility.getUser().getUsername(),
-                                  sProject.describe(false),
+                                  projectScope.describe(false),
                                   testNameList,
                                   responsibility.getDescription()));
 
         String linkToBuild = myWebLinks.getViewResultsUrl(sBuild);
+
         myTestNameResponsibilityFacade.setTestNameResponsibility(
-          testNameList, sProject.getProjectId(),
+          testNameList, projectScope.getProjectId(),
           new ResponsibilityEntryEx(
             ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
             responsibility.getAssignDescription(linkToBuild), ResponsibilityEntry.RemoveMethod.WHEN_FIXED)

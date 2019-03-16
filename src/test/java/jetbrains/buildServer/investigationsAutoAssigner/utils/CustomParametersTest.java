@@ -22,6 +22,7 @@ import java.util.Map;
 import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
+import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SBuildFeatureDescriptor;
 import org.mockito.Mockito;
@@ -36,7 +37,7 @@ public class CustomParametersTest extends BaseTestCase {
   @BeforeMethod
   @Override
   protected void setUp() throws Exception {
-    myCustomParameters = new CustomParameters();
+    myCustomParameters = new CustomParameters(Mockito.mock(ProjectManager.class));
     super.setUp();
   }
 
