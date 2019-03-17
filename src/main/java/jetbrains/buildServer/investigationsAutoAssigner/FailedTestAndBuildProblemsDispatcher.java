@@ -49,6 +49,7 @@ public class FailedTestAndBuildProblemsDispatcher {
   private final DelayedAssignmentsProcessor myDelayedAssignmentsProcessor;
   @NotNull private final EmailReporter myEmailReporter;
   private StatisticsReporter myStatisticsReporter;
+  private CustomParameters myCustomParameters;
   @NotNull
   private final ConcurrentHashMap<Long, FailedBuildInfo> myFailedBuilds = new ConcurrentHashMap<>();
   @NotNull
@@ -66,6 +67,7 @@ public class FailedTestAndBuildProblemsDispatcher {
     myDelayedAssignmentsProcessor = delayedAssignmentsProcessor;
     myEmailReporter = emailReporter;
     myStatisticsReporter = statisticsReporter;
+    myCustomParameters = customParameters;
     myExecutor = ExecutorsFactory.newFixedScheduledDaemonExecutor(Constants.BUILD_FEATURE_TYPE, 1);
     myExecutor.scheduleWithFixedDelay(this::processBrokenBuildsOneThread,
                                       CustomParameters.getProcessingDelayInSeconds(),
@@ -221,7 +223,7 @@ public class FailedTestAndBuildProblemsDispatcher {
     We should ignore personal builds, builds for feature branches (by default),
     and handle the case when investigation suggestions are disabled.
    */
-  private static boolean shouldIgnore(@NotNull SBuild build) {
+  private boolean shouldIgnore(@NotNull SBuild build) {
     @Nullable
     Branch branch = build.getBranch();
     boolean isDefaultBranch = branch == null || branch.isDefaultBranch();
@@ -232,6 +234,6 @@ public class FailedTestAndBuildProblemsDispatcher {
       return true;
     }
 
-    return !(CustomParameters.isBuildFeatureEnabled(build) || CustomParameters.isDefaultSilentModeEnabled(build));
+    return !(myCustomParameters.isBuildFeatureEnabled(build) || myCustomParameters.isDefaultSilentModeEnabled(build));
   }
 }

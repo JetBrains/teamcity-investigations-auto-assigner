@@ -16,11 +16,9 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.representation;
 
-import java.util.Collection;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import jetbrains.buildServer.controllers.BaseController;
-import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerArtifactDao;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter;
@@ -47,6 +45,7 @@ public class AutoAssignerDetailsController extends BaseController {
   @NotNull private final InvestigationsManager myInvestigationsManager;
   private final FlakyTestDetector myFlakyTestDetector;
   private final StatisticsReporter myStatisticsReporter;
+  private CustomParameters myCustomParameters;
 
   public AutoAssignerDetailsController(final SBuildServer server,
                                        @NotNull final FirstFailedInFixedInCalculator statisticsProvider,
@@ -55,7 +54,8 @@ public class AutoAssignerDetailsController extends BaseController {
                                        @NotNull final PluginDescriptor descriptor,
                                        @NotNull final FlakyTestDetector flakyTestDetector,
                                        @NotNull final InvestigationsManager investigationsManager,
-                                       @NotNull final StatisticsReporter statisticsReporter) {
+                                       @NotNull final StatisticsReporter statisticsReporter,
+                                       @NotNull final CustomParameters customParameters) {
     super(server);
     myStatisticsProvider = statisticsProvider;
     myAssignerArtifactDao = assignerArtifactDao;
@@ -64,6 +64,7 @@ public class AutoAssignerDetailsController extends BaseController {
     myCssPath = descriptor.getPluginResourcesPath("testDetailsExtension.css");
     myInvestigationsManager = investigationsManager;
     myStatisticsReporter = statisticsReporter;
+    myCustomParameters = customParameters;
     controllerManager.registerController("/autoAssignerController.html", this);
   }
 
@@ -75,7 +76,7 @@ public class AutoAssignerDetailsController extends BaseController {
     final int testId = Integer.parseInt(request.getParameter("testId"));
 
     final SBuild build = myServer.findBuildInstanceById(buildId);
-    if (build == null || !CustomParameters.isDefaultSilentModeEnabled(build)) {
+    if (build == null || !myCustomParameters.isDefaultSilentModeEnabled(build)) {
       return null;
     }
 

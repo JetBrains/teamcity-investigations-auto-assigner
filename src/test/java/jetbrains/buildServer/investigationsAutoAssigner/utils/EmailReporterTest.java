@@ -107,6 +107,8 @@ public class EmailReporterTest extends BaseTestCase {
 
     String testEmail = "test.mail.com";
     when(myCustomParameters.getEmailForEmailReporter()).thenReturn(testEmail);
+    when(myCustomParameters.shouldDelayAssignments(any())).thenReturn(false);
+    when(myCustomParameters.isBuildFeatureEnabled(any())).thenReturn(true);
     when(myWebLinks.getViewResultsUrl(mySBuildMock)).thenReturn(TEST_LINK_URL);
     myFailedBuildInfo = new FailedBuildInfo(mySBuildMock, false);
     when(myStatisticsReporterMock.generateReport()).thenReturn(myStatisticReport);

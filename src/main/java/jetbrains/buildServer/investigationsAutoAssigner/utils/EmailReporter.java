@@ -33,7 +33,7 @@ public class EmailReporter {
 
   private static final Logger LOGGER = Logger.getInstance(EmailReporter.class.getName());
   @NotNull private final EmailSender myEmailSender;
-  @Nullable private final String mySupervisorEmail;
+  private CustomParameters myCustomParameters;
   private StatisticsReporter myStatisticsReporter;
   @NotNull private final WebLinks myWebLinks;
 
@@ -43,17 +43,29 @@ public class EmailReporter {
                        @NotNull StatisticsReporter statisticsReporter) {
     myEmailSender = emailSender;
     myWebLinks = webLinks;
-    mySupervisorEmail = customParameters.getEmailForEmailReporter();
+    myCustomParameters = customParameters;
     myStatisticsReporter = statisticsReporter;
+
   }
 
   public void sendResults(FailedBuildInfo failedBuildInfo) {
     SBuild sBuild = failedBuildInfo.getBuild();
     HeuristicResult heuristicsResult = failedBuildInfo.getHeuristicsResult();
-
-    if (mySupervisorEmail != null && !heuristicsResult.isEmpty()) {
-      trySendEmail(mySupervisorEmail, getTitle(failedBuildInfo), generateHtmlReport(sBuild, heuristicsResult));
+    String supervisorEmail = myCustomParameters.getEmailForEmailReporter();
+    if (shouldSendReport(failedBuildInfo, supervisorEmail)) {
+      trySendEmail(supervisorEmail, getTitle(failedBuildInfo), generateHtmlReport(sBuild, heuristicsResult));
     }
+  }
+
+  private boolean shouldSendReport(FailedBuildInfo failedBuildInfo, String supervisorEmail) {
+    SBuild sBuild = failedBuildInfo.getBuild();
+    HeuristicResult heuristicsResult = failedBuildInfo.getHeuristicsResult();
+
+    return supervisorEmail != null &&
+           !supervisorEmail.isEmpty() &&
+           !heuristicsResult.isEmpty() &&
+           !failedBuildInfo.shouldDelayAssignments() &&
+           myCustomParameters.isBuildFeatureEnabled(sBuild);
   }
 
   private String getTitle(final FailedBuildInfo failedBuildInfo) {
@@ -63,7 +75,7 @@ public class EmailReporter {
     sb.append("[IAA health report. ");
     if (failedBuildInfo.shouldDelayAssignments()) {
       sb.append("Delayed assignment");
-    } else if (CustomParameters.isBuildFeatureEnabled(sBuild)) {
+    } else if (myCustomParameters.isBuildFeatureEnabled(sBuild)) {
       sb.append("New assignments");
     } else {
       sb.append("New suggestions");

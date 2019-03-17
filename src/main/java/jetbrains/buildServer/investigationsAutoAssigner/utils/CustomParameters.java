@@ -57,7 +57,7 @@ public class CustomParameters {
     return Arrays.stream(usersToIgnore.split("\n")).map(String::trim).collect(Collectors.toSet());
   }
 
-  public static boolean isDefaultSilentModeEnabled(final SBuild build) {
+  public boolean isDefaultSilentModeEnabled(final SBuild build) {
     @Nullable
     String enabledInBuild = build.getParametersProvider().get(Constants.DEFAULT_SILENT_MODE_ENABLED);
     if (StringUtil.isTrue(enabledInBuild)) {
@@ -118,7 +118,7 @@ public class CustomParameters {
     return TeamCityProperties.getPropertyOrNull(Constants.INTERNAL_REPORTER_EMAIL);
   }
 
-  public static boolean isBuildFeatureEnabled(@NotNull SBuild sBuild) {
+  public boolean isBuildFeatureEnabled(@NotNull SBuild sBuild) {
     Collection<SBuildFeatureDescriptor> descriptors = sBuild.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
 
     return !descriptors.isEmpty();

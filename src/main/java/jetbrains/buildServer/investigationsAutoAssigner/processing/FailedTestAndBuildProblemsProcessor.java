@@ -37,6 +37,7 @@ public class FailedTestAndBuildProblemsProcessor extends BaseProcessor {
   private final FailedTestAssigner myFailedTestAssigner;
   private final BuildProblemsAssigner myBuildProblemsAssigner;
   @NotNull private final AssignerArtifactDao myAssignerArtifactDao;
+  private CustomParameters myCustomParameters;
   @NotNull private ResponsibleUserFinder myResponsibleUserFinder;
 
 
@@ -45,13 +46,15 @@ public class FailedTestAndBuildProblemsProcessor extends BaseProcessor {
                                              @NotNull final FailedTestAssigner failedTestAssigner,
                                              @NotNull final BuildProblemsFilter buildProblemsFilter,
                                              @NotNull final BuildProblemsAssigner buildProblemsAssigner,
-                                             @NotNull final AssignerArtifactDao assignerArtifactDao) {
+                                             @NotNull final AssignerArtifactDao assignerArtifactDao,
+                                             @NotNull final CustomParameters customParameters) {
     myResponsibleUserFinder = responsibleUserFinder;
     myFailedTestFilter = failedTestFilter;
     myFailedTestAssigner = failedTestAssigner;
     myBuildProblemsFilter = buildProblemsFilter;
     myBuildProblemsAssigner = buildProblemsAssigner;
     myAssignerArtifactDao = assignerArtifactDao;
+    myCustomParameters = customParameters;
   }
 
   public void processBuild(final FailedBuildInfo failedBuildInfo) {
@@ -85,11 +88,11 @@ public class FailedTestAndBuildProblemsProcessor extends BaseProcessor {
       return;
     }
 
-    if (CustomParameters.isBuildFeatureEnabled(sBuild) && !failedBuildInfo.shouldDelayAssignments()) {
+    if (myCustomParameters.isBuildFeatureEnabled(sBuild) && !failedBuildInfo.shouldDelayAssignments()) {
       myFailedTestAssigner.assign(heuristicsResult, sProject, sBuild, testsForAssign);
       myBuildProblemsAssigner.assign(heuristicsResult, sProject, sBuild, problemsForAssign);
     } else if (LOGGER.isDebugEnabled()) {
-      if (!CustomParameters.isBuildFeatureEnabled(sBuild)) {
+      if (!myCustomParameters.isBuildFeatureEnabled(sBuild)) {
         LOGGER.debug(String.format("Build id:%s. Found investigations but build feature is not configured.",
                                    sBuild.getBuildId()));
       } else if (failedBuildInfo.shouldDelayAssignments()) {
