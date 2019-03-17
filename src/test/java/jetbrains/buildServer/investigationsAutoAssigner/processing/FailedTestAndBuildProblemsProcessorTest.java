@@ -23,6 +23,7 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerArtifactDao;
+import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.parameters.ParametersProvider;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.tests.TestName;
@@ -63,7 +64,8 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
                                                           myFailedTestAssigner,
                                                           buildProblemsFilter,
                                                           buildProblemsAssigner,
-                                                          myAssignerArtifactDao);
+                                                          myAssignerArtifactDao,
+                                                          new CustomParameters());
 
     //configure tests
     TestName testNameMock = Mockito.mock(TestName.class);

@@ -89,7 +89,10 @@ public class FailedTestAndBuildProblemsDispatcherTest {
 
     EmailReporter emailReporter = mock(EmailReporter.class);
     myCustomParameters = mock(CustomParameters.class);
+    when(myCustomParameters.shouldDelayAssignments(any())).thenReturn(false);
+    when(myCustomParameters.isBuildFeatureEnabled(any())).thenReturn(true);
     StatisticsReporter statisticsReporter = mock(StatisticsReporter.class);
+
 
     new FailedTestAndBuildProblemsDispatcher(myBsDispatcher,
                                              processor,
