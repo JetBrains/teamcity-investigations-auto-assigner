@@ -26,14 +26,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.web.servlet.ModelAndView;
 
-import static jetbrains.buildServer.investigationsAutoAssigner.common.Constants.MY_AUTO_ASSIGNER_CONTROLLER_URL;
-
 public class AutoAssignerBuildFeatureController extends BaseController {
+  public static final String CONTROLLER_URL = "editAutoAssigner.html";
   public AutoAssignerBuildFeatureController(@NotNull final SBuildServer server,
                                             @NotNull final WebControllerManager controllerManager,
                                             @NotNull final PluginDescriptor descriptor) {
     super(server);
-    controllerManager.registerController(descriptor.getPluginResourcesPath(MY_AUTO_ASSIGNER_CONTROLLER_URL), this);
+    controllerManager.registerController(descriptor.getPluginResourcesPath(CONTROLLER_URL), this);
   }
 
   @Nullable
