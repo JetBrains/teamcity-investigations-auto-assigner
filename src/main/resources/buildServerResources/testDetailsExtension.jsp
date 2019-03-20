@@ -23,6 +23,21 @@
       return BS.BulkInvestigateMuteTestDialog.showForTest(testNameId, buildId, null, projectExternalId, false, args);
     };
 
+  BS.AutoAssignerFeature.assignInvestigationOneClick =
+    function (userId, testNameId, buildId, description) {
+      return BS.ajaxUpdater('empty-div', 'assignInvestigation.html',
+        {
+          method: 'put',
+          parameters: {
+            userId : userId,
+            testNameId: testNameId,
+            buildId: buildId,
+            description: description
+          },
+          evalScripts: true,
+          onComplete: BS.reload(true)
+        });
+    };
 
   (function () {
     var divWithData = $('div_${autoAssignerBlockId}');
