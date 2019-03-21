@@ -73,8 +73,7 @@ public class AssignerArtifactDao {
       LOGGER.debug(String.format("Build id:%s :: Wrote %s new found investigations",
                                  build.getBuildId(), infoToAdd.size() - previouslyAdded.size()));
     } catch (IOException ex) {
-      LOGGER.error(String.format("Build id:%s :: An error occurs during appending results", build.getBuildId()), ex);
-      throw new RuntimeException("An error occurs during appending results");
+      LOGGER.warn(String.format("Build id:%s :: An error occurs during appending results", build.getBuildId()), ex);
     }
   }
 
@@ -104,9 +103,9 @@ public class AssignerArtifactDao {
 
       suggestions = mySuggestionsDao.read(resultsFilePath);
     } catch (IOException ex) {
-      LOGGER.error(String.format("%s An error occurs during reading of file with results",
+      LOGGER.warn(String.format("%s An error occurs during reading of file with results",
                                  Utils.getLogPrefix(testRun)), ex);
-      throw new RuntimeException("An error occurs during reading of file with results");
+      return null;
     }
 
     for (ResponsibilityPersistentInfo persistentInfo : suggestions) {
