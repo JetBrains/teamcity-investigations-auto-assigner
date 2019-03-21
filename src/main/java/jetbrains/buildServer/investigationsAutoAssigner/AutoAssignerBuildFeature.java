@@ -19,6 +19,7 @@ package jetbrains.buildServer.investigationsAutoAssigner;
 import java.util.Arrays;
 import java.util.Map;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
+import jetbrains.buildServer.investigationsAutoAssigner.representation.AutoAssignerBuildFeatureController;
 import jetbrains.buildServer.serverSide.BuildFeature;
 import jetbrains.buildServer.util.StringUtil;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
@@ -26,12 +27,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AutoAssignerBuildFeature extends BuildFeature {
-
   private final String myEditUrl;
 
-  public AutoAssignerBuildFeature(
-    @NotNull final PluginDescriptor descriptor) {
-    myEditUrl = descriptor.getPluginResourcesPath("autoAssignerBuildFeature.jsp");
+  public AutoAssignerBuildFeature(@NotNull final PluginDescriptor descriptor) {
+    myEditUrl = descriptor.getPluginResourcesPath(AutoAssignerBuildFeatureController.CONTROLLER_URL);
   }
 
   @NotNull

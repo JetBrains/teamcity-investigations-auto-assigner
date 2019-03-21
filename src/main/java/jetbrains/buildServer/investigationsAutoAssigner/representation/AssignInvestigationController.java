@@ -38,7 +38,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.web.servlet.ModelAndView;
 
-@Deprecated // currently nobody uses it. Currently it is for example
 public class AssignInvestigationController extends BaseController {
 
   @NotNull private final SecurityContext mySecurityContext;

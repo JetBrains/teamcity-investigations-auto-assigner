@@ -10,6 +10,7 @@
   <!-- see http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/beans.html -->
 
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.FailedTestAndBuildProblemsDispatcher"/>
+  <bean class="jetbrains.buildServer.investigationsAutoAssigner.representation.AutoAssignerBuildFeatureController"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsDaoFactory"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.AutoAssignerBuildFeature"/>
@@ -41,6 +42,7 @@
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerArtifactDao"/>
   <bean id="emailReporter" class="jetbrains.buildServer.investigationsAutoAssigner.utils.EmailReporter"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.representation.ClickAssignButtonReportController"/>
+  <bean class="jetbrains.buildServer.investigationsAutoAssigner.representation.AssignInvestigationController"/>
   <bean id="autoAssignerDetailsController"
         class="jetbrains.buildServer.investigationsAutoAssigner.representation.AutoAssignerDetailsController"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.representation.TestDetailsExtension"

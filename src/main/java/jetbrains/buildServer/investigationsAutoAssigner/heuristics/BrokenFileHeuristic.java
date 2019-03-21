@@ -48,8 +48,8 @@ public class BrokenFileHeuristic implements Heuristic {
 
   @Override
   @NotNull
-  public String getName() {
-    return "Detect Broken File Heuristic";
+  public String getId() {
+    return "BrokenFile";
   }
 
   @NotNull
