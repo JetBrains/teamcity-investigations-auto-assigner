@@ -57,7 +57,7 @@ public class OneCommitterHeuristic implements Heuristic {
         ensureSameUsers(responsible, probableResponsible);
         responsible = probableResponsible;
       } catch (IllegalStateException ex) {
-        LOGGER.warn(ex.getMessage() + ". build: " + build.getBuildId());
+        LOGGER.info(ex.getMessage() + ". build: " + build.getBuildId() + " is incompatible for this heuristic.");
         return result;
       }
     }

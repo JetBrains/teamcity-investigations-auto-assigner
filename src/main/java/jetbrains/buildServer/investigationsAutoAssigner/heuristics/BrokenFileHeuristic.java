@@ -99,7 +99,7 @@ public class BrokenFileHeuristic implements Heuristic {
         ensureSameUsers(foundBrokenFile, brokenFile);
         foundBrokenFile = brokenFile;
       } catch (IllegalStateException ex) {
-        LOGGER.warn(ex.getMessage() + ". build: " + heuristicContext.getBuild().getBuildId());
+        LOGGER.info(ex.getMessage() + ". build: " + heuristicContext.getBuild().getBuildId() + " is incompatible for this heuristic.");
         return null;
       }
     }
