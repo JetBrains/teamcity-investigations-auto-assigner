@@ -25,6 +25,7 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
+import jetbrains.buildServer.log.LogUtil;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.users.UserModelEx;
 import jetbrains.buildServer.users.impl.UserEx;
@@ -59,19 +60,22 @@ public class DefaultUserHeuristic implements Heuristic {
 
     UserEx responsibleUser = null;
     while (responsibleUser == null && !defaultResponsible.isEmpty()) {
-
       String chosenResponsible = defaultResponsible.get(myRandom.nextInt(defaultResponsible.size()));
       responsibleUser = myUserModel.findUserAccount(null, chosenResponsible);
       if (responsibleUser == null) {
-        LOGGER.warn(String.format("The specified default user '%s' cannot be found in the users list. " +
-                                  "Failed build id:%s", chosenResponsible, build.getBuildId()));
+        LOGGER.warn("Ignoring heuristic \"DefaultUser\" as there is no TeamCity user with the username \"" +
+                    chosenResponsible + "\" specified in the Investigations Auto-Assigner settings in the build: " +
+                    LogUtil.describe(build) + "Affected build configuration: " +
+                    LogUtil.describe(build.getBuildType()));
         defaultResponsible.remove(chosenResponsible);
       }
     }
 
     if (responsibleUser == null) {
-      LOGGER.warn(String.format("The specified default user '%s' cannot be found in the users list. " +
-                                "Failed build id:%s", defaultResponsible, build.getBuildId()));
+      LOGGER.warn("Ignoring heuristic \"DefaultUser\" as there is no TeamCity user with the username \"" +
+                  defaultResponsible + "\" specified in the Investigations Auto-Assigner settings in the build: " +
+                  LogUtil.describe(build) + "Affected build configuration: " +
+                  LogUtil.describe(build.getBuildType()));
       return result;
     }
 
