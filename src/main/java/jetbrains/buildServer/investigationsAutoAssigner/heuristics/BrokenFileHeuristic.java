@@ -56,11 +56,11 @@ public class BrokenFileHeuristic implements Heuristic {
 
   @NotNull
   public HeuristicResult findResponsibleUser(@NotNull HeuristicContext heuristicContext) {
-    HeuristicResult result = new HeuristicResult();
+    final HeuristicResult emptyResult = new HeuristicResult();
     SBuild sBuild = heuristicContext.getBuild();
 
     final BuildPromotion buildPromotion = sBuild.getBuildPromotion();
-    if (!(buildPromotion instanceof BuildPromotionEx)) return result;
+    if (!(buildPromotion instanceof BuildPromotionEx)) return emptyResult;
 
     SelectPrevBuildPolicy prevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
     List<SVcsModification> vcsChanges = ((BuildPromotionEx)buildPromotion).getDetectedChanges(prevBuildPolicy, false)
@@ -68,6 +68,21 @@ public class BrokenFileHeuristic implements Heuristic {
                                                                           .map(ChangeDescriptor::getRelatedVcsChange)
                                                                           .filter(Objects::nonNull)
                                                                           .collect(Collectors.toList());
+    try {
+      return processTestsAndBuildProblems(heuristicContext, vcsChanges);
+
+    } catch (IllegalStateException ex) {
+      LOGGER.debug("Heuristic \"BrokenFile\" is ignored as " + ex.getMessage() + ". Build: " +
+                   LogUtil.describe(heuristicContext.getBuild()));
+      return emptyResult;
+    }
+  }
+
+  private HeuristicResult processTestsAndBuildProblems(@NotNull final HeuristicContext heuristicContext,
+                                            final List<SVcsModification> vcsChanges) {
+    HeuristicResult result = new HeuristicResult();
+    SBuild sBuild = heuristicContext.getBuild();
+
     for (STestRun sTestRun : heuristicContext.getTestRuns()) {
       String problemText = myProblemTextExtractor.getBuildProblemText(sTestRun);
       Responsibility responsibility = findResponsibleUser(vcsChanges, problemText, heuristicContext);
@@ -93,20 +108,14 @@ public class BrokenFileHeuristic implements Heuristic {
                                              HeuristicContext heuristicContext) {
     Pair<User, String> foundBrokenFile = null;
     for (SVcsModification vcsChange : vcsChanges) {
-      try {
-        ModificationAnalyzerFactory.ModificationAnalyzer vcsChangeWrapped =
-          myModificationAnalyzerFactory.getInstance(vcsChange);
-        Pair<User, String> brokenFile =
-          vcsChangeWrapped.findProblematicFile(problemText, heuristicContext.getUsersToIgnore());
-        if (brokenFile == null) continue;
+      ModificationAnalyzerFactory.ModificationAnalyzer vcsChangeWrapped =
+        myModificationAnalyzerFactory.getInstance(vcsChange);
+      Pair<User, String> brokenFile =
+        vcsChangeWrapped.findProblematicFile(problemText, heuristicContext.getUsersToIgnore());
+      if (brokenFile == null) continue;
 
-        ensureSameUsers(foundBrokenFile, brokenFile);
-        foundBrokenFile = brokenFile;
-      } catch (IllegalStateException ex) {
-        LOGGER.debug("Heuristic \"BrokenFile\" is ignored as " + ex.getMessage() + ". Build: " +
-                     LogUtil.describe(heuristicContext.getBuild()));
-        return null;
-      }
+      ensureSameUsers(foundBrokenFile, brokenFile);
+      foundBrokenFile = brokenFile;
     }
 
     if (foundBrokenFile == null) return null;
