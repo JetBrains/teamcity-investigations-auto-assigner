@@ -41,8 +41,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FailedTestAndBuildProblemsDispatcher {
-
-  private static final Logger LOGGER = Logger.getInstance(FailedTestAndBuildProblemsDispatcher.class.getName());
+  private static final Logger LOGGER = Logger.getInstance(Constants.LOGGING_CATEGORY);
 
   @NotNull
   private final FailedTestAndBuildProblemsProcessor myProcessor;
@@ -173,7 +172,9 @@ public class FailedTestAndBuildProblemsDispatcher {
     String description = String.format("Investigations auto-assigner: processing finished build %s in background",
                                        failedBuildInfo.getBuild().getBuildId());
     NamedThreadFactory.executeWithNewThreadName(description, () -> this.processBrokenBuild(failedBuildInfo));
-    LOGGER.debug("Build #" + failedBuildInfo.getBuild().getBuildId() + " will be removed from processing.");
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Build #" + failedBuildInfo.getBuild().getBuildId() + " will be removed from processing.");
+    }
 
     if (failedBuildInfo.shouldDelayAssignments() && !failedBuildInfo.getHeuristicsResult().isEmpty()) {
       putIntoDelayAssignments(failedBuildInfo);

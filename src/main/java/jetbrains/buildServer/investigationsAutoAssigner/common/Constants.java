@@ -52,4 +52,5 @@ public class Constants {
   public static final String STATISTICS_FILE_NAME = "statistics.json";
   public static final String STATISTICS_FILE_VERSION = "1.3";
   public static final String ASSIGN_DESCRIPTION_PREFIX = "Investigation was automatically assigned to";
+  public static final String LOGGING_CATEGORY = "InvestigationsAutoAssigner";
 }

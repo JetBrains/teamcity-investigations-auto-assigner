@@ -20,6 +20,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.FlakyTestDetector;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.InvestigationsManager;
@@ -34,7 +35,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class FailedTestFilter {
 
-  private static final Logger LOGGER = Logger.getInstance(FailedTestFilter.class.getName());
+  private static final Logger LOGGER = Logger.getInstance(Constants.LOGGING_CATEGORY);
   private final InvestigationsManager myInvestigationsManager;
   private final FlakyTestDetector myFlakyTestDetector;
 

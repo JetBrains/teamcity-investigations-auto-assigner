@@ -17,6 +17,7 @@
 package jetbrains.buildServer.investigationsAutoAssigner.heuristics;
 
 import com.intellij.openapi.diagnostic.Logger;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
@@ -29,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class OneCommitterHeuristic implements Heuristic {
-  private static final Logger LOGGER = Logger.getInstance(OneCommitterHeuristic.class.getName());
+  private static final Logger LOGGER = Logger.getInstance(Constants.LOGGING_CATEGORY);
   private ModificationAnalyzerFactory myModificationAnalyzerFactory;
 
   public OneCommitterHeuristic(ModificationAnalyzerFactory modificationAnalyzerFactory) {
@@ -57,7 +58,7 @@ public class OneCommitterHeuristic implements Heuristic {
         ensureSameUsers(responsible, probableResponsible);
         responsible = probableResponsible;
       } catch (IllegalStateException ex) {
-        LOGGER.info(ex.getMessage() + ". build: " + build.getBuildId() + " is incompatible for this heuristic.");
+        LOGGER.debug(ex.getMessage() + ". build: " + build.getBuildId() + " is incompatible for One Committer heuristic.");
         return result;
       }
     }

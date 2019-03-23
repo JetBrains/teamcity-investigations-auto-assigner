@@ -18,6 +18,7 @@ package jetbrains.buildServer.investigationsAutoAssigner.utils;
 
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
@@ -31,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class EmailReporter {
 
-  private static final Logger LOGGER = Logger.getInstance(EmailReporter.class.getName());
+  private static final Logger LOGGER = Logger.getInstance(Constants.LOGGING_CATEGORY);
   @NotNull private final EmailSender myEmailSender;
   private CustomParameters myCustomParameters;
   private StatisticsReporter myStatisticsReporter;
@@ -95,7 +96,7 @@ public class EmailReporter {
     try {
       myEmailSender.send(to, title, "", html);
     } catch (EmailException ex) {
-      LOGGER.error(ex);
+      LOGGER.error("try send email: ", ex);
     }
   }
 

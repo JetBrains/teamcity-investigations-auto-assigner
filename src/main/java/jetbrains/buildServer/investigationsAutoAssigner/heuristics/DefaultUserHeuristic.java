@@ -19,6 +19,7 @@ package jetbrains.buildServer.investigationsAutoAssigner.heuristics;
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
 import java.util.Random;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.DefaultUserResponsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
@@ -31,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class DefaultUserHeuristic implements Heuristic {
 
-  private static final Logger LOGGER = Logger.getInstance(DefaultUserHeuristic.class.getName());
+  private static final Logger LOGGER = Logger.getInstance(Constants.LOGGING_CATEGORY);
   private Random myRandom = new Random();
 
   @NotNull private UserModelEx myUserModel;
@@ -62,14 +63,14 @@ public class DefaultUserHeuristic implements Heuristic {
       String chosenResponsible = defaultResponsible.get(myRandom.nextInt(defaultResponsible.size()));
       responsibleUser = myUserModel.findUserAccount(null, chosenResponsible);
       if (responsibleUser == null) {
-        LOGGER.warn(String.format("The specified default user %s cannot be found in the users list. " +
+        LOGGER.warn(String.format("The specified default user '%s' cannot be found in the users list. " +
                                   "Failed build id:%s", chosenResponsible, build.getBuildId()));
         defaultResponsible.remove(chosenResponsible);
       }
     }
 
     if (responsibleUser == null) {
-      LOGGER.warn(String.format("The specified default user %s cannot be found in the users list. " +
+      LOGGER.warn(String.format("The specified default user '%s' cannot be found in the users list. " +
                                 "Failed build id:%s", defaultResponsible, build.getBuildId()));
       return result;
     }

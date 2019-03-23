@@ -18,6 +18,7 @@ package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerArtifactDao;
@@ -31,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class FailedTestAndBuildProblemsProcessor extends BaseProcessor {
 
-  private static final Logger LOGGER = Logger.getInstance(FailedTestAndBuildProblemsProcessor.class.getName());
+  private static final Logger LOGGER = Logger.getInstance(Constants.LOGGING_CATEGORY);
   private final FailedTestFilter myFailedTestFilter;
   private final BuildProblemsFilter myBuildProblemsFilter;
   private final FailedTestAssigner myFailedTestAssigner;
@@ -62,7 +63,9 @@ public class FailedTestAndBuildProblemsProcessor extends BaseProcessor {
     SProject sProject = getProject(sBuild);
     if (sProject == null) return;
 
-    LOGGER.debug("Start processing build #" + sBuild.getBuildId() + ".");
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Start processing build #" + sBuild.getBuildId() + ".");
+    }
     if (failedBuildInfo.isOverProcessedProblemsThreshold()) {
       LOGGER.debug("Stop processing build #" + sBuild.getBuildId() + " as the threshold was exceeded.");
       return;

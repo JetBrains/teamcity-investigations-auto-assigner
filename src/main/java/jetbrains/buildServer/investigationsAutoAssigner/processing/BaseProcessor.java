@@ -18,12 +18,13 @@ package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.jetbrains.annotations.Nullable;
 
 abstract class BaseProcessor {
-  private static final Logger LOGGER = Logger.getInstance(BaseProcessor.class.getName());
+  private static final Logger LOGGER = Logger.getInstance(Constants.LOGGING_CATEGORY);
 
 
   protected List<STestRun> requestBrokenTestsWithStats(final SBuild build) {
@@ -68,7 +69,7 @@ abstract class BaseProcessor {
   protected SProject getProject(final SBuild sBuild) {
     SBuildType sBuildType = sBuild.getBuildType();
     if (sBuildType == null) {
-      LOGGER.warn("Build #" + sBuild.getBuildId() + " doesn't have a build type.");
+      LOGGER.debug("Build #" + sBuild.getBuildId() + " doesn't have a build type. Stop processing.");
       return null;
     }
 

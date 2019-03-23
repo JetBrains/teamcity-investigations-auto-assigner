@@ -20,6 +20,7 @@ import com.intellij.openapi.diagnostic.Logger;
 import java.util.*;
 import java.util.stream.Collectors;
 import jetbrains.buildServer.BuildProblemTypes;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.BuildProblemUtils;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
@@ -33,7 +34,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class BuildProblemsFilter {
 
-  private static final Logger LOGGER = Logger.getInstance(BuildProblemsFilter.class.getName());
+  private static final Logger LOGGER = Logger.getInstance(Constants.LOGGING_CATEGORY);
   private final BuildProblemUtils myBuildProblemUtils;
   private CustomParameters myCustomParameters;
   private InvestigationsManager myInvestigationsManager;

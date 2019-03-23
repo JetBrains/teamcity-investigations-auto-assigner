@@ -21,6 +21,7 @@ import com.intellij.openapi.util.Pair;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
@@ -36,7 +37,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class BrokenFileHeuristic implements Heuristic {
 
-  private static final Logger LOGGER = Logger.getInstance(BrokenFileHeuristic.class.getName());
+  private static final Logger LOGGER = Logger.getInstance(Constants.LOGGING_CATEGORY);
   private final ProblemTextExtractor myProblemTextExtractor;
   private ModificationAnalyzerFactory myModificationAnalyzerFactory;
 
@@ -99,7 +100,7 @@ public class BrokenFileHeuristic implements Heuristic {
         ensureSameUsers(foundBrokenFile, brokenFile);
         foundBrokenFile = brokenFile;
       } catch (IllegalStateException ex) {
-        LOGGER.info(ex.getMessage() + ". build: " + heuristicContext.getBuild().getBuildId() + " is incompatible for this heuristic.");
+        LOGGER.debug(ex.getMessage() + ". build: " + heuristicContext.getBuild().getBuildId() + " is incompatible for the Broken File heuristic.");
         return null;
       }
     }
