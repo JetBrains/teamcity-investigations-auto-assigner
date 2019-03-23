@@ -22,6 +22,7 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.ModificationAnalyzerFactory;
+import jetbrains.buildServer.log.LogUtil;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.vcs.SVcsModification;
@@ -58,7 +59,8 @@ public class OneCommitterHeuristic implements Heuristic {
         ensureSameUsers(responsible, probableResponsible);
         responsible = probableResponsible;
       } catch (IllegalStateException ex) {
-        LOGGER.debug(ex.getMessage() + ". build: " + build.getBuildId() + " is incompatible for One Committer heuristic.");
+        LOGGER.debug("Heuristic \"OneCommitter\" is ignored as " + ex.getMessage() + ". Build: " +
+                     LogUtil.describe(build));
         return result;
       }
     }
@@ -76,7 +78,7 @@ public class OneCommitterHeuristic implements Heuristic {
   private void ensureSameUsers(@Nullable User first,
                                @Nullable User second) {
     if (first != null && second != null && !first.equals(second)) {
-      throw new IllegalStateException("There are at least one unknown for TeamCity user");
+      throw new IllegalStateException("there are more then one TeamCity user");
     }
   }
 }

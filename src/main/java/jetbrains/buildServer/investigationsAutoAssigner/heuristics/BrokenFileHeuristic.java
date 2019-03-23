@@ -27,6 +27,7 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.ModificationAnalyzerFactory;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.ProblemTextExtractor;
+import jetbrains.buildServer.log.LogUtil;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.users.User;
@@ -93,14 +94,17 @@ public class BrokenFileHeuristic implements Heuristic {
     Pair<User, String> foundBrokenFile = null;
     for (SVcsModification vcsChange : vcsChanges) {
       try {
-        ModificationAnalyzerFactory.ModificationAnalyzer vcsChangeWrapped = myModificationAnalyzerFactory.getInstance(vcsChange);
-        Pair<User, String> brokenFile = vcsChangeWrapped.findProblematicFile(problemText, heuristicContext.getUsersToIgnore());
+        ModificationAnalyzerFactory.ModificationAnalyzer vcsChangeWrapped =
+          myModificationAnalyzerFactory.getInstance(vcsChange);
+        Pair<User, String> brokenFile =
+          vcsChangeWrapped.findProblematicFile(problemText, heuristicContext.getUsersToIgnore());
         if (brokenFile == null) continue;
 
         ensureSameUsers(foundBrokenFile, brokenFile);
         foundBrokenFile = brokenFile;
       } catch (IllegalStateException ex) {
-        LOGGER.debug(ex.getMessage() + ". build: " + heuristicContext.getBuild().getBuildId() + " is incompatible for the Broken File heuristic.");
+        LOGGER.debug("Heuristic \"BrokenFile\" is ignored as " + ex.getMessage() + ". Build: " +
+                     LogUtil.describe(heuristicContext.getBuild()));
         return null;
       }
     }
@@ -117,7 +121,7 @@ public class BrokenFileHeuristic implements Heuristic {
     if (foundBrokenFile != null &&
         broken != null &&
         !foundBrokenFile.first.equals(broken.first)) {
-      throw new IllegalStateException("There are at least one unknown for TeamCity user");
+      throw new IllegalStateException("there are more then one TeamCity user");
     }
   }
 }
