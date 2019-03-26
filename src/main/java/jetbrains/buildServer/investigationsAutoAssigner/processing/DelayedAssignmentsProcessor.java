@@ -29,7 +29,7 @@ import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 
 public class DelayedAssignmentsProcessor extends BaseProcessor {
-  private static final Logger LOGGER = Logger.getInstance(Constants.LOGGING_CATEGORY);
+  private static final Logger LOGGER = Constants.LOGGER;
 
   private final BuildProblemsFilter myBuildProblemsFilter;
   private final FailedTestFilter myFailedTestFilter;

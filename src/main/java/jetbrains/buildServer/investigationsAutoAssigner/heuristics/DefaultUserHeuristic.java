@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class DefaultUserHeuristic implements Heuristic {
 
-  private static final Logger LOGGER = Logger.getInstance(Constants.LOGGING_CATEGORY);
+  private static final Logger LOGGER = Constants.LOGGER;
   private Random myRandom = new Random();
 
   @NotNull private UserModelEx myUserModel;

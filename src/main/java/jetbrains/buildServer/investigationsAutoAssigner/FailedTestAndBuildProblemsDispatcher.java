@@ -41,7 +41,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class FailedTestAndBuildProblemsDispatcher {
-  private static final Logger LOGGER = Logger.getInstance(Constants.LOGGING_CATEGORY);
+  private static final Logger LOGGER = Constants.LOGGER;
 
   @NotNull
   private final FailedTestAndBuildProblemsProcessor myProcessor;

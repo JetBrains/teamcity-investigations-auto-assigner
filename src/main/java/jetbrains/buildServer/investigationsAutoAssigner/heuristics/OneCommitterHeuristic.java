@@ -31,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class OneCommitterHeuristic implements Heuristic {
-  private static final Logger LOGGER = Logger.getInstance(Constants.LOGGING_CATEGORY);
+  private static final Logger LOGGER = Constants.LOGGER;
   private ModificationAnalyzerFactory myModificationAnalyzerFactory;
 
   public OneCommitterHeuristic(ModificationAnalyzerFactory modificationAnalyzerFactory) {

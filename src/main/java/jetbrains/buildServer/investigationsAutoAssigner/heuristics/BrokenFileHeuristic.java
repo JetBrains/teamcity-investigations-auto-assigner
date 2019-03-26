@@ -38,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class BrokenFileHeuristic implements Heuristic {
 
-  private static final Logger LOGGER = Logger.getInstance(Constants.LOGGING_CATEGORY);
+  private static final Logger LOGGER = Constants.LOGGER;
   private final ProblemTextExtractor myProblemTextExtractor;
   private ModificationAnalyzerFactory myModificationAnalyzerFactory;
 

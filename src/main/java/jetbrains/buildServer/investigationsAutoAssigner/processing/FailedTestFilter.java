@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class FailedTestFilter {
 
-  private static final Logger LOGGER = Logger.getInstance(Constants.LOGGING_CATEGORY);
+  private static final Logger LOGGER = Constants.LOGGER;
   private final InvestigationsManager myInvestigationsManager;
   private final FlakyTestDetector myFlakyTestDetector;
 

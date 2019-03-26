@@ -32,7 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class EmailReporter {
 
-  private static final Logger LOGGER = Logger.getInstance(Constants.LOGGING_CATEGORY);
+  private static final Logger LOGGER = Constants.LOGGER;
   @NotNull private final EmailSender myEmailSender;
   private CustomParameters myCustomParameters;
   private StatisticsReporter myStatisticsReporter;

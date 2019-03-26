@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class PreviousResponsibleHeuristic implements Heuristic {
 
-  private static final Logger LOGGER = Logger.getInstance(Constants.LOGGING_CATEGORY);
+  private static final Logger LOGGER = Constants.LOGGER;
   private InvestigationsManager myInvestigationsManager;
 
   public PreviousResponsibleHeuristic(InvestigationsManager investigationsManager) {

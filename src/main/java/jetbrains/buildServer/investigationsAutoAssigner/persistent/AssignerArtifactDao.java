@@ -37,7 +37,7 @@ public class AssignerArtifactDao {
   private SuggestionsDao mySuggestionsDao;
   private AssignerResultsFilePath myAssignerResultsFilePath;
   private StatisticsReporter myStatisticsReporter;
-  private static final Logger LOGGER = Logger.getInstance(Constants.LOGGING_CATEGORY);
+  private static final Logger LOGGER = Constants.LOGGER;
 
   public AssignerArtifactDao(@NotNull final UserModelEx userModel,
                              @NotNull final SuggestionsDao suggestionsDao,

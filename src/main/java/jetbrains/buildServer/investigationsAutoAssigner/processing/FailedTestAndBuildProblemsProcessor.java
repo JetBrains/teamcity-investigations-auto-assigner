@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class FailedTestAndBuildProblemsProcessor extends BaseProcessor {
 
-  private static final Logger LOGGER = Logger.getInstance(Constants.LOGGING_CATEGORY);
+  private static final Logger LOGGER = Constants.LOGGER;
   private final FailedTestFilter myFailedTestFilter;
   private final BuildProblemsFilter myBuildProblemsFilter;
   private final FailedTestAssigner myFailedTestAssigner;

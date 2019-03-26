@@ -34,7 +34,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class BuildProblemsFilter {
 
-  private static final Logger LOGGER = Logger.getInstance(Constants.LOGGING_CATEGORY);
+  private static final Logger LOGGER = Constants.LOGGER;
   private final BuildProblemUtils myBuildProblemUtils;
   private CustomParameters myCustomParameters;
   private InvestigationsManager myInvestigationsManager;

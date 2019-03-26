@@ -40,7 +40,7 @@ public class FailedTestAssigner extends BaseAssigner {
   @NotNull private final TestNameResponsibilityFacade myTestNameResponsibilityFacade;
   private WebLinks myWebLinks;
   private StatisticsReporter myStatisticsReporter;
-  private static final Logger LOGGER = Logger.getInstance(Constants.LOGGING_CATEGORY);
+  private static final Logger LOGGER = Constants.LOGGER;
 
   public FailedTestAssigner(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade,
                             @NotNull final WebLinks webLinks,

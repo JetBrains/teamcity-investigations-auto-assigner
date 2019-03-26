@@ -38,7 +38,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class BuildProblemsAssigner extends BaseAssigner {
 
-  private static final Logger LOGGER = Logger.getInstance(Constants.LOGGING_CATEGORY);
+  private static final Logger LOGGER = Constants.LOGGER;
   @NotNull private final BuildProblemResponsibilityFacade myBuildProblemResponsibilityFacade;
   private final StatisticsReporter myStatisticsReporter;
   private WebLinks myWebLinks;

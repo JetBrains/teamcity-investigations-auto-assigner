@@ -32,7 +32,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class SuggestionsDao {
-  private final Logger LOGGER = Logger.getInstance(Constants.LOGGING_CATEGORY);
+  private final Logger LOGGER = Constants.LOGGER;
   private final ServerSettings mySettings;
   private final Gson myGson;
 

@@ -24,7 +24,7 @@ import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.jetbrains.annotations.Nullable;
 
 abstract class BaseProcessor {
-  private static final Logger LOGGER = Logger.getInstance(Constants.LOGGING_CATEGORY);
+  private static final Logger LOGGER = Constants.LOGGER;
 
 
   protected List<STestRun> requestBrokenTestsWithStats(final SBuild build) {
