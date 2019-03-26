@@ -85,7 +85,7 @@ public class ModificationAnalyzerFactory {
       }
 
       if (filteredCommitters.size() > 1) {
-        throw new IllegalStateException("there are more than one committers");
+        throw new IllegalStateException("there are more than one committer");
       }
 
       return filteredCommitters.get(0);
