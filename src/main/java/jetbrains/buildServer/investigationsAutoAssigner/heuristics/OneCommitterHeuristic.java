@@ -17,10 +17,12 @@
 package jetbrains.buildServer.investigationsAutoAssigner.heuristics;
 
 import com.intellij.openapi.diagnostic.Logger;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.ModificationAnalyzerFactory;
+import jetbrains.buildServer.log.LogUtil;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.vcs.SVcsModification;
@@ -29,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class OneCommitterHeuristic implements Heuristic {
-  private static final Logger LOGGER = Logger.getInstance(OneCommitterHeuristic.class.getName());
+  private static final Logger LOGGER = Constants.LOGGER;
   private ModificationAnalyzerFactory myModificationAnalyzerFactory;
 
   public OneCommitterHeuristic(ModificationAnalyzerFactory modificationAnalyzerFactory) {
@@ -57,7 +59,8 @@ public class OneCommitterHeuristic implements Heuristic {
         ensureSameUsers(responsible, probableResponsible);
         responsible = probableResponsible;
       } catch (IllegalStateException ex) {
-        LOGGER.info(ex.getMessage() + ". build: " + build.getBuildId() + " is incompatible for this heuristic.");
+        LOGGER.debug("Heuristic \"OneCommitter\" is ignored as " + ex.getMessage() + ". Build: " +
+                     LogUtil.describe(build));
         return result;
       }
     }
@@ -75,7 +78,7 @@ public class OneCommitterHeuristic implements Heuristic {
   private void ensureSameUsers(@Nullable User first,
                                @Nullable User second) {
     if (first != null && second != null && !first.equals(second)) {
-      throw new IllegalStateException("There are at least one unknown for TeamCity user");
+      throw new IllegalStateException("there are more then one TeamCity user");
     }
   }
 }

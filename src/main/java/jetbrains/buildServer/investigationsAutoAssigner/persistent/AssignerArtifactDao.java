@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.Utils;
@@ -36,7 +37,7 @@ public class AssignerArtifactDao {
   private SuggestionsDao mySuggestionsDao;
   private AssignerResultsFilePath myAssignerResultsFilePath;
   private StatisticsReporter myStatisticsReporter;
-  private static final Logger LOGGER = Logger.getInstance(AssignerArtifactDao.class.getName());
+  private static final Logger LOGGER = Constants.LOGGER;
 
   public AssignerArtifactDao(@NotNull final UserModelEx userModel,
                              @NotNull final SuggestionsDao suggestionsDao,
@@ -114,15 +115,17 @@ public class AssignerArtifactDao {
                                    Utils.getLogPrefix(testRun), testRun.getTestRunId()));
         User user = myUserModel.findUserById(Long.parseLong(persistentInfo.investigatorId));
         if (user == null) {
-          LOGGER.warn(String.format("%s User with id %s was not found in our model.", Utils.getLogPrefix(testRun),
+          LOGGER.warn(String.format("%s User with id '%s' was not found in user model.", Utils.getLogPrefix(testRun),
                                     persistentInfo.investigatorId));
         }
         return user != null ? new Responsibility(user, persistentInfo.reason) : null;
       }
     }
 
-    LOGGER.debug(String.format("%s Investigation for testRun %s wasn't found",
-                               Utils.getLogPrefix(testRun), testRun.getTestRunId()));
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug(String.format("%s Investigation for testRun '%s' wasn't found",
+                                 Utils.getLogPrefix(testRun), testRun.getTestRunId()));
+    }
     return null;
   }
 }

@@ -73,7 +73,7 @@ public class ModificationAnalyzerFactory {
     public User getOnlyCommitter(Set<String> usersToIgnore) throws IllegalStateException {
       Collection<SUser> committers = myVcsChange.getCommitters();
       if (committers.size() == 0) {
-        throw new IllegalStateException("There are at least one unknown for TeamCity user");
+        throw new IllegalStateException("committer \"" + myVcsChange.getUserName() + "\" does not have corresponding TeamCity user");
       }
 
       List<User> filteredCommitters = committers.stream()
@@ -85,12 +85,11 @@ public class ModificationAnalyzerFactory {
       }
 
       if (filteredCommitters.size() > 1) {
-        throw new IllegalStateException("There are more than one committers");
+        throw new IllegalStateException("there are more than one committer");
       }
 
       return filteredCommitters.get(0);
     }
-
   }
 
   @Nullable

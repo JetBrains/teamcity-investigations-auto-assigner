@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter;
@@ -37,7 +38,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class BuildProblemsAssigner extends BaseAssigner {
 
-  private static final Logger LOGGER = Logger.getInstance(BuildProblemsAssigner.class.getName());
+  private static final Logger LOGGER = Constants.LOGGER;
   @NotNull private final BuildProblemResponsibilityFacade myBuildProblemResponsibilityFacade;
   private final StatisticsReporter myStatisticsReporter;
   private WebLinks myWebLinks;

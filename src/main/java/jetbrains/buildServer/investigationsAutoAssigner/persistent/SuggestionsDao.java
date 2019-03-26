@@ -26,12 +26,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.serverSide.ServerSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class SuggestionsDao {
-  private final Logger LOGGER = Logger.getInstance(SuggestionsDao.class.getName());
+  private final Logger LOGGER = Constants.LOGGER;
   private final ServerSettings mySettings;
   private final Gson myGson;
 
@@ -60,7 +61,10 @@ public class SuggestionsDao {
           LOGGER.warn("%s: Server UUIDs don't match");
           return Collections.emptyList();
         } else {
-          LOGGER.debug(String.format("Read %s stored investigations", artifactContent.suggestions.size()));
+          if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug(String.format("Read %s stored investigations", artifactContent.suggestions.size()));
+          }
+
           return artifactContent.suggestions;
         }
       }

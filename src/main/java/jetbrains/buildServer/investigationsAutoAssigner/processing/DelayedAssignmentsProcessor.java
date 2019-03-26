@@ -19,6 +19,7 @@ package jetbrains.buildServer.investigationsAutoAssigner.processing;
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
 import java.util.stream.Collectors;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.serverSide.BuildEx;
@@ -28,7 +29,7 @@ import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 
 public class DelayedAssignmentsProcessor extends BaseProcessor {
-  private static final Logger LOGGER = Logger.getInstance(DelayedAssignmentsProcessor.class.getName());
+  private static final Logger LOGGER = Constants.LOGGER;
 
   private final BuildProblemsFilter myBuildProblemsFilter;
   private final FailedTestFilter myFailedTestFilter;
@@ -50,7 +51,9 @@ public class DelayedAssignmentsProcessor extends BaseProcessor {
     SProject sProject = getProject(sBuild);
     if (sProject == null) return;
 
-    LOGGER.debug("Start processing delayed assignments for build #" + sBuild.getBuildId() + ".");
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug("Start processing delayed assignments for build #" + sBuild.getBuildId() + ".");
+    }
     HeuristicResult heuristicsResult = failedBuildInfo.getHeuristicsResult();
 
     List<STestRun> applicableFailedTests =

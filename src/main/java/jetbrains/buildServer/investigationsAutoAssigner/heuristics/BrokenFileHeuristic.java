@@ -21,11 +21,13 @@ import com.intellij.openapi.util.Pair;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.ModificationAnalyzerFactory;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.ProblemTextExtractor;
+import jetbrains.buildServer.log.LogUtil;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.users.User;
@@ -36,7 +38,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class BrokenFileHeuristic implements Heuristic {
 
-  private static final Logger LOGGER = Logger.getInstance(BrokenFileHeuristic.class.getName());
+  private static final Logger LOGGER = Constants.LOGGER;
   private final ProblemTextExtractor myProblemTextExtractor;
   private ModificationAnalyzerFactory myModificationAnalyzerFactory;
 
@@ -54,11 +56,11 @@ public class BrokenFileHeuristic implements Heuristic {
 
   @NotNull
   public HeuristicResult findResponsibleUser(@NotNull HeuristicContext heuristicContext) {
-    HeuristicResult result = new HeuristicResult();
+    final HeuristicResult emptyResult = new HeuristicResult();
     SBuild sBuild = heuristicContext.getBuild();
 
     final BuildPromotion buildPromotion = sBuild.getBuildPromotion();
-    if (!(buildPromotion instanceof BuildPromotionEx)) return result;
+    if (!(buildPromotion instanceof BuildPromotionEx)) return emptyResult;
 
     SelectPrevBuildPolicy prevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
     List<SVcsModification> vcsChanges = ((BuildPromotionEx)buildPromotion).getDetectedChanges(prevBuildPolicy, false)
@@ -66,6 +68,21 @@ public class BrokenFileHeuristic implements Heuristic {
                                                                           .map(ChangeDescriptor::getRelatedVcsChange)
                                                                           .filter(Objects::nonNull)
                                                                           .collect(Collectors.toList());
+    try {
+      return processTestsAndBuildProblems(heuristicContext, vcsChanges);
+
+    } catch (IllegalStateException ex) {
+      LOGGER.debug("Heuristic \"BrokenFile\" is ignored as " + ex.getMessage() + ". Build: " +
+                   LogUtil.describe(heuristicContext.getBuild()));
+      return emptyResult;
+    }
+  }
+
+  private HeuristicResult processTestsAndBuildProblems(@NotNull final HeuristicContext heuristicContext,
+                                            final List<SVcsModification> vcsChanges) {
+    HeuristicResult result = new HeuristicResult();
+    SBuild sBuild = heuristicContext.getBuild();
+
     for (STestRun sTestRun : heuristicContext.getTestRuns()) {
       String problemText = myProblemTextExtractor.getBuildProblemText(sTestRun);
       Responsibility responsibility = findResponsibleUser(vcsChanges, problemText, heuristicContext);
@@ -91,17 +108,14 @@ public class BrokenFileHeuristic implements Heuristic {
                                              HeuristicContext heuristicContext) {
     Pair<User, String> foundBrokenFile = null;
     for (SVcsModification vcsChange : vcsChanges) {
-      try {
-        ModificationAnalyzerFactory.ModificationAnalyzer vcsChangeWrapped = myModificationAnalyzerFactory.getInstance(vcsChange);
-        Pair<User, String> brokenFile = vcsChangeWrapped.findProblematicFile(problemText, heuristicContext.getUsersToIgnore());
-        if (brokenFile == null) continue;
+      ModificationAnalyzerFactory.ModificationAnalyzer vcsChangeWrapped =
+        myModificationAnalyzerFactory.getInstance(vcsChange);
+      Pair<User, String> brokenFile =
+        vcsChangeWrapped.findProblematicFile(problemText, heuristicContext.getUsersToIgnore());
+      if (brokenFile == null) continue;
 
-        ensureSameUsers(foundBrokenFile, brokenFile);
-        foundBrokenFile = brokenFile;
-      } catch (IllegalStateException ex) {
-        LOGGER.info(ex.getMessage() + ". build: " + heuristicContext.getBuild().getBuildId() + " is incompatible for this heuristic.");
-        return null;
-      }
+      ensureSameUsers(foundBrokenFile, brokenFile);
+      foundBrokenFile = brokenFile;
     }
 
     if (foundBrokenFile == null) return null;
@@ -116,7 +130,7 @@ public class BrokenFileHeuristic implements Heuristic {
     if (foundBrokenFile != null &&
         broken != null &&
         !foundBrokenFile.first.equals(broken.first)) {
-      throw new IllegalStateException("There are at least one unknown for TeamCity user");
+      throw new IllegalStateException("there are more then one TeamCity user");
     }
   }
 }

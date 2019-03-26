@@ -16,8 +16,9 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.heuristics;
 
-import java.util.HashMap;
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.HashMap;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
@@ -28,12 +29,11 @@ import jetbrains.buildServer.serverSide.STest;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.users.User;
-
 import org.jetbrains.annotations.NotNull;
 
 public class PreviousResponsibleHeuristic implements Heuristic {
 
-  private static final Logger LOGGER = Logger.getInstance(PreviousResponsibleHeuristic.class.getName());
+  private static final Logger LOGGER = Constants.LOGGER;
   private InvestigationsManager myInvestigationsManager;
 
   public PreviousResponsibleHeuristic(InvestigationsManager investigationsManager) {
