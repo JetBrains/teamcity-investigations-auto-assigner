@@ -29,6 +29,9 @@ import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.*;
 
 @Test
@@ -103,74 +106,92 @@ public class FailedTestAndBuildProblemsDispatcherTest {
 
   }
 
-  public void Test_BuildProblemsChanged_PersonalBuildFiltered() throws InterruptedException {
+  public void Test_BuildProblemsChanged_PersonalBuildFiltered() {
     when(myBuild.isPersonal()).thenReturn(true);
 
     myBsDispatcher.getMulticaster().buildProblemsChanged(myBuild, Collections.emptyList(), Collections.emptyList());
-    Thread.sleep(50);
     verifyMarkOfPassBuildProblemsChanged(0);
   }
 
-  public void Test_BuildProblemsChanged_FeatureBranchIgnored() throws InterruptedException {
+  public void Test_BuildProblemsChanged_FeatureBranchIgnored() {
     when(myBranch.isDefaultBranch()).thenReturn(false);
 
     myBsDispatcher.getMulticaster().buildProblemsChanged(myBuild, Collections.emptyList(), Collections.emptyList());
-    Thread.sleep(50);
     verifyMarkOfPassBuildProblemsChanged(0);
   }
 
-  public void Test_BuildProblemsChanged_NormalBuildAdded() throws InterruptedException {
+  public void Test_BuildProblemsChanged_NormalBuildAdded() {
     when(myBranch.isDefaultBranch()).thenReturn(true);
     when(myBuild.isPersonal()).thenReturn(false);
 
     myBsDispatcher.getMulticaster().buildProblemsChanged(myBuild, Collections.emptyList(), Collections.emptyList());
-    Thread.sleep(50);
     verifyMarkOfPassBuildProblemsChanged(1);
   }
 
-  public void Test_BuildProblemsChanged_BuildAddsOnlyOnce() throws InterruptedException {
+  public void Test_BuildProblemsChanged_BuildAddsOnlyOnce() {
     myBsDispatcher.getMulticaster().buildProblemsChanged(myBuild, Collections.emptyList(), Collections.emptyList());
     myBsDispatcher.getMulticaster().buildProblemsChanged(myBuild, Collections.emptyList(), Collections.emptyList());
-    Thread.sleep(50);
     verifyMarkOfPassBuildProblemsChanged(1);
   }
 
-  public void Test_BuildProblemsChanged_TwoBuilds() throws InterruptedException {
+  public void Test_BuildProblemsChanged_TwoBuilds() {
     myBsDispatcher.getMulticaster().buildProblemsChanged(myBuild, Collections.emptyList(), Collections.emptyList());
     myBsDispatcher.getMulticaster()
                   .buildProblemsChanged(mySecondBuild, Collections.emptyList(), Collections.emptyList());
-    Thread.sleep(50);
     verifyMarkOfPassBuildProblemsChanged(2);
   }
 
-  public void Test_BuildFinished_PersonalBuildIgnored() throws InterruptedException {
+  public void Test_BuildFinished_PersonalBuildIgnored() {
     when(myRunningBuild.isPersonal()).thenReturn(true);
     myBsDispatcher.getMulticaster().buildFinished(myRunningBuild);
-    Thread.sleep(50);
     verifyMarkOfPassForBuildFinished(0);
   }
 
-  public void Test_BuildFinished_FeatureBranchIgnored() throws InterruptedException {
+  public void Test_BuildFinished_FeatureBranchIgnored() {
     when(myBranch.isDefaultBranch()).thenReturn(false);
     myBsDispatcher.getMulticaster().buildFinished(myRunningBuild);
-    Thread.sleep(50);
     verifyMarkOfPassForBuildFinished(0);
   }
 
-  public void Test_BuildFinished_NormalCase() throws InterruptedException {
+  public void Test_BuildFinished_NormalCase() {
     when(myRunningBuild.isPersonal()).thenReturn(false);
     when(myBranch.isDefaultBranch()).thenReturn(true);
 
     myBsDispatcher.getMulticaster().buildFinished(myRunningBuild);
-    Thread.sleep(50);
     verifyMarkOfPassForBuildFinished(1);
   }
 
   private void verifyMarkOfPassBuildProblemsChanged(int expectedExecutions) {
+    await().atMost(1, SECONDS)
+           .pollDelay(50, MILLISECONDS)
+           .pollInterval(50, MILLISECONDS)
+           .until(() -> verifyMarkOfPassBuildProblemsChangedSilent(expectedExecutions));
     verify(myCustomParameters, times(expectedExecutions)).shouldDelayAssignments(any());
   }
 
+  private boolean verifyMarkOfPassBuildProblemsChangedSilent(int expectedExecutions) {
+    try {
+      verify(myCustomParameters, times(expectedExecutions)).shouldDelayAssignments(any());
+      return true;
+    } catch (AssertionError err) {
+      return false;
+    }
+  }
+
   private void verifyMarkOfPassForBuildFinished(int expectedExecutions) {
+    await().atMost(1, SECONDS)
+           .pollDelay(50, MILLISECONDS)
+           .pollInterval(50, MILLISECONDS)
+           .until(() -> verifyMarkOfPassForBuildFinishedSilent(expectedExecutions));
     verify(mySBuildType, times(expectedExecutions)).getInternalId();
+  }
+
+  private boolean verifyMarkOfPassForBuildFinishedSilent(int expectedExecutions) {
+    try {
+      verify(mySBuildType, times(expectedExecutions)).getInternalId();
+      return true;
+    } catch (AssertionError err) {
+      return false;
+    }
   }
 }
