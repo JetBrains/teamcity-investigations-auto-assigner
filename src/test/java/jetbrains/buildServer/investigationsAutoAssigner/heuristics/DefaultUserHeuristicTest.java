@@ -119,43 +119,4 @@ public class DefaultUserHeuristicTest extends BaseTestCase {
     assert responsibility != null;
     Assert.assertEquals(responsibility.getUser(), myUserEx);
   }
-
-  public void TestSeveralDefaultResponsibleSpecified() {
-    myBuildFeatureParams.put(Constants.DEFAULT_RESPONSIBLE, "rugpanov, rugpanov2, rugpanov3");
-    when(myUserModelEx.findUserAccount(null, "rugpanov")).thenReturn(myUserEx);
-    when(myUserModelEx.findUserAccount(null, "rugpanov2")).thenReturn(myUserEx2);
-    when(myUserModelEx.findUserAccount(null, "rugpanov3")).thenReturn(myUserEx3);
-
-    Set<User> userCollection = executeFindResponsibleSeveralTimes(20);
-
-    Assert.assertEquals(userCollection.size(), 3);
-    Assert.assertTrue(userCollection.contains(myUserEx));
-    Assert.assertTrue(userCollection.contains(myUserEx2));
-    Assert.assertTrue(userCollection.contains(myUserEx3));
-  }
-
-  public void TestSeveralDefaultResponsibleOneNotExistSpecified() {
-    myBuildFeatureParams.put(Constants.DEFAULT_RESPONSIBLE, "rugpanov, rugpanov2, rugpanov3");
-    when(myUserModelEx.findUserAccount(null, "rugpanov")).thenReturn(myUserEx);
-    when(myUserModelEx.findUserAccount(null, "rugpanov2")).thenReturn(null);
-    when(myUserModelEx.findUserAccount(null, "rugpanov3")).thenReturn(myUserEx3);
-
-    Set<User> userCollection = executeFindResponsibleSeveralTimes(20);
-
-    Assert.assertEquals(userCollection.size(), 2);
-    Assert.assertTrue(userCollection.contains(myUserEx));
-    Assert.assertTrue(userCollection.contains(myUserEx3));
-  }
-
-  private Set<User> executeFindResponsibleSeveralTimes(int count) {
-    Set<User> userCollection = new HashSet<>();
-    for (int i = 0; i < count; i++) {
-      HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
-      Responsibility responsibility = heuristicResult.getResponsibility(mySTestRun);
-      Assert.assertNotNull(responsibility);
-      userCollection.add(responsibility.getUser());
-    }
-
-    return userCollection;
-  }
 }

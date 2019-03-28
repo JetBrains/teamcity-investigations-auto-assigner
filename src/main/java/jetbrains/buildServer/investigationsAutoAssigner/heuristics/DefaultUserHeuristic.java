@@ -17,8 +17,6 @@
 package jetbrains.buildServer.investigationsAutoAssigner.heuristics;
 
 import com.intellij.openapi.diagnostic.Logger;
-import java.util.List;
-import java.util.Random;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.DefaultUserResponsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
@@ -29,12 +27,12 @@ import jetbrains.buildServer.log.LogUtil;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.users.UserModelEx;
 import jetbrains.buildServer.users.impl.UserEx;
+import jetbrains.buildServer.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
 public class DefaultUserHeuristic implements Heuristic {
 
   private static final Logger LOGGER = Constants.LOGGER;
-  private Random myRandom = new Random();
 
   @NotNull private UserModelEx myUserModel;
 
@@ -54,23 +52,10 @@ public class DefaultUserHeuristic implements Heuristic {
     HeuristicResult result = new HeuristicResult();
 
     SBuild build = heuristicContext.getBuild();
-    List<String> defaultResponsible = CustomParameters.getDefaultResponsible(build);
+    String defaultResponsible = CustomParameters.getDefaultResponsible(build);
+    if (StringUtil.isEmpty(defaultResponsible)) return result;
 
-    if (defaultResponsible.isEmpty()) return result;
-
-    UserEx responsibleUser = null;
-    while (responsibleUser == null && !defaultResponsible.isEmpty()) {
-      String chosenResponsible = defaultResponsible.get(myRandom.nextInt(defaultResponsible.size()));
-      responsibleUser = myUserModel.findUserAccount(null, chosenResponsible);
-      if (responsibleUser == null) {
-        LOGGER.warn("Ignoring heuristic \"DefaultUser\" as there is no TeamCity user with the username \"" +
-                    chosenResponsible + "\" specified in the Investigations Auto-Assigner settings in the build: " +
-                    LogUtil.describe(build) + "Affected build configuration: " +
-                    LogUtil.describe(build.getBuildType()));
-        defaultResponsible.remove(chosenResponsible);
-      }
-    }
-
+    UserEx responsibleUser = myUserModel.findUserAccount(null, defaultResponsible);
     if (responsibleUser == null) {
       LOGGER.warn("Ignoring heuristic \"DefaultUser\" as there is no TeamCity user with the username \"" +
                   defaultResponsible + "\" specified in the Investigations Auto-Assigner settings in the build: " +
