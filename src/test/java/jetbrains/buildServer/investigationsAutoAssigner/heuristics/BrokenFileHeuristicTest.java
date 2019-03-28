@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
+import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicNotApplicableException;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.ModificationAnalyzerFactory;
@@ -122,7 +123,8 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
   }
 
   public void TestUnknownVcsUsername() {
-    when(myFirstVcsChangeWrapped.findProblematicFile(anyString(), anySet())).thenThrow(IllegalStateException.class);
+    when(myFirstVcsChangeWrapped.findProblematicFile(anyString(), anySet()))
+      .thenThrow(HeuristicNotApplicableException.class);
 
     HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 

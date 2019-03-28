@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
+import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicNotApplicableException;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
@@ -71,7 +72,7 @@ public class BrokenFileHeuristic implements Heuristic {
     try {
       return processTestsAndBuildProblems(heuristicContext, vcsChanges);
 
-    } catch (IllegalStateException ex) {
+    } catch (HeuristicNotApplicableException ex) {
       LOGGER.debug("Heuristic \"BrokenFile\" is ignored as " + ex.getMessage() + ". Build: " +
                    LogUtil.describe(heuristicContext.getBuild()));
       return emptyResult;
@@ -130,7 +131,7 @@ public class BrokenFileHeuristic implements Heuristic {
     if (foundBrokenFile != null &&
         broken != null &&
         !foundBrokenFile.first.equals(broken.first)) {
-      throw new IllegalStateException("there are more then one TeamCity user");
+      throw new HeuristicNotApplicableException("there are more then one TeamCity user");
     }
   }
 }

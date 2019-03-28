@@ -20,6 +20,7 @@ import com.intellij.openapi.util.Pair;
 import java.util.Arrays;
 import java.util.Collections;
 import jetbrains.buildServer.BaseTestCase;
+import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicNotApplicableException;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.users.impl.UserEx;
 import jetbrains.buildServer.vcs.SVcsModification;
@@ -90,7 +91,7 @@ public class ModificationAnalyzerTest extends BaseTestCase {
     Assert.assertNull(result);
   }
 
-  @Test(expectedExceptions = IllegalStateException.class)
+  @Test(expectedExceptions = HeuristicNotApplicableException.class)
   public void TestBrokenFile_ManyCommitters() {
     String problematicText = "I contain " + myFilePath;
 
@@ -133,13 +134,13 @@ public class ModificationAnalyzerTest extends BaseTestCase {
     Assert.assertNotNull(result);
   }
 
-  @Test(expectedExceptions = IllegalStateException.class)
+  @Test(expectedExceptions = HeuristicNotApplicableException.class)
   public void TestGetOnlyCommitter_UnknownVcsUsername() {
     when(myMod.getCommitters()).thenReturn(Collections.emptyList());
     myWrappedVcsChange.getOnlyCommitter(Collections.emptySet());
   }
 
-  @Test(expectedExceptions = IllegalStateException.class)
+  @Test(expectedExceptions = HeuristicNotApplicableException.class)
   public void TestBrokenFile_UnknownVcsUsername() {
     when(myMod.getCommitters()).thenReturn(Collections.emptyList());
     VcsFileModification mod = Mockito.mock(VcsFileModification.class);
@@ -148,7 +149,7 @@ public class ModificationAnalyzerTest extends BaseTestCase {
     myWrappedVcsChange.findProblematicFile("any file.path", Collections.emptySet());
   }
 
-  @Test(expectedExceptions = IllegalStateException.class)
+  @Test(expectedExceptions = HeuristicNotApplicableException.class)
   public void TestGetOnlyCommitter_ManyResponsible() {
     when(myMod.getCommitters()).thenReturn(Arrays.asList(myFirstUser, mySecondUser));
     myWrappedVcsChange.getOnlyCommitter(Collections.emptySet());

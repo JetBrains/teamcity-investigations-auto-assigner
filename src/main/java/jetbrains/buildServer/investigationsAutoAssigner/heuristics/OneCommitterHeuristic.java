@@ -18,6 +18,7 @@ package jetbrains.buildServer.investigationsAutoAssigner.heuristics;
 
 import com.intellij.openapi.diagnostic.Logger;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
+import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicNotApplicableException;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
@@ -58,7 +59,7 @@ public class OneCommitterHeuristic implements Heuristic {
         if (probableResponsible == null) continue;
         ensureSameUsers(responsible, probableResponsible);
         responsible = probableResponsible;
-      } catch (IllegalStateException ex) {
+      } catch (HeuristicNotApplicableException ex) {
         LOGGER.debug("Heuristic \"OneCommitter\" is ignored as " + ex.getMessage() + ". Build: " +
                      LogUtil.describe(build));
         return result;
@@ -78,7 +79,7 @@ public class OneCommitterHeuristic implements Heuristic {
   private void ensureSameUsers(@Nullable User first,
                                @Nullable User second) {
     if (first != null && second != null && !first.equals(second)) {
-      throw new IllegalStateException("there are more then one TeamCity user");
+      throw new HeuristicNotApplicableException("there are more then one TeamCity user");
     }
   }
 }

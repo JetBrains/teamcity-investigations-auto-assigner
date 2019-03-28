@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import jetbrains.buildServer.BaseTestCase;
+import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicNotApplicableException;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
@@ -141,7 +142,7 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
     myChanges.add(myMod1);
     myChanges.add(myMod2);
     when(myFirstModificationAnalyzer.getOnlyCommitter(anySet())).thenReturn(myFirstUser);
-    when(mySecondModificationAnalyzer.getOnlyCommitter(anySet())).thenThrow(IllegalStateException.class);
+    when(mySecondModificationAnalyzer.getOnlyCommitter(anySet())).thenThrow(HeuristicNotApplicableException.class);
 
     HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
 

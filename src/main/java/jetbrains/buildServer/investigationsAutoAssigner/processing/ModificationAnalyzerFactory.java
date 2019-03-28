@@ -20,6 +20,7 @@ import com.intellij.openapi.util.Pair;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
+import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicNotApplicableException;
 import jetbrains.buildServer.users.SUser;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.util.FileUtil;
@@ -35,7 +36,7 @@ import static com.intellij.openapi.util.text.StringUtil.join;
  * Both public methods have three @result states:
  * - non-null result when something was found;
  * - null when nothing was found;
- * - IllegalStateException when more then one committers were found (so we cannot chose from them with these heuristics.
+ * - HeuristicNotApplicableException when more then one committers were found (so we cannot chose from them with these heuristics.
  */
 public class ModificationAnalyzerFactory {
   private static final int TOO_SMALL_PATTERN_THRESHOLD = 15;
@@ -53,7 +54,7 @@ public class ModificationAnalyzerFactory {
 
     @Nullable
     public Pair<User, String> findProblematicFile(String problemText, Set<String> usersToIgnore)
-      throws IllegalStateException {
+      throws HeuristicNotApplicableException {
       String filePath = findBrokenFile(myVcsChange, problemText);
       if (filePath == null) {
         return null;
@@ -70,10 +71,11 @@ public class ModificationAnalyzerFactory {
     }
 
     @Nullable
-    public User getOnlyCommitter(Set<String> usersToIgnore) throws IllegalStateException {
+    public User getOnlyCommitter(Set<String> usersToIgnore) throws HeuristicNotApplicableException {
       Collection<SUser> committers = myVcsChange.getCommitters();
       if (committers.size() == 0) {
-        throw new IllegalStateException("committer \"" + myVcsChange.getUserName() + "\" does not have corresponding TeamCity user");
+        throw new HeuristicNotApplicableException(
+          "committer \"" + myVcsChange.getUserName() + "\" does not have corresponding TeamCity user");
       }
 
       List<User> filteredCommitters = committers.stream()
@@ -85,7 +87,7 @@ public class ModificationAnalyzerFactory {
       }
 
       if (filteredCommitters.size() > 1) {
-        throw new IllegalStateException("there are more than one committer");
+        throw new HeuristicNotApplicableException("there are more than one committer");
       }
 
       return filteredCommitters.get(0);
