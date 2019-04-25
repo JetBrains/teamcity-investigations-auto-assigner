@@ -180,7 +180,11 @@ public class FailedTestAndBuildProblemsDispatcher {
       putIntoDelayAssignments(failedBuildInfo);
     }
 
-    myEmailReporter.sendResults(failedBuildInfo);
+    if (!failedBuildInfo.getHeuristicsResult().isEmpty()) {
+      myEmailReporter.sendResults(failedBuildInfo);
+      int numberOfChanges = failedBuildInfo.getBuild().getContainingChanges().size();
+      myStatisticsReporter.reportProcessedBuildWithChanges(numberOfChanges);
+    }
   }
 
   private void putIntoDelayAssignments(final FailedBuildInfo currentFailedBuildInfo) {

@@ -62,6 +62,11 @@ public class StatisticsReporter {
     myStatistics.increment(StatisticsValuesEnum.buildWithSuggestionsCount);
   }
 
+  public synchronized void reportProcessedBuildWithChanges(final int numberOfChanges) {
+    myStatistics.increment(StatisticsValuesEnum.processedBuildsCount);
+    myStatistics.increase(StatisticsValuesEnum.changesInBuildsCount, numberOfChanges);
+  }
+
   private void saveDataOnDisk() {
     if (StringUtil.isTrue(TeamCityProperties.getProperty(Constants.STATISTICS_ENABLED, "false"))) {
       myStatisticsDao.write(myStatistics);

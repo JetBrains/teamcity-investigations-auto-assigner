@@ -57,6 +57,8 @@ public class StatisticsDaoTest {
     Assert.assertEquals(statistics.get(StatisticsValuesEnum.wrongInvestigationsCount), 2);
     Assert.assertEquals(statistics.get(StatisticsValuesEnum.buildWithSuggestionsCount), 2);
     Assert.assertEquals(statistics.get(StatisticsValuesEnum.savedSuggestionsCount), 3);
+    Assert.assertEquals(statistics.get(StatisticsValuesEnum.processedBuildsCount), 3);
+    Assert.assertEquals(statistics.get(StatisticsValuesEnum.changesInBuildsCount), 10);
   }
 
   @Test
@@ -123,21 +125,23 @@ public class StatisticsDaoTest {
     statistics.increase(StatisticsValuesEnum.wrongInvestigationsCount, 4);
     statistics.increase(StatisticsValuesEnum.buildWithSuggestionsCount, 2);
     statistics.increase(StatisticsValuesEnum.savedSuggestionsCount, 3);
+    statistics.increase(StatisticsValuesEnum.processedBuildsCount, 3);
+    statistics.increase(StatisticsValuesEnum.changesInBuildsCount, 10);
     myStatisticsDao.write(statistics);
-
 
     Path assignerDataDir = myPluginsDataDir.resolve(Constants.PLUGIN_DATA_DIR);
     Path myStatisticsPath = assignerDataDir.resolve(Constants.STATISTICS_FILE_NAME);
     String fileContent = new String(Files.readAllBytes(myStatisticsPath));
 
-    System.out.println(fileContent);
-    Assert.assertTrue(fileContent.contains("\"version\":\"1.3\""));
+    Assert.assertTrue(fileContent.contains("\"version\":\"1.4\""));
     Assert.assertTrue(fileContent.contains("\"clickedButtonsCount\":2"));
     Assert.assertTrue(fileContent.contains("\"savedSuggestionsCount\":3"));
     Assert.assertTrue(fileContent.contains("\"shownButtonsCount\":1"));
     Assert.assertTrue(fileContent.contains("\"buildWithSuggestionsCount\":2"));
     Assert.assertTrue(fileContent.contains("\"wrongInvestigationsCount\":4"));
     Assert.assertTrue(fileContent.contains("\"assignedInvestigationsCount\":3"));
+    Assert.assertTrue(fileContent.contains("\"processedBuildsCount\":3"));
+    Assert.assertTrue(fileContent.contains("\"changesInBuildsCount\":10"));
   }
 
   @Test
@@ -166,6 +170,8 @@ public class StatisticsDaoTest {
     statistics.increase(StatisticsValuesEnum.wrongInvestigationsCount, 4);
     statistics.increase(StatisticsValuesEnum.buildWithSuggestionsCount, 2);
     statistics.increase(StatisticsValuesEnum.savedSuggestionsCount, 3);
+    statistics.increase(StatisticsValuesEnum.processedBuildsCount, 3);
+    statistics.increase(StatisticsValuesEnum.changesInBuildsCount, 10);
     myStatisticsDao.write(statistics);
 
     Path assignerDataDir = myPluginsDataDir.resolve(Constants.PLUGIN_DATA_DIR);

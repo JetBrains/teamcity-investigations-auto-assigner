@@ -22,5 +22,7 @@ public enum StatisticsValuesEnum {
   assignedInvestigationsCount,
   wrongInvestigationsCount,
   buildWithSuggestionsCount,
-  savedSuggestionsCount
+  savedSuggestionsCount,
+  processedBuildsCount,
+  changesInBuildsCount
 }
