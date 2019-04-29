@@ -181,9 +181,9 @@ public class FailedTestAndBuildProblemsDispatcher {
     }
 
     if (!failedBuildInfo.getHeuristicsResult().isEmpty()) {
-      myEmailReporter.sendResults(failedBuildInfo);
       int numberOfChanges = failedBuildInfo.getBuild().getContainingChanges().size();
       myStatisticsReporter.reportProcessedBuildWithChanges(numberOfChanges);
+      myEmailReporter.sendResults(failedBuildInfo);
     }
   }
 
