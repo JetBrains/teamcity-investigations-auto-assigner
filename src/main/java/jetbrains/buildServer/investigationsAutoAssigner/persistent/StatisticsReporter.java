@@ -80,12 +80,16 @@ public class StatisticsReporter {
                          "%s shown suggestions;\n" +
                          "%s of assignments from them;\n" +
                          "%s builds have at least one suggestion;\n" +
-                         "%s suggestions total.\n",
+                         "%s suggestions total;\n" +
+                         "with %s changes\n" +
+                         "in %s builds.\n",
                          myStatistics.get(StatisticsValuesEnum.assignedInvestigationsCount),
                          myStatistics.get(StatisticsValuesEnum.wrongInvestigationsCount),
                          myStatistics.get(StatisticsValuesEnum.shownButtonsCount),
                          myStatistics.get(StatisticsValuesEnum.clickedButtonsCount),
                          myStatistics.get(StatisticsValuesEnum.buildWithSuggestionsCount),
-                         myStatistics.get(StatisticsValuesEnum.savedSuggestionsCount));
+                         myStatistics.get(StatisticsValuesEnum.savedSuggestionsCount),
+                         myStatistics.get(StatisticsValuesEnum.changesInBuildsCount),
+                         myStatistics.get(StatisticsValuesEnum.processedBuildsCount));
   }
 }
