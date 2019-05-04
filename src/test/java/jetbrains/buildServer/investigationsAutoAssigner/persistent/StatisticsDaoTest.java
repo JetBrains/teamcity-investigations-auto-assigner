@@ -133,7 +133,7 @@ public class StatisticsDaoTest {
     Path myStatisticsPath = assignerDataDir.resolve(Constants.STATISTICS_FILE_NAME);
     String fileContent = new String(Files.readAllBytes(myStatisticsPath));
 
-    Assert.assertTrue(fileContent.contains("\"version\":\"1.4\""));
+    Assert.assertTrue(fileContent.contains("\"version\":\"1.5\""));
     Assert.assertTrue(fileContent.contains("\"clickedButtonsCount\":2"));
     Assert.assertTrue(fileContent.contains("\"savedSuggestionsCount\":3"));
     Assert.assertTrue(fileContent.contains("\"shownButtonsCount\":1"));
