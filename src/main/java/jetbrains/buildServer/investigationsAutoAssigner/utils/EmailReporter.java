@@ -65,7 +65,6 @@ public class EmailReporter {
     return supervisorEmail != null &&
            !supervisorEmail.isEmpty() &&
            !heuristicsResult.isEmpty() &&
-           !failedBuildInfo.shouldDelayAssignments() &&
            myCustomParameters.isBuildFeatureEnabled(sBuild);
   }
 
