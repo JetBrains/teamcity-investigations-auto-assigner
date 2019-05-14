@@ -24,7 +24,7 @@
   </td>
 </tr>
 <tr>
-<tr class="advancedSetting">
+<tr>
   <th>
     <label for="<%= Constants.SHOULD_DELAY_ASSIGNMENTS%>">Assign: </label>
   </th>
@@ -37,7 +37,6 @@
       is only done when the failure repeats for the second time in a row.</span>
   </td>
 </tr>
-
 <th>
     <label for="<%= Constants.DEFAULT_RESPONSIBLE%>">Default assignee:</label>
   </th>
