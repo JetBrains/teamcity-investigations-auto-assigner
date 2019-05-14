@@ -37,7 +37,8 @@
       is only done when the failure repeats for the second time in a row.</span>
   </td>
 </tr>
-<th>
+<tr>
+  <th>
     <label for="<%= Constants.DEFAULT_RESPONSIBLE%>">Default assignee:</label>
   </th>
   <td>
