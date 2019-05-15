@@ -18,6 +18,8 @@ package jetbrains.buildServer.investigationsAutoAssigner.persistent;
 
 import java.util.concurrent.TimeUnit;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
+import jetbrains.buildServer.investigationsAutoAssigner.common.DefaultUserResponsibility;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.serverSide.TeamCityProperties;
 import jetbrains.buildServer.serverSide.executors.ExecutorServices;
@@ -46,7 +48,10 @@ public class StatisticsReporter {
     myStatistics.increment(StatisticsValuesEnum.clickedButtonsCount);
   }
 
-  public synchronized void reportAssignedInvestigations(int count) {
+  public synchronized void reportAssignedInvestigations(int count, Responsibility responsibility) {
+    if (responsibility instanceof DefaultUserResponsibility) {
+      myStatistics.increase(StatisticsValuesEnum.defaultInvestigationsCount, count);
+    }
     myStatistics.increase(StatisticsValuesEnum.assignedInvestigationsCount, count);
   }
 
@@ -77,6 +82,7 @@ public class StatisticsReporter {
     return String.format("Short statistics of plugin usage:\n\n" +
                          "%s investigations assigned;\n" +
                          "%s of them were wrong;\n" +
+                         "%s of them for default user;\n" +
                          "%s shown suggestions;\n" +
                          "%s of assignments from them;\n" +
                          "%s builds have at least one suggestion;\n" +
@@ -85,6 +91,7 @@ public class StatisticsReporter {
                          "in %s builds.\n",
                          myStatistics.get(StatisticsValuesEnum.assignedInvestigationsCount),
                          myStatistics.get(StatisticsValuesEnum.wrongInvestigationsCount),
+                         myStatistics.get(StatisticsValuesEnum.defaultInvestigationsCount),
                          myStatistics.get(StatisticsValuesEnum.shownButtonsCount),
                          myStatistics.get(StatisticsValuesEnum.clickedButtonsCount),
                          myStatistics.get(StatisticsValuesEnum.buildWithSuggestionsCount),

@@ -1,1 +1,1 @@
-{"version":"1.5","values":{"shownButtonsCount":1,"buildWithSuggestionsCount":2,"wrongInvestigationsCount":4,"assignedInvestigationsCount":3,"savedSuggestionsCount":3,"clickedButtonsCount":2,"processedBuildsCount":3,"changesInBuildsCount":10}}
+{"version":"1.6","values":{"shownButtonsCount":1,"buildWithSuggestionsCount":2,"wrongInvestigationsCount":4,"assignedInvestigationsCount":3,"savedSuggestionsCount":3,"clickedButtonsCount":2,"processedBuildsCount":3,"changesInBuildsCount":10,"defaultInvestigationsCount":0}}

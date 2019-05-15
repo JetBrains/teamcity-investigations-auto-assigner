@@ -16,6 +16,8 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.persistent;
 
+import jetbrains.buildServer.investigationsAutoAssigner.common.DefaultUserResponsibility;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.serverSide.executors.ExecutorServices;
 import jetbrains.buildServer.serverSide.impl.executors.CommonExecutorService;
 import org.mockito.Mockito;
@@ -58,7 +60,7 @@ public class StatisticsReporterTest {
     myStatisticsReporter.reportShownButton();
     myStatisticsReporter.reportClickedButton();
     myStatisticsReporter.reportClickedButton();
-    myStatisticsReporter.reportAssignedInvestigations(3);
+    myStatisticsReporter.reportAssignedInvestigations(3, Mockito.mock(Responsibility.class));
     myStatisticsReporter.reportWrongInvestigation(4);
     Assert.assertEquals(myStatisticsChecker.get(StatisticsValuesEnum.shownButtonsCount), 1);
     Assert.assertEquals(myStatisticsChecker.get(StatisticsValuesEnum.clickedButtonsCount), 2);
@@ -71,11 +73,27 @@ public class StatisticsReporterTest {
     myStatisticsReporter.reportShownButton();
     myStatisticsReporter.reportClickedButton();
     myStatisticsReporter.reportClickedButton();
-    myStatisticsReporter.reportAssignedInvestigations(3);
+    myStatisticsReporter.reportAssignedInvestigations(3, Mockito.mock(Responsibility.class));
     myStatisticsReporter.reportWrongInvestigation(4);
     Assert.assertTrue(myStatisticsReporter.generateReport().contains("1"));
     Assert.assertTrue(myStatisticsReporter.generateReport().contains("2"));
     Assert.assertTrue(myStatisticsReporter.generateReport().contains("3"));
     Assert.assertTrue(myStatisticsReporter.generateReport().contains("4"));
+  }
+
+
+  @Test
+  public void testDefaultResponsible() {
+    myStatisticsReporter.reportShownButton();
+    myStatisticsReporter.reportClickedButton();
+    myStatisticsReporter.reportClickedButton();
+    myStatisticsReporter.reportAssignedInvestigations(3, Mockito.mock(DefaultUserResponsibility.class));
+    myStatisticsReporter.reportAssignedInvestigations(4, Mockito.mock(Responsibility.class));
+    myStatisticsReporter.reportWrongInvestigation(5);
+    Assert.assertTrue(myStatisticsReporter.generateReport().contains("1 shown suggestion"));
+    Assert.assertTrue(myStatisticsReporter.generateReport().contains("2 of assignments from them"));
+    Assert.assertTrue(myStatisticsReporter.generateReport().contains("3 of them for default user"));
+    Assert.assertTrue(myStatisticsReporter.generateReport().contains("7 investigations assigned"));
+    Assert.assertTrue(myStatisticsReporter.generateReport().contains("5 of them were wrong"));
   }
 }

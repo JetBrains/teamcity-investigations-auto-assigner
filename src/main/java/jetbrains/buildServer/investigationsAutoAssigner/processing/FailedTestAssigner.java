@@ -84,7 +84,7 @@ public class FailedTestAssigner extends BaseAssigner {
             responsibility.getAssignDescription(linkToBuild), ResponsibilityEntry.RemoveMethod.WHEN_FIXED)
         );
 
-        myStatisticsReporter.reportAssignedInvestigations(testNameList.size());
+        myStatisticsReporter.reportAssignedInvestigations(testNameList.size(), responsibility);
       }
     }
   }
