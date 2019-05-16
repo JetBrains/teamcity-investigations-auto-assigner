@@ -30,7 +30,7 @@
   </th>
   <td>
     <props:selectProperty name="${Constants.SHOULD_DELAY_ASSIGNMENTS}">
-      <props:option value="false">Immediately</props:option>
+      <props:option value="false">On first failure</props:option>
       <props:option value="true">On second failure</props:option>
     </props:selectProperty>
     <span class="smallNote">"On second failure" option prevents assignment for the flaky tests/problems as the assignment
