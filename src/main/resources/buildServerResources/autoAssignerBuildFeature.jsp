@@ -1,7 +1,9 @@
 <%@ include file="/include-internal.jsp" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="props" tagdir="/WEB-INF/tags/props" %>
 <%@ page import="jetbrains.buildServer.investigationsAutoAssigner.common.Constants" %>
 <jsp:useBean id="buildForm" type="jetbrains.buildServer.controllers.admin.projects.BuildTypeForm" scope="request"/>
+<c:set var="onSecondFailureDescriptionNoteDivId">onSecondFailureDescriptionNoteDivId</c:set>
 
 <script type="text/javascript">
   BS.AutoAssignerFeature = BS.AutoAssignerFeature || {};
@@ -12,6 +14,17 @@
       'Investigations Auto Assigner', {width: 0.9 * winSize[0], height: 0.9 * winSize[1]});
     BS.stopPropagation(event);
   };
+
+  BS.AutoAssignerFeature.updateDelayOnSecondFailureNoteVisibility = function () {
+    var selectedValue = $('${Constants.SHOULD_DELAY_ASSIGNMENTS}').options[$('${Constants.SHOULD_DELAY_ASSIGNMENTS}').selectedIndex].value;
+    if ('true' == selectedValue) {
+      $('${onSecondFailureDescriptionNoteDivId}').show();
+    } else {
+      $('${onSecondFailureDescriptionNoteDivId}').hide();
+    }
+  };
+
+  BS.AutoAssignerFeature.updateDelayOnSecondFailureNoteVisibility();
 </script>
 
 <tr>
@@ -29,12 +42,15 @@
     <label for="<%= Constants.SHOULD_DELAY_ASSIGNMENTS%>">Assign: </label>
   </th>
   <td>
-    <props:selectProperty name="${Constants.SHOULD_DELAY_ASSIGNMENTS}">
+    <props:selectProperty name="${Constants.SHOULD_DELAY_ASSIGNMENTS}" onchange="BS.AutoAssignerFeature.updateDelayOnSecondFailureNoteVisibility();">
       <props:option value="false">On first failure</props:option>
       <props:option value="true">On second failure</props:option>
     </props:selectProperty>
-    <span class="smallNote">"On second failure" option prevents assignment for the flaky tests/problems as the assignment
-      is only done when the failure repeats for the second time in a row.</span>
+    <div id="${onSecondFailureDescriptionNoteDivId}">
+      <span class="smallNote">This option delays assignment until the failure repeats twice in a row.
+      Use to prevent wrong assignments in projects with many flaky tests.</span>
+    </div>
+
   </td>
 </tr>
 <tr>
