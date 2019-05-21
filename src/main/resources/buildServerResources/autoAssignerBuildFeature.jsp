@@ -10,7 +10,7 @@
 
   BS.AutoAssignerFeature.showHomePage = function () {
     var winSize = BS.Util.windowSize();
-    BS.Util.popupWindow('https://confluence.jetbrains.com/display/TCD18/Investigations+Auto+Assigner',
+    BS.Util.popupWindow('https://www.jetbrains.com/help/teamcity/?Investigations+Auto+Assigner',
       'Investigations Auto Assigner', {width: 0.9 * winSize[0], height: 0.9 * winSize[1]});
     BS.stopPropagation(event);
   };

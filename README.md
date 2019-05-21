@@ -9,7 +9,7 @@
 * Plugin type: free, open-source
 
 ## Plugin Description
-The plugin adds a [build feature](https://confluence.jetbrains.com/display/TCDL/Adding+Build+Features) which enables automatic assignment of investigations for a build failure. Investigations are assigned on the basis of the following heuristics:
+The plugin adds a [build feature](https://www.jetbrains.com/help/teamcity/?Adding+Build+Features) which enables automatic assignment of investigations for a build failure. Investigations are assigned on the basis of the following heuristics:
 
 * If a user is the only committer to the build, the user is responsible.
 * If a user is the only one who changed the files, whose names appear in the test or build problem error text, the user is responsible.
@@ -27,14 +27,14 @@ To avoid TeamCity server performance degradation,
 the extension checks builds for new build problems and failed tests and processes them regularly, 
 with a configurable interval and at the end of a build. The default is every 600 seconds, which can be changed
 via the `teamcity.investigationsAutoAssigner.scheduledTaskInterval.seconds` 
-[TeamCity property](https://confluence.jetbrains.com/display/TCDL/Configuring+TeamCity+Server+Startup+Properties).
+[TeamCity property](https://www.jetbrains.com/help/teamcity/?Configuring+TeamCity+Server+Startup+Properties).
 *Restart the server for the changes to take effect.*
  
 2. **Limitation of processed failed tests and build problems:** 
 Currently there is a configurable limit of the number of the processed build problems 
 and failed tests. The default is 100, which can be changed via 
-the `teamcity.investigationsAutoAssigner.maxTestsFailuresToProcessPerBuild` [build parameter](https://confluence.jetbrains.com/display/TCDL/Configuring+Build+Parameters)
-or [TeamCity property](https://confluence.jetbrains.com/display/TCDL/Configuring+TeamCity+Server+Startup+Properties).
+the `teamcity.investigationsAutoAssigner.maxTestsFailuresToProcessPerBuild` [build parameter](https://www.jetbrains.com/help/teamcity/?Configuring+Build+Parameters)
+or [TeamCity property](https://www.jetbrains.com/help/teamcity/?Configuring+TeamCity+Server+Startup+Properties).
 
 ## Feedback
 Everybody is encouraged to try the plugin and provide feedback in the [forum](http://devnet.jetbrains.net/community/teamcity/teamcity) or post bugs into the [issue tracker](http://youtrack.jetbrains.net/issues/TW).
