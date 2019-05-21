@@ -43,8 +43,8 @@
   </th>
   <td>
     <props:selectProperty name="${Constants.SHOULD_DELAY_ASSIGNMENTS}" onchange="BS.AutoAssignerFeature.updateDelayOnSecondFailureNoteVisibility();">
-      <props:option value="false">On first failure</props:option>
-      <props:option value="true">On second failure</props:option>
+      <props:option value="">On first failure</props:option>
+      <props:option value="${true}">On second failure</props:option>
     </props:selectProperty>
     <div id="${onSecondFailureDescriptionNoteDivId}">
       <span class="smallNote">This option delays assignment until the failure repeats twice in a row.

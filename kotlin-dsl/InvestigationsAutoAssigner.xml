@@ -33,7 +33,7 @@
         When 'true', exit code build problems are ignored.
       </description>
     </param>
-    <param name="delayAssignments.enabled" dslName="enableDelayAssignments">
+    <param name="delayAssignments.enabled" dslName="enableDelayAssignments" type="boolean" trueValue="true" falseValue="">
       <description>
         Whether investigations auto-assigner should use "on second failure" strategy.
       </description>
