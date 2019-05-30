@@ -16,7 +16,7 @@
   };
 
   BS.AutoAssignerFeature.updateDelayOnSecondFailureNoteVisibility = function () {
-    var selectedValue = $('${Constants.SHOULD_DELAY_ASSIGNMENTS}').options[$('${Constants.SHOULD_DELAY_ASSIGNMENTS}').selectedIndex].value;
+    var selectedValue = $('${Constants.ASSIGN_ON_SECOND_FAILURE}').options[$('${Constants.ASSIGN_ON_SECOND_FAILURE}').selectedIndex].value;
     if ('true' == selectedValue) {
       $('${assignStrategyNoteId}').textContent = "This option delays assignment of investigations until the failure repeats in two builds in a row. Use to prevent wrong assignments in projects with many flaky tests.";
     } else {
@@ -39,10 +39,10 @@
 <tr>
 <tr>
   <th>
-    <label for="<%= Constants.SHOULD_DELAY_ASSIGNMENTS%>">Assign: </label>
+    <label for="<%= Constants.ASSIGN_ON_SECOND_FAILURE%>">Assign: </label>
   </th>
   <td>
-    <props:selectProperty name="${Constants.SHOULD_DELAY_ASSIGNMENTS}" onchange="BS.AutoAssignerFeature.updateDelayOnSecondFailureNoteVisibility();">
+    <props:selectProperty name="${Constants.ASSIGN_ON_SECOND_FAILURE}" onchange="BS.AutoAssignerFeature.updateDelayOnSecondFailureNoteVisibility();">
       <props:option value="">On first failure</props:option>
       <props:option value="${true}">On second failure</props:option>
     </props:selectProperty>

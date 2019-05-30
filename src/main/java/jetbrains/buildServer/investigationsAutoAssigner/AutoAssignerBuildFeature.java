@@ -56,7 +56,7 @@ public class AutoAssignerBuildFeature extends BuildFeature {
   public String describeParameters(@NotNull Map<String, String> params) {
     final String userName = params.get(Constants.DEFAULT_RESPONSIBLE);
     final String usersToIgnore = params.get(Constants.USERS_TO_IGNORE);
-    final String shouldDelayAssignments = params.get(Constants.SHOULD_DELAY_ASSIGNMENTS);
+    final String shouldDelayAssignments = params.get(Constants.ASSIGN_ON_SECOND_FAILURE);
 
     StringBuilder sb = new StringBuilder();
     if (StringUtil.isTrue(shouldDelayAssignments)) {

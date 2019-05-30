@@ -105,7 +105,7 @@ public class CustomParameters {
     }
 
     @Nullable
-    String shouldDelayAssignments = sBuildFeature.getParameters().get(Constants.SHOULD_DELAY_ASSIGNMENTS);
+    String shouldDelayAssignments = sBuildFeature.getParameters().get(Constants.ASSIGN_ON_SECOND_FAILURE);
     return StringUtil.isTrue(shouldDelayAssignments);
   }
 
