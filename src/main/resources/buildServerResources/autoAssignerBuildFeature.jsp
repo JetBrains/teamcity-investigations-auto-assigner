@@ -3,7 +3,7 @@
 <%@ taglib prefix="props" tagdir="/WEB-INF/tags/props" %>
 <%@ page import="jetbrains.buildServer.investigationsAutoAssigner.common.Constants" %>
 <jsp:useBean id="buildForm" type="jetbrains.buildServer.controllers.admin.projects.BuildTypeForm" scope="request"/>
-<c:set var="onSecondFailureDescriptionNoteDivId">onSecondFailureDescriptionNoteDivId</c:set>
+<c:set var="assignStrategyNoteId">assignStrategyNoteId</c:set>
 
 <script type="text/javascript">
   BS.AutoAssignerFeature = BS.AutoAssignerFeature || {};
@@ -18,9 +18,9 @@
   BS.AutoAssignerFeature.updateDelayOnSecondFailureNoteVisibility = function () {
     var selectedValue = $('${Constants.SHOULD_DELAY_ASSIGNMENTS}').options[$('${Constants.SHOULD_DELAY_ASSIGNMENTS}').selectedIndex].value;
     if ('true' == selectedValue) {
-      $('${onSecondFailureDescriptionNoteDivId}').show();
+      $('${assignStrategyNoteId}').textContent = "This option delays assignment of investigations until the failure repeats in two builds in a row. Use to prevent wrong assignments in projects with many flaky tests.";
     } else {
-      $('${onSecondFailureDescriptionNoteDivId}').hide();
+      $('${assignStrategyNoteId}').textContent = "This option allows assigning investigations on the first build failure, after a short time-out.";
     }
   };
 
@@ -46,11 +46,7 @@
       <props:option value="">On first failure</props:option>
       <props:option value="${true}">On second failure</props:option>
     </props:selectProperty>
-    <div id="${onSecondFailureDescriptionNoteDivId}">
-      <span class="smallNote">This option delays assignment until the failure repeats twice in a row.
-      Use to prevent wrong assignments in projects with many flaky tests.</span>
-    </div>
-
+    <span class="smallNote" id="assignStrategyNoteId"></span>
   </td>
 </tr>
 <tr>
