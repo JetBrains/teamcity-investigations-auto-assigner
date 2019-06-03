@@ -30,6 +30,7 @@ import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
 
 import org.mockito.Mockito.`when`
+import java.lang.IllegalStateException
 
 class AssignerResultsFilePathTest {
     private lateinit var myInstance: AssignerResultsFilePath
@@ -56,14 +57,14 @@ class AssignerResultsFilePathTest {
         myInstance = AssignerResultsFilePath()
     }
 
-    @Test(expectedExceptions = [FileNotFoundException::class])
+    @Test(expectedExceptions = [IllegalStateException::class])
     fun testGetNoTeamCityDir() {
         myInstance.get(mySBuild)
     }
 
-    @Test(expectedExceptions = [FileNotFoundException::class])
+    @Test
     fun testGetIfExistNoTeamCityDir() {
-        myInstance.getIfExist(mySBuild)
+        Assert.assertNull(myInstance.getIfExist(mySBuild))
     }
 
     @Test
