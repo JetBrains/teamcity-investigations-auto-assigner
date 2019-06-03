@@ -46,7 +46,8 @@ public class AssignerResultsFilePath {
     Path artifactDirectoryPath = build.getArtifactsDirectory().toPath();
     Path teamcityDirectoryPath = artifactDirectoryPath.resolve(Constants.TEAMCITY_DIRECTORY);
     if (!Files.exists(teamcityDirectoryPath)) {
-      throw new FileNotFoundException("TeamCity directory does not exist");
+      Constants.LOGGER.warn("TeamCity artifact directory does not exist for build with suggested investigations");
+      return null;
     }
 
     Path autoAssignerDirectoryPath = teamcityDirectoryPath.resolve(Constants.ARTIFACT_DIRECTORY);
