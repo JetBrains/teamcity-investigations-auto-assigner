@@ -25,9 +25,7 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.ModificationAnalyzerFactory;
-import jetbrains.buildServer.serverSide.SBuild;
-import jetbrains.buildServer.serverSide.SProject;
-import jetbrains.buildServer.serverSide.STestRun;
+import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.users.impl.UserEx;
 import jetbrains.buildServer.vcs.SVcsModification;
 import jetbrains.buildServer.vcs.SelectPrevBuildPolicy;
@@ -36,6 +34,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.when;
 
@@ -63,6 +62,9 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
     mySecondModificationAnalyzer = Mockito.mock(ModificationAnalyzerFactory.ModificationAnalyzer.class);
     myHeuristic = new OneCommitterHeuristic(modificationAnalyzerFactory);
     mySBuild = Mockito.mock(SBuild.class);
+    BuildStatistics buildStatistics = Mockito.mock(BuildStatistics.class);
+    when(buildStatistics.getCompilationErrorsCount()).thenReturn(0);
+    when(mySBuild.getBuildStatistics(any())).thenReturn(buildStatistics);
 
     String firstUserUsername = "myFirstUser";
     myFirstUser = Mockito.mock(UserEx.class);
@@ -91,6 +93,39 @@ public class OneCommitterHeuristicTest extends BaseTestCase {
   public void TestWithOneResponsible() {
     myChanges.add(myMod1);
     when(myFirstModificationAnalyzer.getOnlyCommitter(anySet())).thenReturn(myFirstUser);
+
+    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
+    Responsibility responsibility = heuristicResult.getResponsibility(mySTestRun);
+
+    Assert.assertFalse(heuristicResult.isEmpty());
+    Assert.assertNotNull(responsibility);
+    Assert.assertEquals(responsibility.getUser(), myFirstUser);
+  }
+
+  public void TestBeforeHadCompilationError() {
+    myChanges.add(myMod1);
+    when(myFirstModificationAnalyzer.getOnlyCommitter(anySet())).thenReturn(myFirstUser);
+
+    SFinishedBuild previous = Mockito.mock(SFinishedBuild.class);
+    BuildStatistics previousBuildStatistics = Mockito.mock(BuildStatistics.class);
+    when(previousBuildStatistics.getCompilationErrorsCount()).thenReturn(239);
+    when(previous.getBuildStatistics(any())).thenReturn(previousBuildStatistics);
+    when(mySBuild.getPreviousFinished()).thenReturn(previous);
+
+    HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
+    Responsibility responsibility = heuristicResult.getResponsibility(mySTestRun);
+
+    Assert.assertTrue(heuristicResult.isEmpty());
+    Assert.assertNull(responsibility);
+  }
+
+  public void TestHasCompilationError() {
+    myChanges.add(myMod1);
+    when(myFirstModificationAnalyzer.getOnlyCommitter(anySet())).thenReturn(myFirstUser);
+
+    BuildStatistics buildStatistics = Mockito.mock(BuildStatistics.class);
+    when(mySBuild.getBuildStatistics(any())).thenReturn(buildStatistics);
+    when(buildStatistics.getCompilationErrorsCount()).thenReturn(239);
 
     HeuristicResult heuristicResult = myHeuristic.findResponsibleUser(myHeuristicContext);
     Responsibility responsibility = heuristicResult.getResponsibility(mySTestRun);
