@@ -54,5 +54,5 @@ public class Constants {
   public static final String STATISTICS_FILE_VERSION = "1.6";
   public static final String ASSIGN_DESCRIPTION_PREFIX = "Investigation was automatically assigned to";
 
-  public static final Logger LOGGER = Logger.getInstance("InvestigationsAutoAssigner");
+  public static final Logger LOGGER = Logger.getInstance("jetbrains.buildServer.investigationsAutoAssigner");
 }
