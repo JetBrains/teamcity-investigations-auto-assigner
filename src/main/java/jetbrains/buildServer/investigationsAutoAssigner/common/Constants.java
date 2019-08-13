@@ -40,7 +40,6 @@ public class Constants {
   public static final String PROCESSING_DELAY_IN_SECONDS = "teamcity.investigationsAutoAssigner.scheduledTaskInterval.seconds";
 
   // Server internal properties (debug use only)
-  public static final String INTERNAL_REPORTER_EMAIL = "teamcity.investigationsAutoAssigner.debugEmailAddress";
   public static final String STATISTICS_ENABLED = "teamcity.investigationsAutoAssigner.statisticsEnabled";
 
   //Constants
@@ -55,4 +54,5 @@ public class Constants {
   public static final String ASSIGN_DESCRIPTION_PREFIX = "Investigation was automatically assigned to";
 
   public static final Logger LOGGER = Logger.getInstance("jetbrains.buildServer.investigationsAutoAssigner");
+  public static final Logger AGGREGATION_LOGGER = Logger.getInstance("InvestigationsAutoAssignerAggregation");
 }

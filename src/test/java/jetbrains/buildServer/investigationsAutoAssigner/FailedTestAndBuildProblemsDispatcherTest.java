@@ -21,7 +21,7 @@ import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsRep
 import jetbrains.buildServer.investigationsAutoAssigner.processing.DelayedAssignmentsProcessor;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.FailedTestAndBuildProblemsProcessor;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
-import jetbrains.buildServer.investigationsAutoAssigner.utils.EmailReporter;
+import jetbrains.buildServer.investigationsAutoAssigner.utils.AggregationLogger;
 import jetbrains.buildServer.parameters.ParametersProvider;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.impl.auth.SecurityContextImpl;
@@ -90,7 +90,7 @@ public class FailedTestAndBuildProblemsDispatcherTest {
     FailedTestAndBuildProblemsProcessor processor = mock(FailedTestAndBuildProblemsProcessor.class);
     myDelayedAssignmentsProcessor = mock(DelayedAssignmentsProcessor.class);
 
-    EmailReporter emailReporter = mock(EmailReporter.class);
+    AggregationLogger aggregationLogger = mock(AggregationLogger.class);
     myCustomParameters = mock(CustomParameters.class);
     when(myCustomParameters.shouldDelayAssignments(any())).thenReturn(false);
     when(myCustomParameters.isBuildFeatureEnabled(any())).thenReturn(true);
@@ -100,7 +100,7 @@ public class FailedTestAndBuildProblemsDispatcherTest {
     new FailedTestAndBuildProblemsDispatcher(myBsDispatcher,
                                              processor,
                                              myDelayedAssignmentsProcessor,
-                                             emailReporter,
+                                             aggregationLogger,
                                              statisticsReporter,
                                              myCustomParameters);
 

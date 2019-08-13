@@ -29,7 +29,7 @@ import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsRep
 import jetbrains.buildServer.investigationsAutoAssigner.processing.DelayedAssignmentsProcessor;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.FailedTestAndBuildProblemsProcessor;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
-import jetbrains.buildServer.investigationsAutoAssigner.utils.EmailReporter;
+import jetbrains.buildServer.investigationsAutoAssigner.utils.AggregationLogger;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.problems.BuildProblemInfo;
@@ -46,7 +46,7 @@ public class FailedTestAndBuildProblemsDispatcher {
   @NotNull
   private final FailedTestAndBuildProblemsProcessor myProcessor;
   private final DelayedAssignmentsProcessor myDelayedAssignmentsProcessor;
-  @NotNull private final EmailReporter myEmailReporter;
+  @NotNull private final AggregationLogger myAggregationLogger;
   private StatisticsReporter myStatisticsReporter;
   private CustomParameters myCustomParameters;
   @NotNull
@@ -59,12 +59,12 @@ public class FailedTestAndBuildProblemsDispatcher {
   public FailedTestAndBuildProblemsDispatcher(@NotNull final BuildServerListenerEventDispatcher buildServerListenerEventDispatcher,
                                               @NotNull final FailedTestAndBuildProblemsProcessor processor,
                                               @NotNull final DelayedAssignmentsProcessor delayedAssignmentsProcessor,
-                                              @NotNull final EmailReporter emailReporter,
+                                              @NotNull final AggregationLogger aggregationLogger,
                                               @NotNull final StatisticsReporter statisticsReporter,
                                               @NotNull final CustomParameters customParameters) {
     myProcessor = processor;
     myDelayedAssignmentsProcessor = delayedAssignmentsProcessor;
-    myEmailReporter = emailReporter;
+    myAggregationLogger = aggregationLogger;
     myStatisticsReporter = statisticsReporter;
     myCustomParameters = customParameters;
     myExecutor = ExecutorsFactory.newFixedScheduledDaemonExecutor(Constants.BUILD_FEATURE_TYPE, 1);
@@ -183,8 +183,9 @@ public class FailedTestAndBuildProblemsDispatcher {
     if (!failedBuildInfo.getHeuristicsResult().isEmpty() && myCustomParameters.isBuildFeatureEnabled(failedBuildInfo.getBuild())) {
       int numberOfChanges = failedBuildInfo.getBuild().getContainingChanges().size();
       myStatisticsReporter.reportProcessedBuildWithChanges(numberOfChanges);
-      myEmailReporter.sendResults(failedBuildInfo);
     }
+
+    myAggregationLogger.logResults(failedBuildInfo);
   }
 
   private void putIntoDelayAssignments(final FailedBuildInfo currentFailedBuildInfo) {

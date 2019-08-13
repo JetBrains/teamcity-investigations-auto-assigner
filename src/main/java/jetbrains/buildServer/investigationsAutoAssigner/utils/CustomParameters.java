@@ -109,11 +109,6 @@ public class CustomParameters {
     return StringUtil.isTrue(shouldDelayAssignments);
   }
 
-  @Nullable
-  String getEmailForEmailReporter() {
-    return TeamCityProperties.getPropertyOrNull(Constants.INTERNAL_REPORTER_EMAIL);
-  }
-
   public boolean isBuildFeatureEnabled(@NotNull SBuild sBuild) {
     Collection<SBuildFeatureDescriptor> descriptors = sBuild.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE);
 
