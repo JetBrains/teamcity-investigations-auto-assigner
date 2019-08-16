@@ -137,9 +137,7 @@ public class ModificationAnalyzerFactory {
       parts.set(0, withExtension);
     }
 
-    return parts.isEmpty() ?
-           Collections.emptyList() :
-           Arrays.asList(join(parts, "."), join(parts, "/"), join(parts, "\\"));
+    return Arrays.asList(join(parts, "."), join(parts, "/"), join(parts, "\\"));
   }
 
   private static boolean isSmallPattern(final List<String> parts) {
