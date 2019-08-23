@@ -154,6 +154,7 @@ public class FailedTestAndBuildProblemsDispatcher {
       @Nullable
       FailedBuildInfo delayedAssignmentsBuildInfo = myDelayedAssignments.get(sBuildType.getInternalId());
       if (delayedAssignmentsBuildInfo != null &&
+          delayedAssignmentsBuildInfo.getBuild().getBuildId() != nextBuild.getBuildId() &&
           nextBuild.getBuildPromotion().isLaterThan(delayedAssignmentsBuildInfo.getBuild().getBuildPromotion())) {
         myDelayedAssignments.remove(sBuildType.getInternalId());
         processDelayedAssignments(delayedAssignmentsBuildInfo, nextBuild);
