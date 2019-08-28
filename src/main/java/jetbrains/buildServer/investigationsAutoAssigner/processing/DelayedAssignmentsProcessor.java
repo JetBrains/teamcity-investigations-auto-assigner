@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
+import jetbrains.buildServer.investigationsAutoAssigner.utils.AggregationLogger;
 import jetbrains.buildServer.serverSide.BuildEx;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
@@ -33,17 +34,20 @@ public class DelayedAssignmentsProcessor extends BaseProcessor {
 
   private final BuildProblemsFilter myBuildProblemsFilter;
   private final FailedTestFilter myFailedTestFilter;
+  private AggregationLogger myAggregationLogger;
   private BuildProblemsAssigner myBuildProblemsAssigner;
   private FailedTestAssigner myFailedTestAssigner;
 
   public DelayedAssignmentsProcessor(BuildProblemsAssigner buildProblemsAssigner,
                                      FailedTestAssigner failedTestAssigner,
                                      BuildProblemsFilter buildProblemsFilter,
-                                     FailedTestFilter failedTestFilter) {
+                                     FailedTestFilter failedTestFilter,
+                                     AggregationLogger aggregationLogger) {
     myBuildProblemsAssigner = buildProblemsAssigner;
     myFailedTestAssigner = failedTestAssigner;
     myBuildProblemsFilter = buildProblemsFilter;
     myFailedTestFilter = failedTestFilter;
+    myAggregationLogger = aggregationLogger;
   }
 
   public void processBuild(final FailedBuildInfo failedBuildInfo, SBuild nextBuild) {
@@ -83,5 +87,7 @@ public class DelayedAssignmentsProcessor extends BaseProcessor {
 
     myFailedTestAssigner.assign(heuristicsResult, sProject, sBuild, testsForAssign);
     myBuildProblemsAssigner.assign(heuristicsResult, sProject, sBuild, problemsForAssign);
+
+    myAggregationLogger.logDelayedResults(sBuild, nextBuild, heuristicsResult, testsForAssign, problemsForAssign);
   }
 }

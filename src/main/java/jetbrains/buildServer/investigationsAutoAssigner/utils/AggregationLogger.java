@@ -52,7 +52,25 @@ public class AggregationLogger {
     HeuristicResult heuristicsResult = failedBuildInfo.getHeuristicsResult();
 
     return !heuristicsResult.isEmpty() &&
-           myCustomParameters.isBuildFeatureEnabled(sBuild);
+           myCustomParameters.isBuildFeatureEnabled(sBuild) &&
+           !failedBuildInfo.shouldDelayAssignments();
+  }
+
+  public void logDelayedResults(@NotNull final SBuild sBuild,
+                                @NotNull final SBuild nextBuild,
+                                @NotNull final HeuristicResult heuristicResult,
+                                @NotNull final List<STestRun> testsForAssign,
+                                @NotNull final List<BuildProblem> problemsForAssign) {
+    if (!LOGGER.isDebugEnabled() || (testsForAssign.isEmpty() && problemsForAssign.isEmpty())) {
+      return;
+    }
+
+    final FailedBuildInfo failedBuildInfo = new FailedBuildInfo(sBuild, true);
+    String assignTriggeredBy = String.format("Assign was triggered by build '%s'#%s (url: %s).",
+                                             sBuild.getBuildTypeName(),
+                                             sBuild.getBuildId(),
+                                             myWebLinks.getViewResultsUrl(nextBuild));
+    LOGGER.debug(getTitle(failedBuildInfo) + ". " + generateReport(sBuild, heuristicResult) + assignTriggeredBy + "\n");
   }
 
   private String getTitle(final FailedBuildInfo failedBuildInfo) {
@@ -128,5 +146,4 @@ public class AggregationLogger {
 
     return sb.toString();
   }
-
 }
