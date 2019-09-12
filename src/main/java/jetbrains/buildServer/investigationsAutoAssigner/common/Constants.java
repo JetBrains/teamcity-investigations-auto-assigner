@@ -42,6 +42,8 @@ public class Constants {
   // Server internal properties (debug use only)
   public static final String STATISTICS_ENABLED = "teamcity.investigationsAutoAssigner.statisticsEnabled";
 
+  public static final String MAX_COMPILE_ERRORS_TO_PROCESS = "teamcity.investigationsAutoAssigner.maxCompileErrorsToProcess";
+
   //Constants
   public final static String TEAMCITY_DIRECTORY = ArtifactsConstants.TEAMCITY_ARTIFACTS_DIR;
   public final static String TEST_RUN_IN_REQUEST = "loadedTestRun";
