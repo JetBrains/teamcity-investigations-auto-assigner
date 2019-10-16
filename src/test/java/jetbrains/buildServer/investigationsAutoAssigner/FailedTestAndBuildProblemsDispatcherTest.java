@@ -84,6 +84,8 @@ public class FailedTestAndBuildProblemsDispatcherTest {
     final SecurityContextEx securityContextEx = Mockito.mock(SecurityContextImpl.class);
     Mockito.doCallRealMethod().when(securityContextEx).runAsSystem(any(SecurityContextEx.RunAsActionWithResult.class));
     Mockito.doCallRealMethod().when(securityContextEx).runAs(any(), any(SecurityContextEx.RunAsActionWithResult.class));
+    Mockito.doCallRealMethod().when(securityContextEx).runAsSystemUnchecked(any(SecurityContextEx.RunAsActionWithResult.class));
+    Mockito.doCallRealMethod().when(securityContextEx).runAsUnchecked(any(), any(SecurityContextEx.RunAsActionWithResult.class));
 
     //configure event dispatcher
     myBsDispatcher = new BuildServerListenerEventDispatcher(securityContextEx);
