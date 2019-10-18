@@ -28,8 +28,7 @@ abstract class BaseProcessor {
 
 
   protected List<STestRun> requestBrokenTestsWithStats(final SBuild build) {
-    BuildStatisticsOptions options = new BuildStatisticsOptions(
-      BuildStatisticsOptions.FIRST_FAILED_IN_BUILD | BuildStatisticsOptions.FIXED_IN_BUILD, 0);
+    BuildStatisticsOptions options = new BuildStatisticsOptions(BuildStatisticsOptions.FIXED_IN_BUILD, 0);
     BuildStatistics stats = build.getBuildStatistics(options);
 
     return stats.getFailedTests();
