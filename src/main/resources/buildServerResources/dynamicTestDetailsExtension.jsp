@@ -23,13 +23,16 @@
     <c:set var="escapedComment">
       '<bs:escapeForJs text="${autoassignerComment}" forHTMLAttribute="${true}"/>'
     </c:set>
+    <c:set var="escapedUserName">
+      '<bs:escapeForJs text="${userName}" forHTMLAttribute="${true}"/>'
+    </c:set>
     <div>
       <authz:authorize projectId="${projectId}" allPermissions="ASSIGN_INVESTIGATION">
         <jsp:attribute name="ifAccessGranted">
           <span class="btn-group investigations-auto-assigner-btn-group">
             <button class="btn btn_mini action investigations-auto-assigner-btn" type="button"
                     onclick="return BS.AutoAssignerFeature.assignInvestigationOneClick(${userId}, '${test.testNameId}', '${buildId}', ${escapedComment});"
-                    title="Assign investigation">Assign investigation to ${userName}</button><button
+                    title="Assign investigation">Assign investigation to ${escapedUserName}</button><button
                 class="btn btn_mini btn_append investigations-auto-assigner-btn-append" type="button"
                 onclick="BS.AutoAssignerFeature.assignInvestigationManually('${test.testNameId}', '${buildId}', '${test.projectExternalId}', ${escapedComment}, ${userId});"
                 title="Custom investigation assignment">...</button>
@@ -37,7 +40,7 @@
         </jsp:attribute>
       </authz:authorize>
       <div class="investigations-auto-assigner-description">
-        <bs:out value='${userName}'/> ${shownDescription}.
+        <bs:out value='${escapedUserName}'/> ${shownDescription}.
       </div>
       <div id="empty-div"></div>
     </div>
