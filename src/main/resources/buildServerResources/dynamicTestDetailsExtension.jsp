@@ -24,7 +24,7 @@
       '<bs:escapeForJs text="${autoassignerComment}" forHTMLAttribute="${true}"/>'
     </c:set>
     <c:set var="escapedUserName">
-      '<bs:escapeForJs text="${userName}" forHTMLAttribute="${true}"/>'
+      <bs:escapeForJs text="${userName}" forHTMLAttribute="${true}"/>
     </c:set>
     <div>
       <authz:authorize projectId="${projectId}" allPermissions="ASSIGN_INVESTIGATION">
