@@ -1,3 +1,4 @@
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="bs" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="authz" tagdir="/WEB-INF/tags/authz" %>
@@ -30,8 +31,11 @@
         <jsp:attribute name="ifAccessGranted">
           <span class="btn-group investigations-auto-assigner-btn-group">
             <button class="btn btn_mini action investigations-auto-assigner-btn" type="button"
+                    onclick="return BS.AutoAssignerFeature.assignInvestigationOneClick(${userId}, '${test.testNameId}', '${buildId}', ${escapedComment});"
+                    title="Assign investigation">Assign investigation to ${escapedUserName}</button><button
+                class="btn btn_mini btn_append investigations-auto-assigner-btn-append" type="button"
                 onclick="BS.AutoAssignerFeature.assignInvestigationManually('${test.testNameId}', '${buildId}', '${test.projectExternalId}', ${escapedComment}, ${userId});"
-                title="Custom investigation assignment">Assign investigation to ${escapedUserName}...</button>
+                title="Custom investigation assignment">...</button>
           </span>
         </jsp:attribute>
       </authz:authorize>
