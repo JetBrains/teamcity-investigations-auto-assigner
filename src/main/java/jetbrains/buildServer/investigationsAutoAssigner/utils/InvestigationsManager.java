@@ -152,7 +152,7 @@ public class InvestigationsManager {
         objectIds.add(TestId.createOn(testRun.getTest().getTestNameId(), projectId).asString());
       }
     }
-    builder.addFilter(new ObjectIdsFilter(objectIds));
+    builder.setObjectIds(objectIds);
     List<AuditLogAction> lastActions = builder.getLogActions(-1);
     HashMap<Long, User> result = new HashMap<>();
     for (AuditLogAction action : lastActions) {
