@@ -21,7 +21,7 @@
       Investigation was assigned to ${userName} who ${investigationDescription}.
     </c:set>
     <c:set var="escapedComment">
-      '<bs:escapeForJs text="${autoassignerComment}" forHTMLAttribute="${true}"/>'
+      <bs:escapeForJs text="${autoassignerComment}" forHTMLAttribute="${true}"/>
     </c:set>
     <c:set var="escapedUserName">
       <bs:escapeForJs text="${userName}" forHTMLAttribute="${true}"/>
@@ -31,10 +31,10 @@
         <jsp:attribute name="ifAccessGranted">
           <span class="btn-group investigations-auto-assigner-btn-group">
             <button class="btn btn_mini action investigations-auto-assigner-btn" type="button"
-                    onclick="return BS.AutoAssignerFeature.assignInvestigationOneClick(${userId}, '${test.testNameId}', '${buildId}', ${escapedComment});"
+                    onclick="return BS.AutoAssignerFeature.assignInvestigationOneClick(${userId}, '${test.testNameId}', '${buildId}', '${escapedComment}');"
                     title="Assign investigation">Assign investigation to ${escapedUserName}</button><button
                 class="btn btn_mini btn_append investigations-auto-assigner-btn-append" type="button"
-                onclick="BS.AutoAssignerFeature.assignInvestigationManually('${test.testNameId}', '${buildId}', '${test.projectExternalId}', ${escapedComment}, ${userId});"
+                onclick="BS.AutoAssignerFeature.assignInvestigationManually('${test.testNameId}', '${buildId}', '${test.projectExternalId}', '${escapedComment}', ${userId});"
                 title="Custom investigation assignment">...</button>
           </span>
         </jsp:attribute>
