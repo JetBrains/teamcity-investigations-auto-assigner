@@ -27,7 +27,6 @@ import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STest;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.serverSide.audit.*;
-import jetbrains.buildServer.serverSide.impl.audit.filters.ActionTypesFilter;
 import jetbrains.buildServer.serverSide.impl.audit.filters.BuildProblemAuditId;
 import jetbrains.buildServer.serverSide.impl.audit.filters.ObjectTypeFilter;
 import jetbrains.buildServer.serverSide.impl.audit.filters.TestId;
@@ -101,7 +100,7 @@ public class InvestigationsManager {
   private User findInAudit(final BuildProblem buildProblem) {
     AuditLogBuilder builder = myAuditLogProvider.getBuilder();
     builder.setObjectId(BuildProblemAuditId.fromBuildProblem(buildProblem).asString());
-    builder.addFilter(new ActionTypesFilter(ActionType.BUILD_PROBLEM_MARK_AS_FIXED));
+    builder.setActionTypes(ActionType.BUILD_PROBLEM_MARK_AS_FIXED);
     builder.addFilter(new ObjectTypeFilter(ObjectType.BUILD_PROBLEM));
     AuditLogAction lastAction = builder.findLastAction();
     if (lastAction == null) {
