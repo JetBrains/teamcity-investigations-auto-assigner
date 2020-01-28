@@ -27,6 +27,8 @@ import jetbrains.buildServer.investigationsAutoAssigner.utils.FlakyTestDetector;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.InvestigationsManager;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityEntry;
 import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.serverSide.auth.AuthorityHolder;
+import jetbrains.buildServer.serverSide.auth.Permission;
 import jetbrains.buildServer.serverSide.stat.FirstFailedInFixedInCalculator;
 import jetbrains.buildServer.web.openapi.PluginDescriptor;
 import jetbrains.buildServer.web.openapi.WebControllerManager;
@@ -46,6 +48,7 @@ public class AutoAssignerDetailsController extends BaseController {
   private final FlakyTestDetector myFlakyTestDetector;
   private final StatisticsReporter myStatisticsReporter;
   private CustomParameters myCustomParameters;
+  @NotNull private final SecurityContextEx mySecurityContext;
 
   public AutoAssignerDetailsController(final SBuildServer server,
                                        @NotNull final FirstFailedInFixedInCalculator statisticsProvider,
@@ -55,7 +58,8 @@ public class AutoAssignerDetailsController extends BaseController {
                                        @NotNull final FlakyTestDetector flakyTestDetector,
                                        @NotNull final InvestigationsManager investigationsManager,
                                        @NotNull final StatisticsReporter statisticsReporter,
-                                       @NotNull final CustomParameters customParameters) {
+                                       @NotNull final CustomParameters customParameters,
+                                       @NotNull final SecurityContextEx securityContext) {
     super(server);
     myStatisticsProvider = statisticsProvider;
     myAssignerArtifactDao = assignerArtifactDao;
@@ -65,6 +69,7 @@ public class AutoAssignerDetailsController extends BaseController {
     myInvestigationsManager = investigationsManager;
     myStatisticsReporter = statisticsReporter;
     myCustomParameters = customParameters;
+    mySecurityContext = securityContext;
     controllerManager.registerController("/autoAssignerController.html", this);
   }
 
@@ -76,7 +81,9 @@ public class AutoAssignerDetailsController extends BaseController {
     final int testId = Integer.parseInt(request.getParameter("testId"));
 
     final SBuild build = myServer.findBuildInstanceById(buildId);
-    if (build == null || !myCustomParameters.isDefaultSilentModeEnabled(build)) {
+    if (build == null ||
+        !userHasPermissions(build) ||
+        !myCustomParameters.isDefaultSilentModeEnabled(build)) {
       return null;
     }
 
@@ -116,6 +123,15 @@ public class AutoAssignerDetailsController extends BaseController {
     }
 
     return null;
+  }
+
+  private boolean userHasPermissions(final SBuild build) {
+    AuthorityHolder authorityHolder = mySecurityContext.getAuthorityHolder();
+    @Nullable String projectId = build.getProjectId();
+
+    return build.isFinished() ||
+           (projectId != null &&
+            authorityHolder.getPermissionsGrantedForProject(projectId).contains(Permission.VIEW_BUILD_RUNTIME_DATA));
   }
 
   private boolean isUnderInvestigation(SBuild sBuild, STest sTest) {
