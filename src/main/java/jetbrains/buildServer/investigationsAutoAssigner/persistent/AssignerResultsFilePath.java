@@ -16,37 +16,43 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.persistent;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
+import jetbrains.buildServer.log.LogUtil;
 import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.STestRun;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class AssignerResultsFilePath {
   @NotNull
   public Path get(@NotNull final SBuild build) throws IOException {
-    Path resultPath = get(build, true);
+    Path resultPath = get(build, true, null);
     if (resultPath == null) {
-      throw new IllegalStateException("The path for artifact supposed to be created");
+      throw new IllegalStateException("TeamCity artifact directory does not exist for " + LogUtil.describe(build));
     }
 
     return resultPath;
   }
 
   @Nullable
-  public Path getIfExist(@NotNull final SBuild build) throws IOException {
-    return get(build, false);
+  public Path getIfExist(@NotNull final SBuild build,
+                         @Nullable final STestRun testRun) throws IOException {
+    return get(build, false, testRun);
   }
 
   @Nullable
-  private Path get(@NotNull final SBuild build, boolean createIfNotExist) throws IOException {
+  private Path get(@NotNull final SBuild build,
+                   boolean createIfNotExist,
+                   @Nullable final STestRun testRun) throws IOException {
     Path artifactDirectoryPath = build.getArtifactsDirectory().toPath();
     Path teamcityDirectoryPath = artifactDirectoryPath.resolve(Constants.TEAMCITY_DIRECTORY);
     if (!Files.exists(teamcityDirectoryPath)) {
-      Constants.LOGGER.warn("TeamCity artifact directory does not exist for build with suggested investigations");
+      Constants.LOGGER.debug("Skip investigation suggestion logic for " +
+                             (testRun != null ? LogUtil.describe(testRun) : " test runs ") +
+                             " as " + teamcityDirectoryPath + " doesn't exists.");
       return null;
     }
 

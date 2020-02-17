@@ -99,8 +99,8 @@ public class AssignerArtifactDao {
     List<ResponsibilityPersistentInfo> suggestions;
     try {
       Path resultsFilePath = firstFailedBuild != null ?
-                             myAssignerResultsFilePath.getIfExist(firstFailedBuild) :
-                             myAssignerResultsFilePath.getIfExist(testRun.getBuild());
+                             myAssignerResultsFilePath.getIfExist(firstFailedBuild, testRun) :
+                             myAssignerResultsFilePath.getIfExist(testRun.getBuild(), testRun);
 
       suggestions = mySuggestionsDao.read(resultsFilePath);
     } catch (IOException ex) {

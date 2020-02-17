@@ -19,7 +19,6 @@ package jetbrains.buildServer.investigationsAutoAssigner.persistent
 import com.google.common.jimfs.Configuration
 import com.google.common.jimfs.Jimfs
 import java.io.File
-import java.io.FileNotFoundException
 import java.nio.file.Files
 import java.nio.file.Path
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants
@@ -64,7 +63,7 @@ class AssignerResultsFilePathTest {
 
     @Test
     fun testGetIfExistNoTeamCityDir() {
-        Assert.assertNull(myInstance.getIfExist(mySBuild))
+        Assert.assertNull(myInstance.getIfExist(mySBuild, null))
     }
 
     @Test
@@ -81,7 +80,7 @@ class AssignerResultsFilePathTest {
     fun testGetIfExistNoAutoAssignerDir() {
         Files.createDirectory(myTeamCityDir)
 
-        val result = myInstance.getIfExist(mySBuild)
+        val result = myInstance.getIfExist(mySBuild, null)
 
         Assert.assertNull(result)
         Assert.assertFalse(Files.exists(myAutoAssignerArtifactDir))
@@ -103,7 +102,7 @@ class AssignerResultsFilePathTest {
         Files.createDirectory(myTeamCityDir)
         Files.createDirectories(myAutoAssignerArtifactDir)
 
-        val result = myInstance.getIfExist(mySBuild)
+        val result = myInstance.getIfExist(mySBuild, null)
 
         Assert.assertNull(result)
         Assert.assertFalse(Files.exists(myAutoAssignerArtifactFile))
@@ -126,7 +125,7 @@ class AssignerResultsFilePathTest {
         Files.createDirectories(myAutoAssignerArtifactDir)
         Files.createFile(myAutoAssignerArtifactFile)
 
-        val result = myInstance.getIfExist(mySBuild)
+        val result = myInstance.getIfExist(mySBuild, null)
 
         Assert.assertNotNull(result)
     }
