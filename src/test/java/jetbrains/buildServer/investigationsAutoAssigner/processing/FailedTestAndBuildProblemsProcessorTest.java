@@ -18,6 +18,8 @@ package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
 import java.util.Collections;
 import jetbrains.buildServer.BaseTestCase;
+import jetbrains.buildServer.BuildProblemData;
+import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
@@ -26,6 +28,7 @@ import jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerArtif
 import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.parameters.ParametersProvider;
 import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import jetbrains.buildServer.tests.TestName;
 import jetbrains.buildServer.users.SUser;
 import org.mockito.Mockito;
@@ -48,6 +51,9 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
   private HeuristicResult myNotEmptyHeuristicResult;
   private FailedTestAssigner myFailedTestAssigner;
   private ParametersProvider myParametersProvider;
+  private SUser mySUser;
+  private BuildProblemsAssigner myBuildProblemsAssigner;
+  private BuildProblemsFilter myBuildProblemsFilter;
 
   @BeforeMethod
   @Override
@@ -56,14 +62,14 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
     myResponsibleUserFinder = Mockito.mock(ResponsibleUserFinder.class);
     final FailedTestFilter failedTestFilter = Mockito.mock(FailedTestFilter.class);
     myFailedTestAssigner = Mockito.mock(FailedTestAssigner.class);
-    final BuildProblemsFilter buildProblemsFilter = Mockito.mock(BuildProblemsFilter.class);
-    final BuildProblemsAssigner buildProblemsAssigner = Mockito.mock(BuildProblemsAssigner.class);
+    myBuildProblemsFilter = Mockito.mock(BuildProblemsFilter.class);
+    myBuildProblemsAssigner = Mockito.mock(BuildProblemsAssigner.class);
     myAssignerArtifactDao = Mockito.mock(AssignerArtifactDao.class);
     myProcessor = new FailedTestAndBuildProblemsProcessor(myResponsibleUserFinder,
                                                           failedTestFilter,
                                                           myFailedTestAssigner,
-                                                          buildProblemsFilter,
-                                                          buildProblemsAssigner,
+                                                          myBuildProblemsFilter,
+                                                          myBuildProblemsAssigner,
                                                           myAssignerArtifactDao,
                                                           new CustomParameters());
 
@@ -74,13 +80,13 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
     final STest sTestMock = Mockito.mock(jetbrains.buildServer.serverSide.STest.class);
     when(sTestMock.getName()).thenReturn(testNameMock);
 
-    final STestRun STestRun = Mockito.mock(jetbrains.buildServer.serverSide.STestRun.class);
-    when(STestRun.getTest()).thenReturn(sTestMock);
-    when(STestRun.getFullText()).thenReturn("Full Text Test Run");
+    final STestRun sTestRun = Mockito.mock(jetbrains.buildServer.serverSide.STestRun.class);
+    when(sTestRun.getTest()).thenReturn(sTestMock);
+    when(sTestRun.getFullText()).thenReturn("Full Text Test Run");
 
     //configure build stats
     BuildStatistics buildStatistics = Mockito.mock(BuildStatistics.class);
-    when(buildStatistics.getFailedTests()).thenReturn(Collections.singletonList(STestRun));
+    when(buildStatistics.getFailedTests()).thenReturn(Collections.singletonList(sTestRun));
 
     //configure project
     SProject sProject = Mockito.mock(SProject.class);
@@ -102,8 +108,8 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
 
     //configure heuristic results
     myNotEmptyHeuristicResult = new HeuristicResult();
-    SUser sUser = Mockito.mock(SUser.class);
-    myNotEmptyHeuristicResult.addResponsibility(STestRun, new Responsibility(sUser, "Failed description"));
+    mySUser = Mockito.mock(SUser.class);
+    myNotEmptyHeuristicResult.addResponsibility(sTestRun, new Responsibility(mySUser, "Failed description"));
 
     //configure finder
     when(myResponsibleUserFinder.findResponsibleUser(any(), any(), anyList(), anyList())).thenReturn(myNotEmptyHeuristicResult);
@@ -156,6 +162,42 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
     myProcessor.processBuild(failedBuildInfo);
 
     Mockito.verify(myFailedTestAssigner, Mockito.never()).assign(any(), any(), any(), anyList());
+  }
+
+  public void TestDelayedAssignmentExitCodeProblem() {
+    BuildProblemData buildProblemData = Mockito.mock(BuildProblemData.class);
+    when(buildProblemData.getType()).thenReturn(BuildProblemTypes.TC_EXIT_CODE_TYPE);
+    BuildProblemImpl exitCodeBuildProblem = Mockito.mock(BuildProblemImpl.class);
+    when(exitCodeBuildProblem.getBuildProblemData()).thenReturn(buildProblemData);
+
+    when(mySBuild.getBuildProblems()).thenReturn(Collections.singletonList(exitCodeBuildProblem));
+    when(myBuildProblemsFilter.apply(any(), any(), any())).thenReturn(Collections.singletonList(exitCodeBuildProblem));
+    when(myBuildProblemsFilter.getStillApplicable(any(), any(), any())).thenReturn(Collections.singletonList(exitCodeBuildProblem));
+
+    configureBuildFeature(mySBuild);
+    FailedBuildInfo failedBuildInfo = new FailedBuildInfo(mySBuild, true);
+    myNotEmptyHeuristicResult.addResponsibility(exitCodeBuildProblem, new Responsibility(mySUser, "Failed description"));
+    myProcessor.processBuild(failedBuildInfo);
+
+    Mockito.verify(myBuildProblemsAssigner, Mockito.never()).assign(any(), any(), any(), anyList());
+  }
+
+  public void TestDelayedAssignmentCompileProblem() {
+    BuildProblemData buildProblemData = Mockito.mock(BuildProblemData.class);
+    when(buildProblemData.getType()).thenReturn(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE);
+    BuildProblemImpl compilationBuildProblem = Mockito.mock(BuildProblemImpl.class);
+    when(compilationBuildProblem.getBuildProblemData()).thenReturn(buildProblemData);
+
+    when(mySBuild.getBuildProblems()).thenReturn(Collections.singletonList(compilationBuildProblem));
+    when(myBuildProblemsFilter.apply(any(), any(), any())).thenReturn(Collections.singletonList(compilationBuildProblem));
+    when(myBuildProblemsFilter.getStillApplicable(any(), any(), any())).thenReturn(Collections.singletonList(compilationBuildProblem));
+
+    configureBuildFeature(mySBuild);
+    FailedBuildInfo failedBuildInfo = new FailedBuildInfo(mySBuild, true);
+    myNotEmptyHeuristicResult.addResponsibility(compilationBuildProblem, new Responsibility(mySUser, "Failed description"));
+    myProcessor.processBuild(failedBuildInfo);
+
+    Mockito.verify(myBuildProblemsAssigner, Mockito.atLeastOnce()).assign(any(), any(), any(), anyList());
   }
 
   public void TestRegularAssignment() {

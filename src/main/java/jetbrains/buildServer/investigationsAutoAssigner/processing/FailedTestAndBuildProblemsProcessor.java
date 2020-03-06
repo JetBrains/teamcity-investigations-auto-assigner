@@ -18,6 +18,8 @@ package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
+import java.util.stream.Collectors;
+import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
@@ -94,14 +96,25 @@ public class FailedTestAndBuildProblemsProcessor extends BaseProcessor {
     if (myCustomParameters.isBuildFeatureEnabled(sBuild) && !failedBuildInfo.shouldDelayAssignments()) {
       myFailedTestAssigner.assign(heuristicsResult, sProject, sBuild, testsForAssign);
       myBuildProblemsAssigner.assign(heuristicsResult, sProject, sBuild, problemsForAssign);
-    } else if (LOGGER.isDebugEnabled()) {
-      if (!myCustomParameters.isBuildFeatureEnabled(sBuild)) {
-        LOGGER.debug(String.format("Build id:%s. Found investigations but build feature is not configured.",
-                                   sBuild.getBuildId()));
-      } else if (failedBuildInfo.shouldDelayAssignments()) {
-        LOGGER.debug(String.format("Build id:%s. Found investigations but assignments should be delayed.",
-                                   sBuild.getBuildId()));
+      failedBuildInfo.addHeuristicsResult(heuristicsResult);
+
+      return;
+    }
+
+    if (!myCustomParameters.isBuildFeatureEnabled(sBuild) && LOGGER.isDebugEnabled()) {
+      LOGGER.debug(String.format("Build id:%s. Found investigations but build feature is not configured.",
+                                 sBuild.getBuildId()));
+    } else if (failedBuildInfo.shouldDelayAssignments()) {
+      List<BuildProblem> forcedAssignInstantlyProblems =
+        problemsForAssign.stream()
+                         .filter(x -> !BuildProblemTypes.TC_EXIT_CODE_TYPE.equals(x.getBuildProblemData().getType()))
+                         .collect(Collectors.toList());
+      if (!forcedAssignInstantlyProblems.isEmpty()) {
+        myBuildProblemsAssigner.assign(heuristicsResult, sProject, sBuild, forcedAssignInstantlyProblems);
       }
+
+      LOGGER.debug(String.format("Build id:%s. Found investigations but assignments should be delayed.",
+                                 sBuild.getBuildId()));
     }
 
     failedBuildInfo.addHeuristicsResult(heuristicsResult);

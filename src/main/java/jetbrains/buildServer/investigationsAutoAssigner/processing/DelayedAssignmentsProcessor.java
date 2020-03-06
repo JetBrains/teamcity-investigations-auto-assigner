@@ -19,6 +19,7 @@ package jetbrains.buildServer.investigationsAutoAssigner.processing;
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.List;
 import java.util.stream.Collectors;
+import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
@@ -75,8 +76,8 @@ public class DelayedAssignmentsProcessor extends BaseProcessor {
       ((BuildEx)sBuild).getBuildProblems()
                        .stream()
                        .filter(buildProblem -> heuristicsResult.getResponsibility(buildProblem) != null &&
-                                               nextBuildProblemIdentities.contains(
-                                                 buildProblem.getBuildProblemData().getIdentity()))
+                                               nextBuildProblemIdentities.contains(buildProblem.getBuildProblemData().getIdentity()) &&
+                                               BuildProblemTypes.TC_EXIT_CODE_TYPE.equals(buildProblem.getBuildProblemData().getType()))
                        .collect(Collectors.toList());
 
     logProblemsNumber(sBuild, applicableFailedTests, applicableProblems);
