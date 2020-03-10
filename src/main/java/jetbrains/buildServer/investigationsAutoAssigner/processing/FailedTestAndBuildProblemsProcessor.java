@@ -101,9 +101,11 @@ public class FailedTestAndBuildProblemsProcessor extends BaseProcessor {
       return;
     }
 
-    if (!myCustomParameters.isBuildFeatureEnabled(sBuild) && LOGGER.isDebugEnabled()) {
-      LOGGER.debug(String.format("Build id:%s. Found investigations but build feature is not configured.",
-                                 sBuild.getBuildId()));
+    if (!myCustomParameters.isBuildFeatureEnabled(sBuild)) {
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug(String.format("Build id:%s. Found investigations but build feature is not configured.",
+                                   sBuild.getBuildId()));
+      }
     } else if (failedBuildInfo.shouldDelayAssignments()) {
       List<BuildProblem> forcedAssignInstantlyProblems =
         problemsForAssign.stream()
