@@ -36,7 +36,7 @@ import jetbrains.buildServer.tests.TestName;
 import jetbrains.buildServer.util.Dates;
 import org.jetbrains.annotations.NotNull;
 
-public class FailedTestAssigner extends BaseAssigner {
+public class FailedTestAssigner implements BaseAssigner {
   @NotNull private final TestNameResponsibilityFacade myTestNameResponsibilityFacade;
   private WebLinks myWebLinks;
   private StatisticsReporter myStatisticsReporter;
@@ -64,11 +64,9 @@ public class FailedTestAssigner extends BaseAssigner {
       testNameList.add(sTestRun.getTest().getName());
     }
 
-    Set<Long> committersIds = calculateCommitersIds(sBuild);
-
     Set<Responsibility> uniqueResponsibilities = responsibilityToTestNames.keySet();
     for (Responsibility responsibility : uniqueResponsibilities) {
-      if (shouldAssignInvestigation(responsibility, committersIds)) {
+      if (responsibility != null) {
         List<TestName> testNameList = responsibilityToTestNames.get(responsibility);
         LOGGER.info(String.format("Automatically assigning investigation(s) to %s in %s # %s because user %s",
                                   responsibility.getUser().getUsername(),

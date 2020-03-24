@@ -17,6 +17,7 @@
 package jetbrains.buildServer.investigationsAutoAssigner.heuristics;
 
 import java.util.Collections;
+import java.util.HashSet;
 import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.BuildProblemData;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
@@ -25,12 +26,15 @@ import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicCont
 import jetbrains.buildServer.investigationsAutoAssigner.utils.InvestigationsManager;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
+import jetbrains.buildServer.users.SUser;
 import jetbrains.buildServer.users.User;
+import jetbrains.buildServer.users.UserSet;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @Test
@@ -46,6 +50,7 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
   private STestRun mySTestRun;
   private HeuristicContext myBuildHeuristicContext;
   private HeuristicContext myTestHeuristicContext;
+  private User myUser2;
 
   @BeforeMethod
   @Override
@@ -57,10 +62,17 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
     mySProject = Mockito.mock(SProject.class);
     myBuildProblem = Mockito.mock(BuildProblem.class);
     final BuildProblemData buildProblemData = Mockito.mock(BuildProblemData.class);
-    myUser = Mockito.mock(User.class);
+    myUser = Mockito.mock(SUser.class);
+    when(myUser.getId()).thenReturn(1L);
+    myUser2 = Mockito.mock(SUser.class);
+    when(myUser2.getId()).thenReturn(2L);
     mySTest = Mockito.mock(STest.class);
-
     when(myUser.getUsername()).thenReturn("testUser");
+    when(myUser2.getUsername()).thenReturn("testUser 2");
+    UserSet userSetMock = Mockito.mock(UserSet.class);
+    when(userSetMock.getUsers()).thenReturn(new HashSet<>(Collections.singletonList(myUser)));
+    when(mySBuild.getCommitters(any())).thenReturn(userSetMock);
+
     myHeuristic = new PreviousResponsibleHeuristic(myInvestigationsManager);
     when(myBuildProblem.getBuildProblemData()).thenReturn(buildProblemData);
     when(buildProblemData.getType()).thenReturn("Type");
@@ -93,6 +105,14 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
     Responsibility responsibility = result.getResponsibility(myBuildProblem);
     assert responsibility != null;
     Assert.assertEquals(responsibility.getUser(), myUser);
+  }
+
+  public void Test_FoundResponsibleNotAmongCommiters() {
+    when(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, myBuildProblem)).thenReturn(myUser2);
+
+    HeuristicResult result = myHeuristic.findResponsibleUser(myBuildHeuristicContext);
+//
+    Assert.assertTrue(result.isEmpty());
   }
 
   public void TestBuildProblemInfo_ResponsibleNotFound() {

@@ -127,17 +127,6 @@ public class BuildProblemsAssignerTest extends BaseTestCase {
     Mockito.verify(myBuildProblemResponsibilityFacade, Mockito.times(2)).setBuildProblemResponsibility(anyList(), any(), any());
   }
 
-  public void Test_FoundNoCommitters() {
-    UserSet userSetMock = Mockito.mock(UserSet.class);
-    when(userSetMock.getUsers()).thenReturn(new HashSet<>(Collections.singletonList(myUser2)));
-    when(mySBuild.getCommitters(any())).thenReturn(userSetMock);
-
-    myHeuristicResult.addResponsibility(myBuildProblem1, new Responsibility(myUser1, "any description"));
-    myBuildProblemsAssigner.assign(myHeuristicResult, mySProject, mySBuild, Collections.singletonList(myBuildProblem1));
-    Mockito.verify(myBuildProblemResponsibilityFacade, Mockito.never()).setBuildProblemResponsibility(anyList(), any(), any());
-  }
-
-
   public void Test_FoundNoCommittersOneDefaultResponsibility() {
     UserSet userSetMock = Mockito.mock(UserSet.class);
     when(userSetMock.getUsers()).thenReturn(new HashSet<>(Collections.singletonList(myUser2)));

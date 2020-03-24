@@ -36,7 +36,7 @@ import jetbrains.buildServer.serverSide.problems.BuildProblemInfo;
 import jetbrains.buildServer.util.Dates;
 import org.jetbrains.annotations.NotNull;
 
-public class BuildProblemsAssigner extends BaseAssigner {
+public class BuildProblemsAssigner implements BaseAssigner {
 
   private static final Logger LOGGER = Constants.LOGGER;
   @NotNull private final BuildProblemResponsibilityFacade myBuildProblemResponsibilityFacade;
@@ -65,11 +65,9 @@ public class BuildProblemsAssigner extends BaseAssigner {
       buildProblemList.add(buildProblem);
     }
 
-    Set<Long> committersIds = calculateCommitersIds(sBuild);
-
     Set<Responsibility> uniqueResponsibilities = responsibilityToBuildProblem.keySet();
     for (Responsibility responsibility : uniqueResponsibilities) {
-      if (shouldAssignInvestigation(responsibility, committersIds)) {
+      if (responsibility != null) {
         LOGGER.info(String.format("Automatically assigning investigation(s) to %s in %s because user %s",
                                   responsibility.getUser().getUsername(),
                                   sProject.describe(false),

@@ -144,18 +144,6 @@ public class FailedTestAssignerTest extends BaseTestCase {
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.times(2)).setTestNameResponsibility(anyList(), any(), any());
   }
 
-  public void Test_FoundNoCommitters() {
-    UserSet userSetMock = Mockito.mock(UserSet.class);
-    when(userSetMock.getUsers()).thenReturn(new HashSet<>(Collections.singletonList(myUser2)));
-    when(mySBuild.getCommitters(any())).thenReturn(userSetMock);
-    Responsibility putResponsibility = new Responsibility(myUser1, "any description");
-    myHeuristicResult.addResponsibility(mySTestRun1, putResponsibility);
-
-    myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, mySBuild, Collections.singletonList(mySTestRun1));
-
-    Mockito.verify(myTestNameResponsibilityFacade, Mockito.never()).setTestNameResponsibility(anyList(), any(), any());
-  }
-
   public void Test_FoundNoCommittersOneDefaultResponsibility() {
     UserSet userSetMock = Mockito.mock(UserSet.class);
     when(userSetMock.getUsers()).thenReturn(new HashSet<>(Collections.singletonList(myUser2)));

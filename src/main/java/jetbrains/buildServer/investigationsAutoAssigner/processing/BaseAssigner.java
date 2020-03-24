@@ -16,26 +16,6 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-import jetbrains.buildServer.investigationsAutoAssigner.common.DefaultUserResponsibility;
-import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
-import jetbrains.buildServer.serverSide.SBuild;
-import jetbrains.buildServer.users.User;
-import jetbrains.buildServer.vcs.SelectPrevBuildPolicy;
-
-abstract class BaseAssigner {
-  protected boolean shouldAssignInvestigation(final Responsibility responsibility, final Set<Long> committersIds) {
-    return responsibility != null &&
-           (responsibility instanceof DefaultUserResponsibility ||
-            committersIds.contains(responsibility.getUser().getId()));
-  }
-
-  protected Set<Long> calculateCommitersIds(SBuild sBuild) {
-    return sBuild.getCommitters(SelectPrevBuildPolicy.SINCE_LAST_BUILD)
-                 .getUsers()
-                 .stream()
-                 .map(User::getId)
-                 .collect(Collectors.toSet());
-  }
+interface BaseAssigner {
+  //
 }

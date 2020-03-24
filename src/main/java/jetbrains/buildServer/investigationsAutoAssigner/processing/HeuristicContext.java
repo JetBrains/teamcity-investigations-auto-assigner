@@ -18,10 +18,13 @@ package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
+import jetbrains.buildServer.users.User;
+import jetbrains.buildServer.vcs.SelectPrevBuildPolicy;
 import org.jetbrains.annotations.NotNull;
 
 public final class HeuristicContext {
@@ -30,6 +33,7 @@ public final class HeuristicContext {
   private final List<STestRun> mySTestRuns;
   private final SBuild mySBuild;
   private final Set<String> myUsersToIgnore;
+  private Set<Long> myCommitersIds = null;
 
   public HeuristicContext(SBuild sBuild,
                           SProject sProject,
@@ -64,6 +68,23 @@ public final class HeuristicContext {
   @NotNull
   public Set<String> getUsersToIgnore() {
     return myUsersToIgnore;
+  }
+
+  @NotNull
+  public Set<Long> getCommitersIds() {
+    if (myCommitersIds == null) {
+      myCommitersIds = calculateCommitersIds(mySBuild);
+    }
+
+    return myCommitersIds;
+  }
+
+  private static Set<Long> calculateCommitersIds(SBuild sBuild) {
+    return sBuild.getCommitters(SelectPrevBuildPolicy.SINCE_LAST_BUILD)
+                 .getUsers()
+                 .stream()
+                 .map(User::getId)
+                 .collect(Collectors.toSet());
   }
 }
 

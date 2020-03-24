@@ -66,7 +66,8 @@ public class FailedTestAndBuildProblemsProcessor extends BaseProcessor {
     if (sProject == null) return;
 
     if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("Start processing build #" + sBuild.getBuildId() + ".");
+      LOGGER.debug("Start processing build #" + sBuild.getBuildId() + ". " +
+                   "Delay assignment: " + failedBuildInfo.shouldDelayAssignments());
     }
     if (failedBuildInfo.isOverProcessedProblemsThreshold()) {
       LOGGER.debug("Stop processing build #" + sBuild.getBuildId() + " as the threshold was exceeded.");
