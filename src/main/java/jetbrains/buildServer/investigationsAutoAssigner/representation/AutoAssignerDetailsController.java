@@ -94,12 +94,18 @@ public class AutoAssignerDetailsController extends BaseController {
     boolean isDefaultBranch = branch == null || branch.isDefaultBranch();
 
     STestRun sTestRun = build.getBuildStatistics(ALL_TESTS_NO_DETAILS).findTestByTestRunId(testId);
-    if (!isDefaultBranch ||
-        sTestRun == null ||
-        myFlakyTestDetector.isFlaky(sTestRun.getTest().getTestNameId()) ||
-        isUnderInvestigation(build, sTestRun.getTest())) {
+    if (sTestRun == null) {
       return null;
     }
+
+    boolean assignShouldNotBeShow = !isDefaultBranch ||
+                                     myFlakyTestDetector.isFlaky(sTestRun.getTest().getTestNameId()) ||
+                                     isUnderInvestigation(build, sTestRun.getTest());
+    if (assignShouldNotBeShow &&
+        !TeamCityProperties.getBoolean(SHOULD_PERSIST_FILTERED_TESTS_DESCRIPTION)) {
+      return null;
+    }
+
     final FirstFailedInFixedInCalculator.FFIData ffiData = myStatisticsProvider.calculateFFIData(sTestRun);
 
     @Nullable SBuild firstFailedBuild = ffiData.getFirstFailedIn();
@@ -107,9 +113,13 @@ public class AutoAssignerDetailsController extends BaseController {
     if (responsibility != null) {
       final ModelAndView modelAndView = new ModelAndView(myDynamicTestDetailsExtensionPath);
 
-      modelAndView.getModel().put("isFilteredDescription",
-                                  TeamCityProperties.getBoolean(SHOULD_PERSIST_FILTERED_TESTS_DESCRIPTION) &&
-                                  responsibility.getDescription().startsWith(Constants.ASSIGNEE_FILTERED_DESCRIPTION_PREFIX));
+      boolean isFilteredTestDescription = TeamCityProperties.getBoolean(SHOULD_PERSIST_FILTERED_TESTS_DESCRIPTION) &&
+                                          responsibility.getDescription().startsWith(Constants.ASSIGNEE_FILTERED_DESCRIPTION_PREFIX);
+      if (assignShouldNotBeShow && !isFilteredTestDescription) {
+        return null;
+      }
+
+      modelAndView.getModel().put("isFilteredDescription", isFilteredTestDescription);
       modelAndView.getModel().put("userId", responsibility.getUser().getId());
       modelAndView.getModel().put("userName", responsibility.getUser().getDescriptiveName());
       String shownDescription = responsibility.getDescription();
