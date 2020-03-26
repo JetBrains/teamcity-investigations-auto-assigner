@@ -17,6 +17,7 @@
 package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import jetbrains.buildServer.BuildProblemTypes;

@@ -35,6 +35,7 @@ public class Constants {
   public static final String DEFAULT_SILENT_MODE_ENABLED = "teamcity.investigationsAutoAssigner.suggestions.enabledByDefault";
   public static final String ENABLE_FEATURE_BRANCHES_SUPPORT = "teamcity.investigationsAutoAssigner.enableFeatureBranchesSupport";
   public static final String MAX_TESTS_PER_BUILD_NUMBER = "teamcity.investigationsAutoAssigner.maxTestsFailuresToProcessPerBuild";
+  public static final String SHOULD_PERSIST_FILTERED_TESTS_DESCRIPTION = "teamcity.investigationsAutoAssigner.persistFilteredTests";
 
   // Server internal properties
   public static final String PROCESSING_DELAY_IN_SECONDS = "teamcity.investigationsAutoAssigner.scheduledTaskInterval.seconds";
@@ -54,6 +55,8 @@ public class Constants {
   public static final String STATISTICS_FILE_NAME = "statistics.json";
   public static final String STATISTICS_FILE_VERSION = "1.6";
   public static final String ASSIGN_DESCRIPTION_PREFIX = "Investigation was automatically assigned to";
+  public static final String ASSIGNEE_FILTERED_LITERAL = "-";
+  public static final String ASSIGNEE_FILTERED_DESCRIPTION_PREFIX = "This failed test was filtered by investigation auto assigner because it ";
 
   public static final Logger LOGGER = Logger.getInstance("jetbrains.buildServer.investigationsAutoAssigner");
   public static final Logger AGGREGATION_LOGGER = Logger.getInstance("InvestigationsAutoAssignerAggregation");

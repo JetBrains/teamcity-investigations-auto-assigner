@@ -21,23 +21,27 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.Utils;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.STestRun;
+import jetbrains.buildServer.serverSide.TeamCityProperties;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.users.UserModelEx;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static jetbrains.buildServer.investigationsAutoAssigner.common.Constants.SHOULD_PERSIST_FILTERED_TESTS_DESCRIPTION;
+
 public class AssignerArtifactDao {
+  private static final Logger LOGGER = Constants.LOGGER;
   private UserModelEx myUserModel;
   private SuggestionsDao mySuggestionsDao;
   private AssignerResultsFilePath myAssignerResultsFilePath;
   private StatisticsReporter myStatisticsReporter;
-  private static final Logger LOGGER = Constants.LOGGER;
 
   public AssignerArtifactDao(@NotNull final UserModelEx userModel,
                              @NotNull final SuggestionsDao suggestionsDao,
@@ -52,10 +56,14 @@ public class AssignerArtifactDao {
   public void appendHeuristicsResult(@NotNull SBuild build,
                                      @NotNull List<STestRun> testRuns,
                                      @NotNull HeuristicResult heuristicResult) {
-    try {
-      List<ResponsibilityPersistentInfo> infoToAdd = new ArrayList<>(getPersistentInfoList(testRuns, heuristicResult));
-      if (infoToAdd.isEmpty()) return;
+    doAppend(build, getPersistentInfoList(testRuns, heuristicResult));
+  }
 
+  private void doAppend(@NotNull final SBuild build,
+                        @NotNull List<ResponsibilityPersistentInfo> infoToAdd) {
+    if (infoToAdd.isEmpty()) return;
+
+    try {
       myStatisticsReporter.reportSavedSuggestions(infoToAdd.size());
       Path resultsFilePath = myAssignerResultsFilePath.get(build);
 
@@ -105,12 +113,19 @@ public class AssignerArtifactDao {
       suggestions = mySuggestionsDao.read(resultsFilePath);
     } catch (IOException ex) {
       LOGGER.warn(String.format("%s An error occurs during reading of file with results",
-                                 Utils.getLogPrefix(testRun)), ex);
+                                Utils.getLogPrefix(testRun)), ex);
       return null;
     }
 
     for (ResponsibilityPersistentInfo persistentInfo : suggestions) {
       if (persistentInfo.testNameId.equals(String.valueOf(testRun.getTest().getTestNameId()))) {
+        if (persistentInfo.investigatorId.equals(Constants.ASSIGNEE_FILTERED_LITERAL)) {
+
+          return TeamCityProperties.getBoolean(SHOULD_PERSIST_FILTERED_TESTS_DESCRIPTION) ?
+                 new Responsibility(myUserModel.getGuestUser(),
+                                    Constants.ASSIGNEE_FILTERED_DESCRIPTION_PREFIX + persistentInfo.reason) :
+                 null;
+        }
         LOGGER.debug(String.format("%s Investigation for testRun %s was found",
                                    Utils.getLogPrefix(testRun), testRun.getTestRunId()));
         User user = myUserModel.findUserById(Long.parseLong(persistentInfo.investigatorId));
@@ -127,6 +142,24 @@ public class AssignerArtifactDao {
                                  Utils.getLogPrefix(testRun), testRun.getTestRunId()));
     }
     return null;
+  }
+
+  public void appendNotApplicableTestsDescription(@NotNull final SBuild build,
+                                                  @NotNull final Map<Long, String> notApplicableTestsDescription) {
+    doAppend(build, getPersistentInfoList(notApplicableTestsDescription));
+  }
+
+
+  @NotNull
+  private List<ResponsibilityPersistentInfo> getPersistentInfoList(final Map<Long, String> notApplicableTestsDescription) {
+    List<ResponsibilityPersistentInfo> result = new ArrayList<>();
+    for (final Map.Entry<Long, String> longStringEntry : notApplicableTestsDescription.entrySet()) {
+      result.add(new ResponsibilityPersistentInfo(longStringEntry.getKey().toString(),
+                                                  Constants.ASSIGNEE_FILTERED_LITERAL,
+                                                  longStringEntry.getValue()));
+    }
+
+    return result;
   }
 }
 

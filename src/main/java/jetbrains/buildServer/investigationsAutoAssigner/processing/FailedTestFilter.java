@@ -18,7 +18,9 @@ package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
@@ -45,7 +47,16 @@ public class FailedTestFilter {
     myInvestigationsManager = investigationsManager;
   }
 
-  List<STestRun> apply(final FailedBuildInfo failedBuildInfo, final SProject sProject, final List<STestRun> testRuns) {
+  List<STestRun> apply(@NotNull final FailedBuildInfo failedBuildInfo,
+                       @NotNull final SProject project,
+                       @NotNull final List<STestRun> testRuns) {
+    return apply(failedBuildInfo, project, testRuns, new HashMap<>());
+  }
+
+  List<STestRun> apply(@NotNull final FailedBuildInfo failedBuildInfo,
+                       @NotNull final SProject sProject,
+                       @NotNull final List<STestRun> testRuns,
+                       @NotNull final Map<Long, String> notApplicableTestDescription) {
     SBuild sBuild = failedBuildInfo.getBuild();
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug(String.format("Filtering of failed tests for build id:%s started", sBuild.getBuildId()));
@@ -54,7 +65,7 @@ public class FailedTestFilter {
     List<STestRun> filteredTestRuns = testRuns.stream()
                                               .sorted(Comparator.comparingInt(STestRun::getOrderId))
                                               .filter(failedBuildInfo::checkNotProcessed)
-                                              .filter(testRun -> isApplicable(sProject, sBuild, testRun))
+                                              .filter(testRun -> isApplicable(sProject, sBuild, testRun, notApplicableTestDescription))
                                               .limit(failedBuildInfo.getLimitToProcess())
                                               .collect(Collectors.toList());
 
@@ -64,34 +75,42 @@ public class FailedTestFilter {
     return filteredTestRuns;
   }
 
-  List<STestRun> getStillApplicable(final FailedBuildInfo failedBuildInfo,
-                                    final SProject sProject,
-                                    final List<STestRun> testRuns) {
+  List<STestRun> getStillApplicable(@NotNull final FailedBuildInfo failedBuildInfo,
+                                    @NotNull final SProject project,
+                                    @NotNull final List<STestRun> testRuns) {
+    return getStillApplicable(failedBuildInfo, project, testRuns, new HashMap<>());
+  }
+
+  List<STestRun> getStillApplicable(@NotNull final FailedBuildInfo failedBuildInfo,
+                                    @NotNull final SProject sProject,
+                                    @NotNull final List<STestRun> testRuns,
+                                    @NotNull final Map<Long, String> notApplicableTestDescription) {
     SBuild sBuild = failedBuildInfo.getBuild();
     if (LOGGER.isDebugEnabled()) {
       LOGGER.debug(String.format("Filtering before assign of failed tests for build id:%s started", sBuild.getBuildId()));
     }
     return testRuns.stream()
-                   .filter(testRun -> isApplicable(sProject, sBuild, testRun))
+                   .filter(testRun -> isApplicable(sProject, sBuild, testRun, notApplicableTestDescription))
                    .collect(Collectors.toList());
   }
 
   private boolean isApplicable(@NotNull final SProject project,
                                @NotNull final SBuild sBuild,
-                               @NotNull final STestRun testRun) {
+                               @NotNull final STestRun testRun,
+                               @NotNull final Map<Long, String> notApplicableTestDescription) {
     String reason = null;
 
     final STest test = testRun.getTest();
     if (testRun.isMuted()) {
-      reason = "is muted";
+      reason = "was muted";
     } else if (testRun.isFixed()) {
-      reason = "is fixed";
+      reason = "was fixed";
     } else if (!testRun.isNewFailure()) {
-      reason = "occurs not for the first time";
+      reason = "occurred not for the first time";
     } else if (myInvestigationsManager.checkUnderInvestigation(project, sBuild, test)) {
-      reason = "is already under an investigation";
+      reason = "was already under an investigation";
     } else if (myFlakyTestDetector.isFlaky(test.getTestNameId())) {
-      reason = "is marked as flaky";
+      reason = "was marked as flaky";
     }
 
     boolean isApplicable = reason == null;
@@ -101,6 +120,9 @@ public class FailedTestFilter {
                                  (isApplicable ? "applicable" : "not applicable"),
                                  (isApplicable ? "" : String.format(" Reason: this test problem %s.", reason))
       ));
+    }
+    if (!isApplicable && testRun.isNewFailure()) {
+      notApplicableTestDescription.put(testRun.getTest().getTestNameId(), reason);
     }
     return isApplicable;
   }

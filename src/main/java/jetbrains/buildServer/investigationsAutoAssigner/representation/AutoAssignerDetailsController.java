@@ -19,6 +19,7 @@ package jetbrains.buildServer.investigationsAutoAssigner.representation;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import jetbrains.buildServer.controllers.BaseController;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerArtifactDao;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter;
@@ -36,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.web.servlet.ModelAndView;
 
+import static jetbrains.buildServer.investigationsAutoAssigner.common.Constants.SHOULD_PERSIST_FILTERED_TESTS_DESCRIPTION;
 import static jetbrains.buildServer.serverSide.BuildStatisticsOptions.ALL_TESTS_NO_DETAILS;
 
 public class AutoAssignerDetailsController extends BaseController {
@@ -102,9 +104,12 @@ public class AutoAssignerDetailsController extends BaseController {
 
     @Nullable SBuild firstFailedBuild = ffiData.getFirstFailedIn();
     Responsibility responsibility = myAssignerArtifactDao.get(firstFailedBuild, sTestRun);
-
     if (responsibility != null) {
       final ModelAndView modelAndView = new ModelAndView(myDynamicTestDetailsExtensionPath);
+
+      modelAndView.getModel().put("isFilteredDescription",
+                                  TeamCityProperties.getBoolean(SHOULD_PERSIST_FILTERED_TESTS_DESCRIPTION) &&
+                                  responsibility.getDescription().startsWith(Constants.ASSIGNEE_FILTERED_DESCRIPTION_PREFIX));
       modelAndView.getModel().put("userId", responsibility.getUser().getId());
       modelAndView.getModel().put("userName", responsibility.getUser().getDescriptiveName());
       String shownDescription = responsibility.getDescription();

@@ -17,7 +17,9 @@
 package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
 import com.intellij.openapi.diagnostic.Logger;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
@@ -25,12 +27,11 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerArtifactDao;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
-import jetbrains.buildServer.serverSide.BuildEx;
-import jetbrains.buildServer.serverSide.SBuild;
-import jetbrains.buildServer.serverSide.SProject;
-import jetbrains.buildServer.serverSide.STestRun;
+import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.jetbrains.annotations.NotNull;
+
+import static jetbrains.buildServer.investigationsAutoAssigner.common.Constants.SHOULD_PERSIST_FILTERED_TESTS_DESCRIPTION;
 
 public class FailedTestAndBuildProblemsProcessor extends BaseProcessor {
 
@@ -74,21 +75,25 @@ public class FailedTestAndBuildProblemsProcessor extends BaseProcessor {
       return;
     }
 
+    Map<Long, String> notApplicableTestsDescription = new HashMap<>();
     List<BuildProblem> allBuildProblems = ((BuildEx)sBuild).getBuildProblems();
     List<STestRun> allFailedTests = requestBrokenTestsWithStats(sBuild);
     List<BuildProblem> applicableProblems = myBuildProblemsFilter.apply(failedBuildInfo, sProject, allBuildProblems);
-    List<STestRun> applicableFailedTests = myFailedTestFilter.apply(failedBuildInfo, sProject, allFailedTests);
+    List<STestRun> applicableFailedTests = myFailedTestFilter.apply(failedBuildInfo, sProject, allFailedTests, notApplicableTestsDescription);
     logProblemsNumber(sBuild, applicableFailedTests, applicableProblems);
 
     HeuristicResult heuristicsResult =
       myResponsibleUserFinder.findResponsibleUser(sBuild, sProject, applicableProblems, applicableFailedTests);
 
-    List<STestRun> testsForAssign = myFailedTestFilter.getStillApplicable(failedBuildInfo, sProject, applicableFailedTests);
+    List<STestRun> testsForAssign = myFailedTestFilter.getStillApplicable(failedBuildInfo, sProject, applicableFailedTests, notApplicableTestsDescription);
     List<BuildProblem> problemsForAssign =
       myBuildProblemsFilter.getStillApplicable(failedBuildInfo, sProject, applicableProblems);
     logChangedProblemsNumber(sBuild, applicableFailedTests, testsForAssign, applicableProblems, problemsForAssign);
 
     myAssignerArtifactDao.appendHeuristicsResult(sBuild, testsForAssign, heuristicsResult);
+    if (TeamCityProperties.getBoolean(SHOULD_PERSIST_FILTERED_TESTS_DESCRIPTION)) {
+      myAssignerArtifactDao.appendNotApplicableTestsDescription(sBuild, notApplicableTestsDescription);
+    }
 
     if (heuristicsResult.isEmpty()) {
       return;

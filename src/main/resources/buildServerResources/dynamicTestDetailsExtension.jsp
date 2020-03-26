@@ -9,6 +9,7 @@
 <div class="investigations-auto-assigner-results">
 
   <%--@elvariable id="buildId" type="java.lang.String"--%>
+  <%--@elvariable id="isFilteredDescription" type="java.lang.Boolean"--%>
   <%--@elvariable id="projectId" type="java.lang.String"--%>
   <%--@elvariable id="testGroupId" type="java.lang.String"--%>
   <%--@elvariable id="userId" type="java.lang.String"--%>
@@ -16,7 +17,7 @@
   <%--@elvariable id="shownDescription" type="java.lang.String"--%>
   <%--@elvariable id="investigationDescription" type="java.lang.String"--%>
   <%--@elvariable id="test" type="jetbrains.buildServer.serverSide.STest"--%>
-  <c:if test="${not empty userId}">
+  <c:if test="${not empty userId and not isFilteredDescription}">
     <c:set var="autoassignerComment">
       Investigation was assigned to ${userName} who ${investigationDescription}.
     </c:set>
@@ -42,4 +43,8 @@
       <div id="empty-div"></div>
     </div>
   </c:if>
+  <c:if test="${not empty userId and isFilteredDescription}">
+    ${investigationDescription}.
+  </c:if>
+
 </div>
