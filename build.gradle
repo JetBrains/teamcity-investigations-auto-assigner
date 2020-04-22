@@ -54,7 +54,7 @@ teamcity {
       name = project.name
       displayName = 'Investigations Auto-Assigner'
       version = project.version
-      vendorName = 'JetBrains, s.r.o.'
+      vendorName = 'JetBrains'
       vendorUrl = 'http://www.jetbrains.com/'
       description = 'Executes auto assigning investigations according to a set of rules.'
 
