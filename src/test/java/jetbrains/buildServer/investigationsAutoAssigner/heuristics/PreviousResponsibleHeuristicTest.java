@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.BuildProblemData;
+import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
@@ -51,6 +52,7 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
   private HeuristicContext myBuildHeuristicContext;
   private HeuristicContext myTestHeuristicContext;
   private User myUser2;
+  private BuildProblemData myBuildProblemData;
 
   @BeforeMethod
   @Override
@@ -61,7 +63,7 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
     final SBuildType sBuildType = Mockito.mock(jetbrains.buildServer.serverSide.SBuildType.class);
     mySProject = Mockito.mock(SProject.class);
     myBuildProblem = Mockito.mock(BuildProblem.class);
-    final BuildProblemData buildProblemData = Mockito.mock(BuildProblemData.class);
+    myBuildProblemData = Mockito.mock(BuildProblemData.class);
     myUser = Mockito.mock(SUser.class);
     when(myUser.getId()).thenReturn(1L);
     myUser2 = Mockito.mock(SUser.class);
@@ -74,8 +76,8 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
     when(mySBuild.getCommitters(any())).thenReturn(userSetMock);
 
     myHeuristic = new PreviousResponsibleHeuristic(myInvestigationsManager);
-    when(myBuildProblem.getBuildProblemData()).thenReturn(buildProblemData);
-    when(buildProblemData.getType()).thenReturn("Type");
+    when(myBuildProblem.getBuildProblemData()).thenReturn(myBuildProblemData);
+    when(myBuildProblemData.getType()).thenReturn(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE);
     when(mySBuild.getFullName()).thenReturn("Full SBuild Name");
     when(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, myBuildProblem)).thenReturn(myUser);
     when(mySBuild.getBuildType()).thenReturn(sBuildType);
@@ -105,6 +107,15 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
     Responsibility responsibility = result.getResponsibility(myBuildProblem);
     assert responsibility != null;
     Assert.assertEquals(responsibility.getUser(), myUser);
+  }
+
+  public void TestBuildProblemInfo_IncompatibleType() {
+    when(myBuildProblemData.getType()).thenReturn("any_another_type");
+    when(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, myBuildProblem)).thenReturn(myUser);
+
+    HeuristicResult result = myHeuristic.findResponsibleUser(myBuildHeuristicContext);
+
+    Assert.assertTrue(result.isEmpty());
   }
 
   public void Test_FoundResponsibleNotAmongCommiters() {

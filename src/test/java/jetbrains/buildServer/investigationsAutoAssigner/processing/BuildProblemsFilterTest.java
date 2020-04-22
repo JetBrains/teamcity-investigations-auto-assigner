@@ -152,15 +152,6 @@ public class BuildProblemsFilterTest extends BaseTestCase {
     Assert.assertEquals(applicableBuildProblems.size(), 1);
   }
 
-  public void Test_BuildProblemHasIncompatibleType() {
-    when(myBuildProblemData.getType()).thenReturn("Incompatible Type");
-
-    List<BuildProblem> applicableBuildProblems =
-      myBuildProblemsFilter.apply(myFailedBuildInfo, mySProject, myBuildProblemWrapper);
-
-    Assert.assertEquals(applicableBuildProblems.size(), 0);
-  }
-
   public void Test_BuildProblemHasIgnoredBuildProblem() {
     when(myCustomParametersMock.getBuildProblemTypesToIgnore(mySBuild))
       .thenReturn(Collections.singletonList(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE));

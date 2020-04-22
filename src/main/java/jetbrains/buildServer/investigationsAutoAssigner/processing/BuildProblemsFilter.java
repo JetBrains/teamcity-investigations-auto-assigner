@@ -35,11 +35,11 @@ import org.springframework.stereotype.Component;
 public class BuildProblemsFilter {
 
   private static final Logger LOGGER = Constants.LOGGER;
+  public final static Set<String> supportedEverywhereTypes = Collections.unmodifiableSet(
+    new HashSet<>(Arrays.asList(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE, BuildProblemTypes.TC_EXIT_CODE_TYPE)));
   private final BuildProblemUtils myBuildProblemUtils;
   private CustomParameters myCustomParameters;
   private InvestigationsManager myInvestigationsManager;
-  private final Set<String> supportedTypes = Collections.unmodifiableSet(
-    new HashSet<>(Arrays.asList(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE, BuildProblemTypes.TC_EXIT_CODE_TYPE)));
 
   public BuildProblemsFilter(@NotNull final InvestigationsManager investigationsManager,
                              @NotNull final BuildProblemUtils buildProblemUtils,
@@ -93,9 +93,6 @@ public class BuildProblemsFilter {
       reason = "is muted";
     } else if (!myBuildProblemUtils.isNew(problem)) {
       reason = "occurs not for the first time";
-    } else if (!supportedTypes.contains(buildProblemType)) {
-      reason = String.format("has an unsupported type %s. Supported types: %s",
-                             problem.getBuildProblemData().getType(), supportedTypes);
     } else if (myInvestigationsManager.checkUnderInvestigation(project, sBuild, problem)) {
       reason = "is already under an investigation";
     } else if (myCustomParameters.getBuildProblemTypesToIgnore(sBuild).contains(buildProblemType)) {

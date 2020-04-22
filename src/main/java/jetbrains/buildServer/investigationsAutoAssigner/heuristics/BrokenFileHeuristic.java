@@ -25,6 +25,7 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicNotApplicableException;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
+import jetbrains.buildServer.investigationsAutoAssigner.processing.BuildProblemsFilter;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.ModificationAnalyzerFactory;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.ProblemTextExtractor;
@@ -80,7 +81,7 @@ public class BrokenFileHeuristic implements Heuristic {
   }
 
   private HeuristicResult processTestsAndBuildProblems(@NotNull final HeuristicContext heuristicContext,
-                                            final List<SVcsModification> vcsChanges) {
+                                                       final List<SVcsModification> vcsChanges) {
     HeuristicResult result = new HeuristicResult();
     SBuild sBuild = heuristicContext.getBuild();
 
@@ -93,6 +94,11 @@ public class BrokenFileHeuristic implements Heuristic {
     }
 
     for (BuildProblem buildProblem : heuristicContext.getBuildProblems()) {
+      String buildProblemType = buildProblem.getBuildProblemData().getType();
+      if (!BuildProblemsFilter.supportedEverywhereTypes.contains(buildProblemType)) {
+        continue;
+      }
+
       String problemText = myProblemTextExtractor.getBuildProblemText(buildProblem, sBuild);
       Responsibility responsibility = findResponsibleUser(vcsChanges, problemText, heuristicContext);
       if (responsibility != null) {

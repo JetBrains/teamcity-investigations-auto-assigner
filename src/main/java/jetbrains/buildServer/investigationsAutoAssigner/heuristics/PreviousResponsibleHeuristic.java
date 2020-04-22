@@ -21,6 +21,7 @@ import java.util.HashMap;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
+import jetbrains.buildServer.investigationsAutoAssigner.processing.BuildProblemsFilter;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.InvestigationsManager;
 import jetbrains.buildServer.serverSide.SBuild;
@@ -75,6 +76,11 @@ public class PreviousResponsibleHeuristic implements Heuristic {
     }
 
     for (BuildProblem buildProblem : heuristicContext.getBuildProblems()) {
+      String buildProblemType = buildProblem.getBuildProblemData().getType();
+      if (!BuildProblemsFilter.supportedEverywhereTypes.contains(buildProblemType)) {
+        continue;
+      }
+
       User responsibleUser = myInvestigationsManager.findPreviousResponsible(sProject, sBuild, buildProblem);
 
       if (shouldSkip(responsibleUser, heuristicContext)) {
@@ -82,8 +88,6 @@ public class PreviousResponsibleHeuristic implements Heuristic {
       }
 
       if (responsibleUser != null) {
-        String buildProblemType = buildProblem.getBuildProblemData().getType();
-
         String description = String.format("was previously responsible for the problem %s`", buildProblemType);
         result.addResponsibility(buildProblem, new Responsibility(responsibleUser, description));
       }
