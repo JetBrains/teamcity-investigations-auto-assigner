@@ -95,6 +95,8 @@ public class BuildProblemsFilter {
       reason = "occurs not for the first time";
     } else if (myInvestigationsManager.checkUnderInvestigation(project, sBuild, problem)) {
       reason = "is already under an investigation";
+    } else if (BuildProblemTypes.TC_FAILED_TESTS_TYPE.equals(problem.getBuildProblemData().getType())) {
+      reason = "has unsupported failed tests build problem type";
     } else if (myCustomParameters.getBuildProblemTypesToIgnore(sBuild).contains(buildProblemType)) {
       reason = "is among build problem types to ignore";
     }
