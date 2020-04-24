@@ -21,6 +21,7 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicNotApplicableException;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
+import jetbrains.buildServer.investigationsAutoAssigner.processing.BuildProblemsFilter;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.ModificationAnalyzerFactory;
 import jetbrains.buildServer.log.LogUtil;
@@ -79,6 +80,8 @@ public class OneCommitterHeuristic implements Heuristic {
       heuristicContext.getTestRuns().forEach(sTestRun -> result.addResponsibility(sTestRun, responsibility));
 
       heuristicContext.getBuildProblems()
+                      .stream()
+                      .filter(problem -> BuildProblemsFilter.supportedEverywhereTypes.contains(problem.getBuildProblemData().getType()))
                       .forEach(buildProblem -> result.addResponsibility(buildProblem, responsibility));
     }
     return result;
