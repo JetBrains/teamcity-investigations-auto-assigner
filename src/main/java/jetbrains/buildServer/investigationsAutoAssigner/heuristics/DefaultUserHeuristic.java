@@ -30,6 +30,8 @@ import jetbrains.buildServer.users.impl.UserEx;
 import jetbrains.buildServer.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
+import static jetbrains.buildServer.investigationsAutoAssigner.processing.BuildProblemsFilter.notSupportedEverywhereTypes;
+
 public class DefaultUserHeuristic implements Heuristic {
 
   private static final Logger LOGGER = Constants.LOGGER;
@@ -66,6 +68,8 @@ public class DefaultUserHeuristic implements Heuristic {
 
     Responsibility responsibility = new DefaultUserResponsibility(responsibleUser);
     heuristicContext.getBuildProblems()
+                    .stream()
+                    .filter(buildProblem -> !notSupportedEverywhereTypes.contains(buildProblem.getBuildProblemData().getType()))
                     .forEach(buildProblem -> result.addResponsibility(buildProblem, responsibility));
     heuristicContext.getTestRuns().forEach(testRun -> result.addResponsibility(testRun, responsibility));
 

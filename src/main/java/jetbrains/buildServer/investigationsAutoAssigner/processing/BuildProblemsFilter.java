@@ -25,6 +25,7 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.BuildProblemUtils;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.InvestigationsManager;
+import jetbrains.buildServer.messages.ErrorData;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
@@ -37,6 +38,9 @@ public class BuildProblemsFilter {
   private static final Logger LOGGER = Constants.LOGGER;
   public final static Set<String> supportedEverywhereTypes = Collections.unmodifiableSet(
     new HashSet<>(Arrays.asList(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE, BuildProblemTypes.TC_EXIT_CODE_TYPE)));
+  public final static Set<String> notSupportedEverywhereTypes = Collections.unmodifiableSet(
+    new HashSet<>(Arrays.asList(ErrorData.SNAPSHOT_DEPENDENCY_ERROR_BUILD_PROCEEDS_TYPE,
+                                ErrorData.SNAPSHOT_DEPENDENCY_ERROR_TYPE)));
   private final BuildProblemUtils myBuildProblemUtils;
   private CustomParameters myCustomParameters;
   private InvestigationsManager myInvestigationsManager;
