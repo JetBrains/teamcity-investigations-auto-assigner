@@ -108,7 +108,7 @@ public class AutoAssignerDetailsController extends BaseController {
 
     final FirstFailedInFixedInCalculator.FFIData ffiData = myStatisticsProvider.calculateFFIData(sTestRun);
 
-    @Nullable SBuild firstFailedBuild = ffiData.getFirstFailedIn();
+    @Nullable SBuild firstFailedBuild = myServer.findBuildInstanceById(ffiData.getFirstFailedInId());
     Responsibility responsibility = myAssignerArtifactDao.get(firstFailedBuild, sTestRun);
     if (responsibility != null) {
       final ModelAndView modelAndView = new ModelAndView(myDynamicTestDetailsExtensionPath);
