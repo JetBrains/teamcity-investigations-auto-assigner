@@ -49,7 +49,7 @@ abstract class BaseProcessor {
     }
     if (beforeFilteringProblems.size() != afterFilteringProblems.size()) {
       LOGGER.debug("Build #" + sBuild.getBuildId() + ": number of applicable problems changed because " +
-                   (beforeFilteringProblems.size() - beforeFilteringProblems.size()) + " became not applicable");
+                   (beforeFilteringProblems.size() - afterFilteringProblems.size()) + " became not applicable");
     }
   }
 
