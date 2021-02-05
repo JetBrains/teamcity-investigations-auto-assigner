@@ -79,7 +79,7 @@ public class FailedTestAssigner implements BaseAssigner {
           testNameList, sProject.getProjectId(),
           new ResponsibilityEntryEx(
             ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
-            responsibility.getAssignDescription(linkToBuild), ResponsibilityEntry.RemoveMethod.WHEN_FIXED)
+            responsibility.getAssignDescription(linkToBuild), getRemoveMethod(sBuild.getBuildType()))
         );
 
         myStatisticsReporter.reportAssignedInvestigations(testNameList.size(), responsibility);
