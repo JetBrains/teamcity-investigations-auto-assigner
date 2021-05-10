@@ -49,7 +49,7 @@ public class AutoAssignerDetailsController extends BaseController {
   @NotNull private final InvestigationsManager myInvestigationsManager;
   private final FlakyTestDetector myFlakyTestDetector;
   private final StatisticsReporter myStatisticsReporter;
-  private CustomParameters myCustomParameters;
+  private final CustomParameters myCustomParameters;
   @NotNull private final SecurityContextEx mySecurityContext;
 
   public AutoAssignerDetailsController(final SBuildServer server,

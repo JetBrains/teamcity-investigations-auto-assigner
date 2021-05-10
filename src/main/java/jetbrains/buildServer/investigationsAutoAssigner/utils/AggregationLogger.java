@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class AggregationLogger {
   private static final Logger LOGGER = Constants.AGGREGATION_LOGGER;
-  private CustomParameters myCustomParameters;
+  private final CustomParameters myCustomParameters;
   @NotNull private final WebLinks myWebLinks;
 
   public AggregationLogger(@NotNull WebLinks webLinks,

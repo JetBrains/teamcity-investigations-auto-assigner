@@ -41,8 +41,8 @@ public class FailedTestAndBuildProblemsProcessor extends BaseProcessor {
   private final FailedTestAssigner myFailedTestAssigner;
   private final BuildProblemsAssigner myBuildProblemsAssigner;
   @NotNull private final AssignerArtifactDao myAssignerArtifactDao;
-  private CustomParameters myCustomParameters;
-  @NotNull private ResponsibleUserFinder myResponsibleUserFinder;
+  private final CustomParameters myCustomParameters;
+  @NotNull private final ResponsibleUserFinder myResponsibleUserFinder;
 
 
   public FailedTestAndBuildProblemsProcessor(@NotNull final ResponsibleUserFinder responsibleUserFinder,

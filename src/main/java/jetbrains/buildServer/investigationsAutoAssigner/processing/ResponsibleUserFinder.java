@@ -29,8 +29,8 @@ import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.jetbrains.annotations.NotNull;
 
 public class ResponsibleUserFinder {
-  private List<Heuristic> myOrderedHeuristics;
-  private CustomParameters myCustomParameters;
+  private final List<Heuristic> myOrderedHeuristics;
+  private final CustomParameters myCustomParameters;
 
   public ResponsibleUserFinder(@NotNull final List<Heuristic> orderedHeuristics,
                                @NotNull final CustomParameters customParameters) {

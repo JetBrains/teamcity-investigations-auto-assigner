@@ -36,9 +36,9 @@ public class DelayedAssignmentsProcessor extends BaseProcessor {
 
   private final BuildProblemsFilter myBuildProblemsFilter;
   private final FailedTestFilter myFailedTestFilter;
-  private AggregationLogger myAggregationLogger;
-  private BuildProblemsAssigner myBuildProblemsAssigner;
-  private FailedTestAssigner myFailedTestAssigner;
+  private final AggregationLogger myAggregationLogger;
+  private final BuildProblemsAssigner myBuildProblemsAssigner;
+  private final FailedTestAssigner myFailedTestAssigner;
 
   public DelayedAssignmentsProcessor(BuildProblemsAssigner buildProblemsAssigner,
                                      FailedTestAssigner failedTestAssigner,

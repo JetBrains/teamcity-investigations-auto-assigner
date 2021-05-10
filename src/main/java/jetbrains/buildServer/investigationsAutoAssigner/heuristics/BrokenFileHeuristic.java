@@ -42,10 +42,10 @@ public class BrokenFileHeuristic implements Heuristic {
 
   private static final Logger LOGGER = Constants.LOGGER;
   private final ProblemTextExtractor myProblemTextExtractor;
-  private ModificationAnalyzerFactory myModificationAnalyzerFactory;
+  private final ModificationAnalyzerFactory myModificationAnalyzerFactory;
 
-  public BrokenFileHeuristic(ProblemTextExtractor problemTextExtractor,
-                             ModificationAnalyzerFactory modificationAnalyzerFactory) {
+  public BrokenFileHeuristic(@NotNull ProblemTextExtractor problemTextExtractor,
+                             @NotNull ModificationAnalyzerFactory modificationAnalyzerFactory) {
     myProblemTextExtractor = problemTextExtractor;
     myModificationAnalyzerFactory = modificationAnalyzerFactory;
   }

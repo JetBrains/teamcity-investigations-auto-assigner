@@ -45,10 +45,10 @@ public class ModificationAnalyzerFactory {
     return new ModificationAnalyzer(vcsChange);
   }
 
-  public class ModificationAnalyzer {
-    private SVcsModification myVcsChange;
+  public static class ModificationAnalyzer {
+    private final SVcsModification myVcsChange;
 
-    private ModificationAnalyzer(SVcsModification vcsChange) {
+    private ModificationAnalyzer(@NotNull SVcsModification vcsChange) {
       myVcsChange = vcsChange;
     }
 

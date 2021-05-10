@@ -42,8 +42,8 @@ public class BuildProblemsFilter {
     new HashSet<>(Arrays.asList(ErrorData.SNAPSHOT_DEPENDENCY_ERROR_BUILD_PROCEEDS_TYPE,
                                 ErrorData.SNAPSHOT_DEPENDENCY_ERROR_TYPE)));
   private final BuildProblemUtils myBuildProblemUtils;
-  private CustomParameters myCustomParameters;
-  private InvestigationsManager myInvestigationsManager;
+  private final CustomParameters myCustomParameters;
+  private final InvestigationsManager myInvestigationsManager;
 
   public BuildProblemsFilter(@NotNull final InvestigationsManager investigationsManager,
                              @NotNull final BuildProblemUtils buildProblemUtils,

@@ -35,9 +35,9 @@ import org.jetbrains.annotations.Nullable;
 
 public class OneCommitterHeuristic implements Heuristic {
   private static final Logger LOGGER = Constants.LOGGER;
-  private ModificationAnalyzerFactory myModificationAnalyzerFactory;
+  private final ModificationAnalyzerFactory myModificationAnalyzerFactory;
 
-  public OneCommitterHeuristic(ModificationAnalyzerFactory modificationAnalyzerFactory) {
+  public OneCommitterHeuristic(@NotNull ModificationAnalyzerFactory modificationAnalyzerFactory) {
     myModificationAnalyzerFactory = modificationAnalyzerFactory;
   }
 

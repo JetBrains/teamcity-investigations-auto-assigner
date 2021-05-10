@@ -36,7 +36,7 @@ public class DefaultUserHeuristic implements Heuristic {
 
   private static final Logger LOGGER = Constants.LOGGER;
 
-  @NotNull private UserModelEx myUserModel;
+  @NotNull private final UserModelEx myUserModel;
 
   public DefaultUserHeuristic(@NotNull final UserModelEx userModel) {
     myUserModel = userModel;

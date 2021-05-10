@@ -38,8 +38,8 @@ import org.jetbrains.annotations.NotNull;
 
 public class FailedTestAssigner implements BaseAssigner {
   @NotNull private final TestNameResponsibilityFacade myTestNameResponsibilityFacade;
-  private WebLinks myWebLinks;
-  private StatisticsReporter myStatisticsReporter;
+  private final WebLinks myWebLinks;
+  private final StatisticsReporter myStatisticsReporter;
   private static final Logger LOGGER = Constants.LOGGER;
 
   public FailedTestAssigner(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade,

@@ -28,7 +28,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 public class ClickAssignButtonReportController extends BaseController {
 
-  private StatisticsReporter myStatisticsReporter;
+  private final StatisticsReporter myStatisticsReporter;
 
   public ClickAssignButtonReportController(@NotNull final SBuildServer server,
                                            @NotNull final WebControllerManager controllerManager,

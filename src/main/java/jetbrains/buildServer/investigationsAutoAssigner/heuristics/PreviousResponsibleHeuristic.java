@@ -35,9 +35,9 @@ import org.jetbrains.annotations.NotNull;
 public class PreviousResponsibleHeuristic implements Heuristic {
 
   private static final Logger LOGGER = Constants.LOGGER;
-  private InvestigationsManager myInvestigationsManager;
+  private final InvestigationsManager myInvestigationsManager;
 
-  public PreviousResponsibleHeuristic(InvestigationsManager investigationsManager) {
+  public PreviousResponsibleHeuristic(@NotNull InvestigationsManager investigationsManager) {
     myInvestigationsManager = investigationsManager;
   }
 

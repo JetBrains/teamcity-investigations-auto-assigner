@@ -38,10 +38,10 @@ import static jetbrains.buildServer.investigationsAutoAssigner.common.Constants.
 
 public class AssignerArtifactDao {
   private static final Logger LOGGER = Constants.LOGGER;
-  private UserModelEx myUserModel;
-  private SuggestionsDao mySuggestionsDao;
-  private AssignerResultsFilePath myAssignerResultsFilePath;
-  private StatisticsReporter myStatisticsReporter;
+  private final UserModelEx myUserModel;
+  private final SuggestionsDao mySuggestionsDao;
+  private final AssignerResultsFilePath myAssignerResultsFilePath;
+  private final StatisticsReporter myStatisticsReporter;
 
   public AssignerArtifactDao(@NotNull final UserModelEx userModel,
                              @NotNull final SuggestionsDao suggestionsDao,

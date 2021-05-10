@@ -43,7 +43,7 @@ public class AssignInvestigationController extends BaseController {
   @NotNull private final SecurityContext mySecurityContext;
   private final TestNameResponsibilityFacade myTestNameResponsibilityFacade;
   private final STestManager myTestManager;
-  @NotNull private UserModelEx myUserModel;
+  @NotNull private final UserModelEx myUserModel;
 
   public AssignInvestigationController(@NotNull final SBuildServer server,
                                        @NotNull final WebControllerManager controllerManager,

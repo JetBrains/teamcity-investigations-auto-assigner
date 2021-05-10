@@ -31,7 +31,7 @@ class StatisticsDao {
 
   private final Path myStatisticsPath;
   private final Path myPluginDataDirectory;
-  private Gson myGson;
+  private final Gson myGson;
   private Statistics myStatisticsOnDisc;
 
   StatisticsDao(@NotNull final Path pluginDataDir) {

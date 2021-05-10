@@ -73,7 +73,7 @@ public class SuggestionsDao {
     return Collections.emptyList();
   }
 
-  private class ArtifactContent {
+  private static class ArtifactContent {
     String serverUUID;
     List<ResponsibilityPersistentInfo> suggestions;
 

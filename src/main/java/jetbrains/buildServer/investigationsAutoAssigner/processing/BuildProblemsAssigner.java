@@ -41,7 +41,7 @@ public class BuildProblemsAssigner implements BaseAssigner {
   private static final Logger LOGGER = Constants.LOGGER;
   @NotNull private final BuildProblemResponsibilityFacade myBuildProblemResponsibilityFacade;
   private final StatisticsReporter myStatisticsReporter;
-  private WebLinks myWebLinks;
+  private final WebLinks myWebLinks;
 
   public BuildProblemsAssigner(@NotNull final BuildProblemResponsibilityFacade buildProblemResponsibilityFacade,
                                @NotNull final WebLinks webLinks,
