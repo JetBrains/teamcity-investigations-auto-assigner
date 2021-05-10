@@ -47,8 +47,9 @@ public class FailedTestAndBuildProblemsDispatcher {
   private final FailedTestAndBuildProblemsProcessor myProcessor;
   private final DelayedAssignmentsProcessor myDelayedAssignmentsProcessor;
   @NotNull private final AggregationLogger myAggregationLogger;
-  private StatisticsReporter myStatisticsReporter;
-  private CustomParameters myCustomParameters;
+  private final ServerResponsibility myServerResponsibility;
+  private final StatisticsReporter myStatisticsReporter;
+  private final CustomParameters myCustomParameters;
   @NotNull
   private final ConcurrentHashMap<Long, FailedBuildInfo> myFailedBuilds = new ConcurrentHashMap<>();
   @NotNull
@@ -61,12 +62,14 @@ public class FailedTestAndBuildProblemsDispatcher {
                                               @NotNull final DelayedAssignmentsProcessor delayedAssignmentsProcessor,
                                               @NotNull final AggregationLogger aggregationLogger,
                                               @NotNull final StatisticsReporter statisticsReporter,
-                                              @NotNull final CustomParameters customParameters) {
+                                              @NotNull final CustomParameters customParameters,
+                                              @NotNull final ServerResponsibility serverResponsibility) {
     myProcessor = processor;
     myDelayedAssignmentsProcessor = delayedAssignmentsProcessor;
     myAggregationLogger = aggregationLogger;
     myStatisticsReporter = statisticsReporter;
     myCustomParameters = customParameters;
+    myServerResponsibility = serverResponsibility;
     myExecutor = ExecutorsFactory.newFixedScheduledDaemonExecutor(Constants.BUILD_FEATURE_TYPE, 1);
     myExecutor.scheduleWithFixedDelay(this::processBrokenBuildsOneThread,
                                       CustomParameters.getProcessingDelayInSeconds(),
@@ -78,6 +81,8 @@ public class FailedTestAndBuildProblemsDispatcher {
       public void buildProblemsChanged(@NotNull SBuild sBuild,
                                        @NotNull List<BuildProblemData> before,
                                        @NotNull List<BuildProblemData> after) {
+        if (!canSendNotifications()) return;
+
         if (myFailedBuilds.containsKey(sBuild.getBuildId()) || shouldIgnore(sBuild) || !(sBuild instanceof BuildEx)) {
           return;
         }
@@ -96,6 +101,9 @@ public class FailedTestAndBuildProblemsDispatcher {
           myFailedBuilds.remove(build.getBuildId());
           return;
         }
+
+        if (!canSendNotifications()) return;
+
         myExecutor.execute(() -> instance.processDelayedAssignmentsOneThread(build));
 
         @Nullable
@@ -110,7 +118,6 @@ public class FailedTestAndBuildProblemsDispatcher {
                                      @NotNull final Collection<TestName> testNames,
                                      @NotNull final ResponsibilityEntry entry,
                                      final boolean isUserAction) {
-        super.responsibleChanged(project, testNames, entry, isUserAction);
         if (isUserAction && shouldBeReportedAsWrong(entry)) {
           instance.myStatisticsReporter.reportWrongInvestigation(testNames.size());
         }
@@ -128,7 +135,6 @@ public class FailedTestAndBuildProblemsDispatcher {
       public void responsibleChanged(@NotNull final SProject project,
                                      @NotNull final Collection<BuildProblemInfo> buildProblems,
                                      @Nullable final ResponsibilityEntry entry) {
-        super.responsibleChanged(project, buildProblems, entry);
         if (shouldBeReportedAsWrong(entry)) {
           instance.myStatisticsReporter.reportWrongInvestigation(buildProblems.size());
         }
@@ -147,7 +153,7 @@ public class FailedTestAndBuildProblemsDispatcher {
     NamedThreadFactory.executeWithNewThreadName(description, this::processBrokenBuilds);
   }
 
-  private void processDelayedAssignmentsOneThread(SBuild nextBuild) {
+  private void processDelayedAssignmentsOneThread(@NotNull SBuild nextBuild) {
     @Nullable
     SBuildType sBuildType = nextBuild.getBuildType();
     if (sBuildType != null) {
@@ -217,9 +223,18 @@ public class FailedTestAndBuildProblemsDispatcher {
   }
 
   private void processBrokenBuilds() {
+    if (!canSendNotifications()) {
+      myFailedBuilds.clear();
+      return;
+    }
+
     for (FailedBuildInfo failedBuildInfo : myFailedBuilds.values()) {
       processBrokenBuild(failedBuildInfo);
     }
+  }
+
+  private boolean canSendNotifications() {
+    return myServerResponsibility.canSendNotifications();
   }
 
   private synchronized void processBrokenBuild(final FailedBuildInfo failedBuildInfo) {

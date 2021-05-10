@@ -17,6 +17,7 @@
 package jetbrains.buildServer.investigationsAutoAssigner;
 
 import java.util.Collections;
+import jetbrains.buildServer.agentServer.Server;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.DelayedAssignmentsProcessor;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.FailedTestAndBuildProblemsProcessor;
@@ -98,13 +99,16 @@ public class FailedTestAndBuildProblemsDispatcherTest {
     when(myCustomParameters.isBuildFeatureEnabled(any())).thenReturn(true);
     StatisticsReporter statisticsReporter = mock(StatisticsReporter.class);
 
+    ServerResponsibility serverResponsibility = mock(ServerResponsibility.class);
+    when(serverResponsibility.canSendNotifications()).thenReturn(true);
 
     new FailedTestAndBuildProblemsDispatcher(myBsDispatcher,
                                              processor,
                                              myDelayedAssignmentsProcessor,
                                              aggregationLogger,
                                              statisticsReporter,
-                                             myCustomParameters);
+                                             myCustomParameters,
+                                             serverResponsibility);
 
   }
 
