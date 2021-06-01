@@ -16,11 +16,14 @@
 
 .investigations-auto-assigner-results {
   max-width: 500px;
-  padding: 0.5em 1em;
   border-width: 0;
   margin-top: 0.5em;
   margin-bottom: 0.5em;
   display: block;
+}
+
+.investigations-auto-assigner-results-classic {
+  padding: 0.5em 1em;
 }
 
 .investigations-auto-assigner-btn-group {
