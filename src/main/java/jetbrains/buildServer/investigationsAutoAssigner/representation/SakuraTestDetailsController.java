@@ -47,7 +47,7 @@ public class SakuraTestDetailsController extends BaseController {
   }
 
   public void unregister() {
-    myExtension.register();
+    myExtension.unregister();
   }
 
   @Nullable
