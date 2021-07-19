@@ -55,7 +55,7 @@ public class CustomParameters {
 
   public boolean isDefaultSilentModeEnabled(final SBuild build) {
     @Nullable
-    String enabledInBuild = build.getParametersProvider().get(Constants.DEFAULT_SILENT_MODE_ENABLED);
+    String enabledInBuild = build.getBuildOwnParameters().get(Constants.DEFAULT_SILENT_MODE_ENABLED);
     if (StringUtil.isTrue(enabledInBuild)) {
       return true;
     } else if ("false".equals(enabledInBuild)) {
@@ -66,7 +66,7 @@ public class CustomParameters {
       return true;
     }
 
-    return Boolean.valueOf(TeamCityProperties.getProperty(Constants.DEFAULT_SILENT_MODE_ENABLED, "true"));
+    return TeamCityProperties.getBooleanOrTrue(Constants.DEFAULT_SILENT_MODE_ENABLED);
   }
 
   @Nullable
@@ -84,13 +84,12 @@ public class CustomParameters {
 
   public static int getMaxTestsPerBuildThreshold(SBuild build) {
     @Nullable
-    String maxTestsPerBuildNumber = build.getParametersProvider().get(Constants.MAX_TESTS_PER_BUILD_NUMBER);
+    String maxTestsPerBuildNumber = build.getBuildOwnParameters().get(Constants.MAX_TESTS_PER_BUILD_NUMBER);
     if (StringUtil.isNotEmpty(maxTestsPerBuildNumber)) {
       return parseThreshold(maxTestsPerBuildNumber);
     }
 
-    return parseThreshold(TeamCityProperties.getProperty(Constants.MAX_TESTS_PER_BUILD_NUMBER,
-                                                         String.valueOf(Constants.DEFAULT_TEST_COUNT_THRESHOLD)));
+    return TeamCityProperties.getInteger(Constants.MAX_TESTS_PER_BUILD_NUMBER, Constants.DEFAULT_TEST_COUNT_THRESHOLD);
   }
 
   private static int parseThreshold(@NotNull String value) {
@@ -117,14 +116,14 @@ public class CustomParameters {
 
   public static boolean shouldRunForFeatureBranches(SBuild build) {
     @Nullable
-    String enabledInBuild = build.getParametersProvider().get(Constants.ENABLE_FEATURE_BRANCHES_SUPPORT);
+    String enabledInBuild = build.getBuildOwnParameters().get(Constants.ENABLE_FEATURE_BRANCHES_SUPPORT);
     if (StringUtil.isTrue(enabledInBuild)) {
       return true;
     } else if ("false".equals(enabledInBuild)) {
       return false;
     }
 
-    return Boolean.valueOf(TeamCityProperties.getProperty(Constants.ENABLE_FEATURE_BRANCHES_SUPPORT, "false"));
+    return TeamCityProperties.getBoolean(Constants.ENABLE_FEATURE_BRANCHES_SUPPORT);
   }
 
   @NotNull
@@ -154,6 +153,6 @@ public class CustomParameters {
 
   public boolean  isHeuristicsDisabled(@NotNull final String heuristicId) {
     String propertyName = "teamcity.investigationsAutoAssigner.heuristics." + heuristicId + ".enabled";
-    return !Boolean.valueOf(TeamCityProperties.getProperty(propertyName, "true"));
+    return !TeamCityProperties.getBooleanOrTrue(propertyName);
   }
 }
