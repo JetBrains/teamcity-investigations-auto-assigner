@@ -27,10 +27,8 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.FlakyTestDetector;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.InvestigationsManager;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.Utils;
-import jetbrains.buildServer.serverSide.SBuild;
-import jetbrains.buildServer.serverSide.SProject;
-import jetbrains.buildServer.serverSide.STest;
-import jetbrains.buildServer.serverSide.STestRun;
+import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.tests.TestName;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
@@ -40,11 +38,13 @@ public class FailedTestFilter {
   private static final Logger LOGGER = Constants.LOGGER;
   private final InvestigationsManager myInvestigationsManager;
   private final FlakyTestDetector myFlakyTestDetector;
+  private final boolean myIgnoreSetupMethods;
 
   public FailedTestFilter(@NotNull FlakyTestDetector flakyTestDetector,
-                          @NotNull final InvestigationsManager investigationsManager) {
+                          @NotNull InvestigationsManager investigationsManager) {
     myFlakyTestDetector = flakyTestDetector;
     myInvestigationsManager = investigationsManager;
+    myIgnoreSetupMethods = TeamCityProperties.getBooleanOrTrue(Constants.IGNORE_SETUP_TEARDOWN_METHODS);
   }
 
   List<STestRun> apply(@NotNull final FailedBuildInfo failedBuildInfo,
@@ -111,6 +111,8 @@ public class FailedTestFilter {
       reason = "was already under an investigation";
     } else if (myFlakyTestDetector.isFlaky(test.getTestNameId())) {
       reason = "was marked as flaky";
+    } else if (myIgnoreSetupMethods && isSetUpOrTearDown(testRun.getTest().getName())) {
+      reason = "is not a test but rather setUp or tearDown";
     }
 
     boolean isApplicable = reason == null;
@@ -118,12 +120,17 @@ public class FailedTestFilter {
       LOGGER.debug(String.format("%s Test problem is %s.%s",
                                  Utils.getLogPrefix(testRun),
                                  (isApplicable ? "applicable" : "not applicable"),
-                                 (isApplicable ? "" : String.format(" Reason: this test problem %s.", reason))
+                                 (isApplicable ? "" : String.format(" Reason: this test %s.", reason))
       ));
     }
     if (!isApplicable && testRun.isNewFailure()) {
       notApplicableTestDescription.put(testRun.getTest().getTestNameId(), reason);
     }
     return isApplicable;
+  }
+
+  private boolean isSetUpOrTearDown(@NotNull TestName testName) {
+    final String methodName = testName.getTestMethodName().toLowerCase();
+    return methodName.contains("setup") || methodName.contains("teardown");
   }
 }

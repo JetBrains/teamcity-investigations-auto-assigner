@@ -8,7 +8,7 @@ apply plugin: 'com.github.rodm.teamcity-server'
 apply plugin: 'idea'
 
 ext {
-  teamcityVersion = project.hasProperty('teamcityVersion') ? property('teamcityVersion') : '2020.2'
+  teamcityVersion = project.hasProperty('teamcityVersion') ? property('teamcityVersion') : '2021.1.1'
   versionNumber = project.hasProperty('versionNumber') ? property('versionNumber') : 'SNAPSHOT-' + new Date().format('yyyyMMddHHmmss')
 }
 

@@ -46,6 +46,8 @@ public class Constants {
 
   public static final String MAX_COMPILE_ERRORS_TO_PROCESS = "teamcity.investigationsAutoAssigner.maxCompileErrorsToProcess";
 
+  public static final String IGNORE_SETUP_TEARDOWN_METHODS = "teamcity.investigationsAutoAssigner.ignoreSetupAndTearDown";
+
   //Constants
   public final static String TEAMCITY_DIRECTORY = ArtifactsConstants.TEAMCITY_ARTIFACTS_DIR;
   public final static String TEST_RUN_IN_REQUEST = "loadedTestRun";

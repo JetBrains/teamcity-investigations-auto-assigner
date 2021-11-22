@@ -16,10 +16,12 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import jetbrains.buildServer.BaseTestCase;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.FlakyTestDetector;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.InvestigationsManager;
@@ -30,6 +32,7 @@ import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STest;
 import jetbrains.buildServer.serverSide.STestRun;
+import jetbrains.buildServer.tests.TestName;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -76,6 +79,7 @@ public class FailedTestsFilterTest extends BaseTestCase {
     when(mySTestRun.getTest()).thenReturn(mySTest);
     when(mySTest.getAllResponsibilities())
       .thenReturn(Arrays.asList(myTestNameResponsibilityEntry, responsibilityEntry2));
+    when(mySTest.getName()).thenReturn(new TestName("some.test.package.Test.method" + Math.random()));
     when(myFlakyTestDetector.isFlaky(anyLong())).thenReturn(false);
     when(myTestNameResponsibilityEntry.getState()).thenReturn(ResponsibilityEntry.State.NONE);
     when(responsibilityEntry2.getState()).thenReturn(ResponsibilityEntry.State.NONE);
@@ -85,7 +89,6 @@ public class FailedTestsFilterTest extends BaseTestCase {
     when(mySBuild.getParametersProvider()).thenReturn(Mockito.mock(ParametersProvider.class));
     myFailedBuildInfo = new FailedBuildInfo(mySBuild, false);
     myFailedTestFilter = new FailedTestFilter(myFlakyTestDetector, myInvestigationsManager);
-
   }
 
   public void Test_TestRunIsMuted() {
@@ -168,5 +171,41 @@ public class FailedTestsFilterTest extends BaseTestCase {
     List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, mySProject, myTestsWrapper);
 
     Assert.assertEquals(applicableTestRuns.size(), 1);
+  }
+
+  public void ignore_setup_and_teardown() {
+    STest setup = Mockito.mock(STest.class);
+    when(setup.getName()).thenReturn(new TestName("com.package.Test.setUp1"));
+
+    STest teardown = Mockito.mock(STest.class);
+    when(teardown.getName()).thenReturn(new TestName("com.package.Test.teardown"));
+
+    STestRun setupTest = Mockito.mock(STestRun.class);
+    when(setupTest.getTest()).thenReturn(setup);
+    when(setupTest.isNewFailure()).thenReturn(true);
+
+    STestRun teardownTest = Mockito.mock(STestRun.class);
+    when(teardownTest.getTest()).thenReturn(teardown);
+    when(teardownTest.isNewFailure()).thenReturn(true);
+
+    myTestsWrapper = new ArrayList<>();
+    myTestsWrapper.add(mySTestRun);
+    myTestsWrapper.add(setupTest);
+    myTestsWrapper.add(teardownTest);
+
+    List<STestRun> applicableTestRuns = myFailedTestFilter.apply(myFailedBuildInfo, mySProject, myTestsWrapper);
+
+    Assert.assertEquals(applicableTestRuns.size(), 1);
+    Assert.assertEquals(applicableTestRuns.get(0), mySTestRun);
+
+    setInternalProperty(Constants.IGNORE_SETUP_TEARDOWN_METHODS, "false");
+
+    FailedTestFilter filter = new FailedTestFilter(myFlakyTestDetector, myInvestigationsManager);
+    applicableTestRuns = filter.apply(new FailedBuildInfo(mySBuild, false), mySProject, myTestsWrapper);
+
+    Assert.assertEquals(applicableTestRuns.size(), 3);
+    Assert.assertEquals(applicableTestRuns.get(0), mySTestRun);
+    Assert.assertEquals(applicableTestRuns.get(1), setupTest);
+    Assert.assertEquals(applicableTestRuns.get(2), teardownTest);
   }
 }

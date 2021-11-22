@@ -29,9 +29,9 @@ public class FailedBuildInfo {
 
   private final SBuild mySBuild;
   private final int myThreshold;
-  private Set<Integer> processedTests = new HashSet<>();
-  private Set<Integer> processedBuildProblems = new HashSet<>();
-  private HeuristicResult myHeuristicResult = new HeuristicResult();
+  private final Set<Integer> myProcessedTests = new HashSet<>();
+  private final Set<Integer> myProcessedBuildProblems = new HashSet<>();
+  private final HeuristicResult myHeuristicResult = new HeuristicResult();
   private final boolean myShouldDelayAssignments;
   private int myProcessedCount = 0;
 
@@ -52,22 +52,22 @@ public class FailedBuildInfo {
 
   public void addProcessedTestRuns(@NotNull Collection<STestRun> tests) {
     for (STestRun testRun : tests) {
-      processedTests.add(testRun.getTestRunId());
+      myProcessedTests.add(testRun.getTestRunId());
     }
   }
 
   public void addProcessedBuildProblems(@NotNull Collection<BuildProblem> buildProblems) {
     for (BuildProblem buildProblem : buildProblems) {
-      processedBuildProblems.add(buildProblem.getId());
+      myProcessedBuildProblems.add(buildProblem.getId());
     }
   }
 
   public boolean checkNotProcessed(STestRun sTestRun) {
-    return !processedTests.contains(sTestRun.getTestRunId());
+    return !myProcessedTests.contains(sTestRun.getTestRunId());
   }
 
   public boolean checkNotProcessed(final BuildProblem buildProblem) {
-    return !processedBuildProblems.contains(buildProblem.getId());
+    return !myProcessedBuildProblems.contains(buildProblem.getId());
   }
 
   public void addHeuristicsResult(final HeuristicResult heuristicsResult) {
