@@ -22,13 +22,12 @@ import jetbrains.buildServer.controllers.BaseController;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntryEx;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityFacade;
-import jetbrains.buildServer.serverSide.SBuild;
-import jetbrains.buildServer.serverSide.SBuildServer;
-import jetbrains.buildServer.serverSide.STest;
-import jetbrains.buildServer.serverSide.STestManager;
+import jetbrains.buildServer.responsibility.impl.InvestigationsAndMutesUtils;
+import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.auth.AuthorityHolder;
 import jetbrains.buildServer.serverSide.auth.Permission;
 import jetbrains.buildServer.serverSide.auth.SecurityContext;
+import jetbrains.buildServer.users.SUser;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.users.UserModelEx;
 import jetbrains.buildServer.util.Dates;
@@ -42,6 +41,7 @@ public class AssignInvestigationController extends BaseController {
 
   @NotNull private final SecurityContext mySecurityContext;
   private final TestNameResponsibilityFacade myTestNameResponsibilityFacade;
+  private final ProjectManager myProjectManager;
   private final STestManager myTestManager;
   @NotNull private final UserModelEx myUserModel;
 
@@ -50,9 +50,11 @@ public class AssignInvestigationController extends BaseController {
                                        @NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade,
                                        @NotNull final UserModelEx userModelEx,
                                        @NotNull final STestManager sTestManager,
-                                       @NotNull final SecurityContext securityContext) {
+                                       @NotNull final SecurityContext securityContext,
+                                       @NotNull final ProjectManager projectManager) {
     super(server);
     mySecurityContext = securityContext;
+    myProjectManager = projectManager;
     controllerManager.registerController("/assignInvestigation.html", this);
     myTestNameResponsibilityFacade = testNameResponsibilityFacade;
     myUserModel = userModelEx;
@@ -92,8 +94,10 @@ public class AssignInvestigationController extends BaseController {
     @Nullable final SBuild build = myServer.findBuildInstanceById(buildId);
     if (build == null) throw new IllegalStateException("Build was not found by provided buildId");
 
-    @Nullable final String projectId = build.getProjectId();
+    @Nullable String projectId = build.getProjectId();
     if (projectId == null) throw new IllegalStateException("ProjectId is not specified on the build");
+    final SProject project = myProjectManager.findProjectById(projectId);
+    if (project == null) throw new IllegalStateException("Cannot find project by ID " + projectId);
 
     @Nullable
     User responsibleUser = myUserModel.findUserById(userId);
@@ -108,6 +112,14 @@ public class AssignInvestigationController extends BaseController {
       throw new IllegalAccessException("Current user doesn't have permissions to assign investigations");
     }
 
+    // TODO: In 2022.04 replace with InvestigationsAndMutesUtils.getPreferredInvestigationProject call
+    if (reporterUser instanceof SUser) {
+      SProject preferredProject = getPreferredInvestigationProject(project, (SUser)reporterUser, myProjectManager);
+      if (preferredProject != null) {
+        projectId = preferredProject.getProjectId();
+      }
+    }
+
     myTestNameResponsibilityFacade.setTestNameResponsibility(
       sTest.getName(), projectId,
       new ResponsibilityEntryEx(
@@ -116,4 +128,22 @@ public class AssignInvestigationController extends BaseController {
 
     return null;
   }
+
+
+  private static SProject getPreferredInvestigationProject(@NotNull SProject baseProject, @NotNull SUser currentUser, @NotNull ProjectManager projectManager) {
+    final Parameter preferredProjectParameter = baseProject.getParameter("teamcity.internal.preferredInvestigationProject");
+    if (preferredProjectParameter != null) {
+      final SProject p = projectManager.findProjectByExternalId(preferredProjectParameter.getValue());
+      if (p != null && !p.isRootProject() && hasModifyPermission(currentUser, p)) {
+        return p;
+      }
+    }
+    return null;
+  }
+
+  private static boolean hasModifyPermission(final @NotNull SUser user, final SProject project) {
+    return user.isPermissionGrantedForProject(project.getProjectId(), Permission.ASSIGN_INVESTIGATION) ||
+           user.isPermissionGrantedForProject(project.getProjectId(), Permission.MANAGE_BUILD_PROBLEMS);
+  }
+
 }
