@@ -48,6 +48,16 @@ public class Constants {
 
   public static final String IGNORE_SETUP_TEARDOWN_METHODS = "teamcity.investigationsAutoAssigner.ignoreSetupAndTearDown";
 
+  public static final String PREFERRED_INVESTIGATION_PROJECT = "teamcity.internal.preferredInvestigationProject";
+  /**
+   * When set (default), Auto-assigner will check {@link Constants#PREFERRED_INVESTIGATION_PROJECT} parameter
+   * to find out target project for the auto-assigned investigation.
+   *
+   * @since 2022.2
+   * @see "https://youtrack.jetbrains.com/issue/TW-74512"
+   */
+  public static final String USE_PREFERRED_PROJECT = "teamcity.internal.investigationsAutoAssigner.usePreferredProject";
+
   //Constants
   public final static String TEAMCITY_DIRECTORY = ArtifactsConstants.TEAMCITY_ARTIFACTS_DIR;
   public final static String TEST_RUN_IN_REQUEST = "loadedTestRun";

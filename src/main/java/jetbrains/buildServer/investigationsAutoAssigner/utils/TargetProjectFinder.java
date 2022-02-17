@@ -20,12 +20,16 @@ import jetbrains.buildServer.serverSide.Parameter;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.auth.Permission;
+import jetbrains.buildServer.serverSide.impl.ProjectEx;
 import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import static jetbrains.buildServer.investigationsAutoAssigner.common.Constants.PREFERRED_INVESTIGATION_PROJECT;
+import static jetbrains.buildServer.investigationsAutoAssigner.common.Constants.USE_PREFERRED_PROJECT;
+
 public class TargetProjectFinder {
-  private static final String PREFERRED_INVESTIGATION_PROJECT = "teamcity.internal.preferredInvestigationProject";
 
   private final @NotNull ProjectManager myProjectManager;
 
@@ -35,9 +39,11 @@ public class TargetProjectFinder {
 
   @Nullable
   public SProject getPreferredInvestigationProject(@NotNull SProject baseProject, @Nullable SUser currentUser) {
-    final Parameter preferredProjectParameter = baseProject.getParameter(PREFERRED_INVESTIGATION_PROJECT);
-    if (preferredProjectParameter != null) {
-      final SProject p = myProjectManager.findProjectByExternalId(preferredProjectParameter.getValue());
+    final boolean tryDetectPreferredProject = ((ProjectEx)baseProject).getBooleanInternalParameterOrTrue(USE_PREFERRED_PROJECT);
+    final String preferredProjectExtId = ((ProjectEx)baseProject).getInternalParameterValue(PREFERRED_INVESTIGATION_PROJECT, "");
+
+    if (tryDetectPreferredProject && StringUtil.isNotEmpty(preferredProjectExtId)) {
+      final SProject p = myProjectManager.findProjectByExternalId(preferredProjectExtId);
       if (p != null && !p.isRootProject() && (currentUser == null || hasModifyPermission(currentUser, p))) {
         return p;
       }
