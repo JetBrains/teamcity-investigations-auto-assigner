@@ -21,6 +21,7 @@
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.utils.BuildProblemUtils"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.processing.FailedTestAssigner"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.processing.BuildProblemsAssigner"/>
+  <bean class="jetbrains.buildServer.investigationsAutoAssigner.utils.TargetProjectFinder"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.utils.InvestigationsManager"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.utils.FlakyTestDetector"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.utils.ProblemTextExtractor"/>

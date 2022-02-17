@@ -24,6 +24,7 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.DefaultUserRespon
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter;
+import jetbrains.buildServer.investigationsAutoAssigner.utils.TargetProjectFinder;
 import jetbrains.buildServer.responsibility.BuildProblemResponsibilityFacade;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
@@ -80,7 +81,8 @@ public class BuildProblemsAssignerTest extends BaseTestCase {
 
     myBuildProblemsAssigner = new BuildProblemsAssigner(myBuildProblemResponsibilityFacade,
                                                         Mockito.mock(WebLinks.class),
-                                                        Mockito.mock(StatisticsReporter.class));
+                                                        Mockito.mock(StatisticsReporter.class),
+                                                        Mockito.mock(TargetProjectFinder.class));
   }
 
   public void Test_NoBuildProblems() {

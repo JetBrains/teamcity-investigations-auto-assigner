@@ -16,15 +16,14 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
-import com.intellij.openapi.diagnostic.Logger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
-import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter;
+import jetbrains.buildServer.investigationsAutoAssigner.utils.TargetProjectFinder;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntryEx;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityFacade;
@@ -36,18 +35,23 @@ import jetbrains.buildServer.tests.TestName;
 import jetbrains.buildServer.util.Dates;
 import org.jetbrains.annotations.NotNull;
 
+import static jetbrains.buildServer.investigationsAutoAssigner.common.Constants.LOGGER;
+
 public class FailedTestAssigner implements BaseAssigner {
+
   @NotNull private final TestNameResponsibilityFacade myTestNameResponsibilityFacade;
   private final WebLinks myWebLinks;
   private final StatisticsReporter myStatisticsReporter;
-  private static final Logger LOGGER = Constants.LOGGER;
+  private final TargetProjectFinder myTargetProjectFinder;
 
   public FailedTestAssigner(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade,
                             @NotNull final WebLinks webLinks,
-                            @NotNull final StatisticsReporter statisticsReporter) {
+                            @NotNull final StatisticsReporter statisticsReporter,
+                            @NotNull final TargetProjectFinder targetProjectFinder) {
     myTestNameResponsibilityFacade = testNameResponsibilityFacade;
     myWebLinks = webLinks;
     myStatisticsReporter = statisticsReporter;
+    myTargetProjectFinder = targetProjectFinder;
   }
 
   void assign(final HeuristicResult heuristicsResult,
@@ -64,19 +68,26 @@ public class FailedTestAssigner implements BaseAssigner {
       testNameList.add(sTestRun.getTest().getName());
     }
 
+    SProject targetProject =
+      myTargetProjectFinder.getPreferredInvestigationProject(sProject, null);
+    if (targetProject == null) {
+      targetProject = sProject;
+    }
+
+
     Set<Responsibility> uniqueResponsibilities = responsibilityToTestNames.keySet();
     for (Responsibility responsibility : uniqueResponsibilities) {
       if (responsibility != null) {
         List<TestName> testNameList = responsibilityToTestNames.get(responsibility);
         LOGGER.info(String.format("Automatically assigning investigation(s) to %s in %s # %s because user %s",
-                                  responsibility.getUser().getUsername(),
-                                  sProject.describe(false),
-                                  testNameList,
-                                  responsibility.getDescription()));
+                                            responsibility.getUser().getUsername(),
+                                            targetProject.describe(false),
+                                            testNameList,
+                                            responsibility.getDescription()));
 
         String linkToBuild = myWebLinks.getViewResultsUrl(sBuild);
         myTestNameResponsibilityFacade.setTestNameResponsibility(
-          testNameList, sProject.getProjectId(),
+          testNameList, targetProject.getProjectId(),
           new ResponsibilityEntryEx(
             ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
             responsibility.getAssignDescription(linkToBuild), getRemoveMethod(sBuild.getBuildType()))
