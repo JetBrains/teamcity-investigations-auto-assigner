@@ -44,7 +44,7 @@ public class ProblemTextExtractor {
       final Integer compileBlockIndex = getCompileBlockIndex(problem);
       if (compileBlockIndex != null) {
         AtomicInteger maxErrors = new AtomicInteger(TeamCityProperties.getInteger(Constants.MAX_COMPILE_ERRORS_TO_PROCESS, 100));
-        new BuildLogCompileErrorCollector().collectCompileErrors(compileBlockIndex, build, new ItemProcessor<LogMessage>() {
+        BuildLogCompileErrorCollector.collectCompileErrors(compileBlockIndex, build, new ItemProcessor<LogMessage>() {
           @Override
           public boolean processItem(final LogMessage item) {
             problemSpecificText.append(item.getText()).append(" ");
