@@ -24,3 +24,4 @@ build/
 
 # IntelliJ
 out/
+/.idea/teamcity-investigations-auto-assigner.iml
