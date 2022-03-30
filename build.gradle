@@ -1,6 +1,6 @@
 plugins {
-  id 'com.github.rodm.teamcity-server' version '1.3'
-  id 'org.jetbrains.kotlin.jvm' version '1.3.10'
+  id 'com.github.rodm.teamcity-server' version '1.4.1'
+  id 'org.jetbrains.kotlin.jvm' version '1.3.41'
 }
 
 apply plugin: 'java'
@@ -8,7 +8,7 @@ apply plugin: 'com.github.rodm.teamcity-server'
 apply plugin: 'idea'
 
 ext {
-  teamcityVersion = project.hasProperty('teamcityVersion') ? property('teamcityVersion') : '2021.1.1'
+  teamcityVersion = project.hasProperty('teamcityVersion') ? property('teamcityVersion') : '2022.02'
   versionNumber = project.hasProperty('versionNumber') ? property('versionNumber') : 'SNAPSHOT-' + new Date().format('yyyyMMddHHmmss')
 }
 
@@ -64,6 +64,7 @@ test {
 
 teamcity {
   version = teamcityVersion
+  allowSnapshotVersions = true
 
   server {
     descriptor {
@@ -72,7 +73,7 @@ teamcity {
       version = project.version
       vendorName = 'JetBrains'
       vendorUrl = 'http://www.jetbrains.com/'
-      description = 'Executes auto assigning investigations according to a set of rules.'
+      description = 'Automatically assigns investigations according to a set of rules.'
 
       useSeparateClassloader = true
       nodeResponsibilitiesAware = true
