@@ -21,6 +21,7 @@ import java.util.List;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 abstract class BaseProcessor {
@@ -65,13 +66,17 @@ abstract class BaseProcessor {
   }
 
   @Nullable
-  protected SProject getProject(final SBuild sBuild) {
+  protected SProject getProject(@NotNull final SBuild sBuild) {
     SBuildType sBuildType = sBuild.getBuildType();
     if (sBuildType == null) {
       LOGGER.debug("Build #" + sBuild.getBuildId() + " doesn't have a build type. Stop processing.");
       return null;
     }
 
-    return sBuildType.getProject();
+    SProject project = sBuildType.getProject();
+    while (project != null && project.isVirtual()) {
+      project = project.getParentProject();
+    }
+    return project;
   }
 }
