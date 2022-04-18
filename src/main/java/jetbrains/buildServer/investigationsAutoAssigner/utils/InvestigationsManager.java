@@ -50,7 +50,7 @@ public class InvestigationsManager {
                                          @NotNull final SBuild sBuild,
                                          @NotNull final BuildProblem problem) {
     for (BuildProblemResponsibilityEntry entry : problem.getAllResponsibilities()) {
-      if (isActiveOrAlreadyFixed(sBuild, entry) && belongSameProjectOrParent(entry.getProject(), project)) return true;
+      if (isActiveOrAlreadyFixed(sBuild, entry) && belongsToSameProjectOrParent(entry.getProject(), project)) return true;
     }
     return false;
   }
@@ -66,7 +66,7 @@ public class InvestigationsManager {
                                                       @NotNull final SBuild sBuild,
                                                       @NotNull final STest test) {
     for (TestNameResponsibilityEntry entry : test.getAllResponsibilities()) {
-      if (isActiveOrAlreadyFixed(sBuild, entry) && belongSameProjectOrParent(entry.getProject(), project)) return entry;
+      if (isActiveOrAlreadyFixed(sBuild, entry) && belongsToSameProjectOrParent(entry.getProject(), project)) return entry;
     }
     return null;
   }
@@ -80,7 +80,7 @@ public class InvestigationsManager {
     return sBuild.getQueuedDate().getTime() - entry.getTimestamp().getTime() <= 0;
   }
 
-  private boolean belongSameProjectOrParent(@NotNull final BuildProject parent, @NotNull final BuildProject project) {
+  private boolean belongsToSameProjectOrParent(@NotNull final BuildProject parent, @NotNull final BuildProject project) {
     List<String> projectIds = collectProjectHierarchyIds(project);
     return projectIds.contains(parent.getProjectId());
   }
@@ -133,7 +133,7 @@ public class InvestigationsManager {
       if (state.isFixed() &&
           !createdBeforeBuildQueued(entry, sBuild) &&
           entryProject != null &&
-          belongSameProjectOrParent(entryProject, project)) {
+          belongsToSameProjectOrParent(entryProject, project)) {
         return entry.getResponsibleUser();
       }
     }
