@@ -2,8 +2,8 @@
 <dsl-extension kind="buildFeature" type="InvestigationsAutoAssigner" generateDslJar="true">
   <class name="InvestigationsAutoAssigner">
     <description>
-      A [build feature](https://github.com/JetBrains/teamcity-investigations-auto-assigner) assigning
-      investigations of build failures automatically based on heuristics
+      A [build feature](https://www.jetbrains.com/help/teamcity/?Investigations+Auto+Assigner) assigning
+      investigations of build failures automatically based on heuristics.
     </description>
   </class>
   <function name="investigationsAutoAssigner">
@@ -39,4 +39,40 @@
       </description>
     </param>
   </params>
+  <examples>
+    <example>
+      <description>
+        Adds a simple [Investigations Auto Assigner](https://www.jetbrains.com/help/teamcity/?Investigations+Auto+Assigner)
+        build feature with specified default assignee
+        (username of a user to assign the investigation to if no other assignee can be found).
+        This build feature will assign investigations on the first build failure, after a short time-out.
+      </description>
+      <code>
+        investigationsAutoAssigner {
+            defaultAssignee = "username.default"
+        }
+      </code>
+    </example>
+    <example>
+      <description>
+        Adds an [Investigations Auto Assigner](https://www.jetbrains.com/help/teamcity/?Investigations+Auto+Assigner)
+        with specified default assignee, users to ignore (newline-separated),
+        and custom types of build problems to ignore in investigations auto-assignment.
+        Additional option delays assignment of investigations until the failure repeats in two builds in a row.
+        Use to prevent wrong assignments in projects with many flaky tests.
+      </description>
+      <code>
+        investigationsAutoAssigner {
+            defaultAssignee = "username.default"
+            excludeUsers = """
+                username.admin
+                username.bot
+            """.trimIndent()
+            ignoreCompilationProblems = "true"
+            ignoreExitCodeProblems = "true"
+            assignOnSecondFailure = true
+        }
+      </code>
+    </example>
+  </examples>
 </dsl-extension>
