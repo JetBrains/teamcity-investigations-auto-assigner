@@ -73,7 +73,7 @@ public class ModificationAnalyzerFactory {
     @Nullable
     public User getOnlyCommitter(Set<String> usersToIgnore) throws HeuristicNotApplicableException {
       Collection<SUser> committers = myVcsChange.getCommitters();
-      if (committers.size() == 0) {
+      if (committers.isEmpty()) {
         throw new HeuristicNotApplicableException(
           "committer \"" + myVcsChange.getUserName() + "\" does not have corresponding TeamCity user");
       }
@@ -118,7 +118,7 @@ public class ModificationAnalyzerFactory {
   private static List<String> getPatterns(@NotNull final String filePath) {
     final List<String> parts = new ArrayList<>();
     String withoutExtension = FileUtil.getNameWithoutExtension(new File(filePath));
-    if (withoutExtension.length() == 0) {
+    if (withoutExtension.isEmpty()) {
       return Collections.emptyList();
     }
     parts.add(withoutExtension);
