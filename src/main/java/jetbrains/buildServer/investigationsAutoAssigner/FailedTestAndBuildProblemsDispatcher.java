@@ -104,6 +104,11 @@ public class FailedTestAndBuildProblemsDispatcher {
 
         if (!canSendNotifications()) return;
 
+        if (myExecutor.isTerminated()) {
+          LOGGER.info("Do not auto-assign responsibilities for the finishing build " + build + " while shutdown");
+          return;
+        }
+
         myExecutor.execute(() -> instance.processDelayedAssignmentsOneThread(build));
 
         @Nullable
