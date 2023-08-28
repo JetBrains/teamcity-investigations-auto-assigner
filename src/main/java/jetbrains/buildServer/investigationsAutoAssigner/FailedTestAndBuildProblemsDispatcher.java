@@ -104,17 +104,16 @@ public class FailedTestAndBuildProblemsDispatcher {
 
         if (!canSendNotifications()) return;
 
-        if (myExecutor.isTerminated()) {
-          LOGGER.info("Do not auto-assign responsibilities for the finishing build " + build + " while shutdown");
-          return;
-        }
+        try {
+          myExecutor.execute(() -> instance.processDelayedAssignmentsOneThread(build));
 
-        myExecutor.execute(() -> instance.processDelayedAssignmentsOneThread(build));
-
-        @Nullable
-        FailedBuildInfo failedBuildInfo = myFailedBuilds.remove(build.getBuildId());
-        if (failedBuildInfo != null) {
-          myExecutor.execute(() -> instance.processFinishedBuild(failedBuildInfo));
+          @Nullable
+          FailedBuildInfo failedBuildInfo = myFailedBuilds.remove(build.getBuildId());
+          if (failedBuildInfo != null) {
+            myExecutor.execute(() -> instance.processFinishedBuild(failedBuildInfo));
+          }
+        } catch (RejectedExecutionException e) {
+          LOGGER.infoAndDebugDetails("Could not schedule automatic assignment investigatipons for the finishing build " + build, e);
         }
       }
 
