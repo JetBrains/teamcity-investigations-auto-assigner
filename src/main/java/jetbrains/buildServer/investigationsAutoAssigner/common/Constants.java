@@ -57,6 +57,7 @@ public class Constants {
    * @see "https://youtrack.jetbrains.com/issue/TW-74512"
    */
   public static final String USE_PREFERRED_PROJECT = "teamcity.internal.investigationsAutoAssigner.usePreferredProject";
+  public static final String IGNORE_SNAPSHOT_DEPENDENCY_ERRORS_IN_DEFAULT_HEURISTIC = "teamcity.internal.investigationsAutoAssigner.defaultUserHeuristic.ignoreSnapshotDependencyErrors";
 
   //Constants
   public final static String TEAMCITY_DIRECTORY = ArtifactsConstants.TEAMCITY_ARTIFACTS_DIR;
