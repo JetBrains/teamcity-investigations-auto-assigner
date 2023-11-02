@@ -24,13 +24,16 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.log.LogUtil;
+import jetbrains.buildServer.serverSide.BuildTypeEx;
 import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.SBuildType;
+import jetbrains.buildServer.serverSide.TeamCityProperties;
 import jetbrains.buildServer.users.UserModelEx;
 import jetbrains.buildServer.users.impl.UserEx;
 import jetbrains.buildServer.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
-import static jetbrains.buildServer.investigationsAutoAssigner.processing.BuildProblemsFilter.notSupportedEverywhereTypes;
+import static jetbrains.buildServer.investigationsAutoAssigner.processing.BuildProblemsFilter.snapshotDependencyErrorTypes;
 
 public class DefaultUserHeuristic implements Heuristic {
 
@@ -66,13 +69,26 @@ public class DefaultUserHeuristic implements Heuristic {
       return result;
     }
 
+    boolean applyForSnapshotDependencyErrors = shouldApplyForSnapshotDependencyErrors(build);
     Responsibility responsibility = new DefaultUserResponsibility(responsibleUser);
     heuristicContext.getBuildProblems()
                     .stream()
-                    .filter(buildProblem -> !notSupportedEverywhereTypes.contains(buildProblem.getBuildProblemData().getType()))
+                    .filter(buildProblem -> applyForSnapshotDependencyErrors || !snapshotDependencyErrorTypes.contains(buildProblem.getBuildProblemData().getType()))
                     .forEach(buildProblem -> result.addResponsibility(buildProblem, responsibility));
     heuristicContext.getTestRuns().forEach(testRun -> result.addResponsibility(testRun, responsibility));
 
     return result;
+  }
+
+  private boolean shouldApplyForSnapshotDependencyErrors(SBuild build) {
+    if (build.isCompositeBuild()) {
+      return true;
+    }
+    SBuildType buildType = build.getBuildType();
+    boolean ignoreSnapshotDependencyErrors =
+      buildType instanceof BuildTypeEx
+      ? ((BuildTypeEx)buildType).getBooleanInternalParameterOrTrue(Constants.IGNORE_SNAPSHOT_DEPENDENCY_ERRORS_IN_DEFAULT_HEURISTIC)
+      : TeamCityProperties.getBooleanOrTrue(Constants.IGNORE_SNAPSHOT_DEPENDENCY_ERRORS_IN_DEFAULT_HEURISTIC);
+    return !ignoreSnapshotDependencyErrors;
   }
 }
