@@ -1,5 +1,7 @@
+import java.nio.file.Paths
+
 plugins {
-  id 'com.github.rodm.teamcity-server' version '1.4.1'
+  id 'com.github.rodm.teamcity-server' version '1.5.2'
   id 'org.jetbrains.kotlin.jvm' version '1.3.41'
 }
 
@@ -7,9 +9,12 @@ apply plugin: 'java'
 apply plugin: 'com.github.rodm.teamcity-server'
 apply plugin: 'idea'
 
+def localRepo = anyParamPath('TC_LOCAL_REPO')
+
 ext {
-  teamcityVersion = project.hasProperty('teamcityVersion') ? property('teamcityVersion') : '2022.02'
+  teamcityVersion = anyParam('teamcityVersion') ?: '2022.02'
   versionNumber = project.hasProperty('versionNumber') ? property('versionNumber') : 'SNAPSHOT-' + new Date().format('yyyyMMddHHmmss')
+  localRepo = anyParamPath('TC_LOCAL_REPO')
 }
 
 group = 'jetbrains.buildServer.investigationsAutoAssigner'
@@ -38,9 +43,15 @@ project.plugins.withType(JavaPlugin) {
 }
 
 repositories {
+  mavenLocal()
+  if (localRepo) {
+    maven {
+      name = "local-teamcity-artifacts"
+      url "file:///${localRepo}"
+    }
+  }
   maven { url "https://download.jetbrains.com/teamcity-repository" }
   mavenCentral()
-  mavenLocal()
 }
 
 configurations {
@@ -109,4 +120,26 @@ compileTestKotlin {
   kotlinOptions {
     jvmTarget = "1.8"
   }
+}
+
+def anyParamPath(String... names) {
+  def param = anyParam(names);
+  if (param == null || param.isEmpty())
+    return null
+  return (Paths.get(param).isAbsolute()) ?
+         Paths.get(param) : getRootDir().toPath().resolve(param)
+}
+
+def anyParam(String... names) {
+  def param
+  try {
+    param = names.findResult {
+      project.hasProperty(it) ? project.getProperty(it) : System.getProperty(it) ?: System.getenv(it) ?: null
+    }
+    if (param == null || param.isEmpty())
+      param = null
+  } finally {
+    println("AnyParam: $names -> $param")
+  }
+  return param
 }

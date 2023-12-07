@@ -25,3 +25,5 @@ build/
 # IntelliJ
 out/
 /.idea/teamcity-investigations-auto-assigner.iml
+.DS_Store
+
