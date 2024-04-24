@@ -1,16 +1,21 @@
+import java.nio.file.Paths
+
 plugins {
-  id 'com.github.rodm.teamcity-server' version '1.4.1'
+  id 'io.github.rodm.teamcity-server' version '1.5.2'
   id 'org.jetbrains.kotlin.jvm' version '1.3.41'
 }
+
+initializeWorkspace()
 
 apply plugin: 'java'
 apply plugin: 'com.github.rodm.teamcity-server'
 apply plugin: 'idea'
 
 ext {
-  teamcityVersion = project.hasProperty('teamcityVersion') ? property('teamcityVersion') : '2022.02'
-  versionNumber = project.hasProperty('versionNumber') ? property('versionNumber') : 'SNAPSHOT-' + new Date().format('yyyyMMddHHmmss')
+  teamcityVersion = anyParam('teamcityVersion') ?: '2022.02'
+  versionNumber = anyParam('versionNumber') ?: 'SNAPSHOT-' + new Date().format('yyyyMMddHHmmss')
 }
+def localRepo = anyParamPath('TC_LOCAL_REPO')
 
 group = 'jetbrains.buildServer.investigationsAutoAssigner'
 
@@ -24,6 +29,12 @@ project.plugins.withType(JavaPlugin) {
 }
 
 repositories {
+  if (localRepo) {
+    maven {
+      name = "local-teamcity-artifacts"
+      url "file:///${localRepo}"
+    }
+  }
   maven { url "https://download.jetbrains.com/teamcity-repository" }
   mavenCentral()
   mavenLocal()
@@ -94,5 +105,42 @@ compileKotlin {
 compileTestKotlin {
   kotlinOptions {
     jvmTarget = "1.8"
+  }
+}
+
+def anyParamPath(String... names) {
+  def param = anyParam(names);
+  if (param == null || param.isEmpty())
+    return null
+  return (Paths.get(param).isAbsolute()) ?
+         Paths.get(param) : getRootDir().toPath().resolve(param)
+}
+
+def anyParam(String... names) {
+  def param
+  try {
+    param = names.findResult {
+      project.hasProperty(it) ? project.getProperty(it) : System.getProperty(it) ?: System.getenv(it) ?: null
+    }
+    if (param == null || param.isEmpty())
+      param = null
+  } finally {
+    println("AnyParam: $names -> $param")
+  }
+  return param
+}
+
+def initializeWorkspace() {
+  if (System.getProperty("idea.active") != null) {
+    println "Attempt to configure workspace in IDEA"
+    def coreVersionProperties = project.projectDir.toPath().parent.parent.parent.resolve(".version.properties")
+    if (coreVersionProperties.toFile().exists()) {
+      def p = new Properties().tap {
+        it.load(new FileInputStream(coreVersionProperties.toFile()))
+      }
+      p.forEach { k,v ->
+        System.setProperty(k, v);
+      }
+    }
   }
 }
