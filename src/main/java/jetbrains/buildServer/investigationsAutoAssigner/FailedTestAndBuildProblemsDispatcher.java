@@ -84,12 +84,10 @@ public class FailedTestAndBuildProblemsDispatcher {
 
       @Override
       public void buildFinished(@NotNull SRunningBuild build) {
-        if (shouldIgnore(build)) {
+        if (shouldIgnore(build) || !canSendNotifications()) {
           myFailedBuilds.remove(build.getBuildId());
           return;
         }
-
-        if (!canSendNotifications()) return;
 
         try {
           myExecutor.execute(() -> instance.processDelayedAssignmentsOneThread(build));
@@ -100,7 +98,8 @@ public class FailedTestAndBuildProblemsDispatcher {
             myExecutor.execute(() -> instance.processFinishedBuild(failedBuildInfo));
           }
         } catch (RejectedExecutionException e) {
-          LOGGER.infoAndDebugDetails("Could not schedule automatic assignment investigatipons for the finishing build " + build, e);
+          LOGGER.infoAndDebugDetails("Could not schedule automatic assignment investigations for the finishing build " + build, e);
+          myFailedBuilds.remove(build.getBuildId());
         }
       }
 
