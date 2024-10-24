@@ -43,6 +43,7 @@ public class FailedTestAndBuildProblemsDispatcher {
   private final ConcurrentHashMap<String, FailedBuildInfo> myDelayedAssignments = new ConcurrentHashMap<>();
   @NotNull
   private final ScheduledExecutorService myExecutor;
+  private final BuildsManager myBuildsManager;
 
   public FailedTestAndBuildProblemsDispatcher(@NotNull final BuildServerListenerEventDispatcher buildServerListenerEventDispatcher,
                                               @NotNull final FailedTestAndBuildProblemsProcessor processor,
@@ -50,19 +51,21 @@ public class FailedTestAndBuildProblemsDispatcher {
                                               @NotNull final AggregationLogger aggregationLogger,
                                               @NotNull final StatisticsReporter statisticsReporter,
                                               @NotNull final CustomParameters customParameters,
+                                              @NotNull final BuildsManager buildsManager,
                                               @NotNull final ServerResponsibility serverResponsibility) {
     myProcessor = processor;
     myDelayedAssignmentsProcessor = delayedAssignmentsProcessor;
     myAggregationLogger = aggregationLogger;
     myStatisticsReporter = statisticsReporter;
     myCustomParameters = customParameters;
+    myBuildsManager = buildsManager;
     myServerResponsibility = serverResponsibility;
     myExecutor = ExecutorsFactory.newFixedScheduledDaemonExecutor(Constants.BUILD_FEATURE_TYPE, 1);
     myExecutor.scheduleWithFixedDelay(this::processBrokenBuildsOneThread,
                                       CustomParameters.getProcessingDelayInSeconds(),
                                       CustomParameters.getProcessingDelayInSeconds(),
                                       TimeUnit.SECONDS);
-    FailedTestAndBuildProblemsDispatcher instance = this;
+
     buildServerListenerEventDispatcher.addListener(new BuildServerAdapter() {
       @Override
       public void buildProblemsChanged(@NotNull SBuild sBuild,
@@ -90,12 +93,12 @@ public class FailedTestAndBuildProblemsDispatcher {
         }
 
         try {
-          myExecutor.execute(() -> instance.processDelayedAssignmentsOneThread(build));
+          scheduleDelayedAssignmentProcessing(build);
 
           @Nullable
           FailedBuildInfo failedBuildInfo = myFailedBuilds.remove(build.getBuildId());
           if (failedBuildInfo != null) {
-            myExecutor.execute(() -> instance.processFinishedBuild(failedBuildInfo));
+            myExecutor.execute(() -> processFinishedBuild(failedBuildInfo));
           }
         } catch (RejectedExecutionException e) {
           LOGGER.infoAndDebugDetails("Could not schedule automatic assignment investigations for the finishing build " + build, e);
@@ -109,7 +112,7 @@ public class FailedTestAndBuildProblemsDispatcher {
                                      @NotNull final ResponsibilityEntry entry,
                                      final boolean isUserAction) {
         if (isUserAction && shouldBeReportedAsWrong(entry)) {
-          instance.myStatisticsReporter.reportWrongInvestigation(testNames.size());
+          myStatisticsReporter.reportWrongInvestigation(testNames.size());
         }
       }
 
@@ -126,7 +129,7 @@ public class FailedTestAndBuildProblemsDispatcher {
                                      @NotNull final Collection<BuildProblemInfo> buildProblems,
                                      @Nullable final ResponsibilityEntry entry) {
         if (shouldBeReportedAsWrong(entry)) {
-          instance.myStatisticsReporter.reportWrongInvestigation(buildProblems.size());
+          myStatisticsReporter.reportWrongInvestigation(buildProblems.size());
         }
       }
 
@@ -134,6 +137,17 @@ public class FailedTestAndBuildProblemsDispatcher {
       public void serverShutdown() {
         ThreadUtil.shutdownGracefully(myExecutor, "Investigator-Auto-Assigner Daemon");
       }
+    });
+  }
+
+  private void scheduleDelayedAssignmentProcessing(@NotNull SRunningBuild build) {
+    long buildId = build.getBuildId();
+
+    myExecutor.execute(() -> {
+      // can't pass the running build right to the scheduled task to avoid its leaking, see https://youtrack.jetbrains.com/issue/TW-90428
+      SBuild currentBuild = myBuildsManager.findBuildInstanceById(buildId);
+      if (currentBuild == null) return;
+      processDelayedAssignmentsOneThread(currentBuild);
     });
   }
 

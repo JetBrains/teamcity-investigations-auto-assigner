@@ -88,12 +88,17 @@ public class FailedTestAndBuildProblemsDispatcherTest {
     ServerResponsibility serverResponsibility = mock(ServerResponsibility.class);
     when(serverResponsibility.canSendNotifications()).thenReturn(true);
 
+    final BuildsManager buildsManager = mock(BuildsManager.class);
+    when(buildsManager.findBuildInstanceById(239L)).thenReturn(myRunningBuild);
+    when(buildsManager.findBuildInstanceById(238L)).thenReturn(mySecondBuild);
+
     new FailedTestAndBuildProblemsDispatcher(myBsDispatcher,
                                              processor,
                                              myDelayedAssignmentsProcessor,
                                              aggregationLogger,
                                              statisticsReporter,
                                              myCustomParameters,
+                                             buildsManager,
                                              serverResponsibility);
 
   }
