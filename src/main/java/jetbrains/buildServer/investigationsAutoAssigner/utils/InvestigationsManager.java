@@ -8,10 +8,7 @@ import jetbrains.buildServer.responsibility.BuildProblemResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityFacadeEx;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityEntry;
-import jetbrains.buildServer.serverSide.SBuild;
-import jetbrains.buildServer.serverSide.SProject;
-import jetbrains.buildServer.serverSide.STest;
-import jetbrains.buildServer.serverSide.STestRun;
+import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.audit.*;
 import jetbrains.buildServer.serverSide.impl.audit.filters.BuildProblemAuditId;
 import jetbrains.buildServer.serverSide.impl.audit.filters.ObjectTypeFilter;
@@ -136,6 +133,9 @@ public class InvestigationsManager {
       for (String projectId : projectIds) {
         objectIds.add(TestId.createOn(testRun.getTest().getTestNameId(), projectId).asString());
       }
+    }
+    if (objectIds.isEmpty() && TeamCityProperties.getBooleanOrTrue("teamcity.autoAssigner.skipAuditLookupWithoutTests.enabled")) {
+      return new HashMap<>();
     }
     builder.setObjectIds(objectIds);
     List<AuditLogAction> lastActions = builder.getLogActions(-1);
