@@ -17,6 +17,7 @@ import jetbrains.buildServer.serverSide.*;
 import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import jetbrains.buildServer.tests.TestName;
 import jetbrains.buildServer.users.SUser;
+import org.jetbrains.annotations.NotNull;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 import org.testng.annotations.BeforeMethod;
@@ -90,7 +91,7 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
     when(mySBuild.getBuildType()).thenReturn(mySBuildType);
     when(mySBuild.getBuildStatistics(any())).thenReturn(buildStatistics);
     when(mySBuild.getParametersProvider()).thenReturn(myParametersProvider);
-    myFailedBuildInfo = new FailedBuildInfo(mySBuild, false);
+    myFailedBuildInfo = new FailedBuildInfo(mySBuild);
 
     //configure heuristic results
     myNotEmptyHeuristicResult = new HeuristicResult();
@@ -142,8 +143,8 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
   }
 
   public void TestDelayedAssignment() {
-    configureBuildFeature(mySBuild);
-    FailedBuildInfo failedBuildInfo = new FailedBuildInfo(mySBuild, true);
+    configureBuildFeature(mySBuild, true);
+    FailedBuildInfo failedBuildInfo = new FailedBuildInfo(mySBuild);
 
     myProcessor.processBuild(failedBuildInfo);
 
@@ -160,8 +161,8 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
     when(myBuildProblemsFilter.apply(any(), any(), any())).thenReturn(Collections.singletonList(exitCodeBuildProblem));
     when(myBuildProblemsFilter.getStillApplicable(any(), any(), any())).thenReturn(Collections.singletonList(exitCodeBuildProblem));
 
-    configureBuildFeature(mySBuild);
-    FailedBuildInfo failedBuildInfo = new FailedBuildInfo(mySBuild, true);
+    configureBuildFeature(mySBuild, true);
+    FailedBuildInfo failedBuildInfo = new FailedBuildInfo(mySBuild);
     myNotEmptyHeuristicResult.addResponsibility(exitCodeBuildProblem, new Responsibility(mySUser, "Failed description"));
     myProcessor.processBuild(failedBuildInfo);
 
@@ -178,8 +179,8 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
     when(myBuildProblemsFilter.apply(any(), any(), any())).thenReturn(Collections.singletonList(compilationBuildProblem));
     when(myBuildProblemsFilter.getStillApplicable(any(), any(), any())).thenReturn(Collections.singletonList(compilationBuildProblem));
 
-    configureBuildFeature(mySBuild);
-    FailedBuildInfo failedBuildInfo = new FailedBuildInfo(mySBuild, true);
+    configureBuildFeature(mySBuild, true);
+    FailedBuildInfo failedBuildInfo = new FailedBuildInfo(mySBuild);
     myNotEmptyHeuristicResult.addResponsibility(compilationBuildProblem, new Responsibility(mySUser, "Failed description"));
     myProcessor.processBuild(failedBuildInfo);
 
@@ -187,7 +188,7 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
   }
 
   public void TestRegularAssignment() {
-    configureBuildFeature(mySBuild);
+    configureBuildFeature(mySBuild, false);
 
     myProcessor.processBuild(myFailedBuildInfo);
 
@@ -195,15 +196,16 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
   }
 
   public void TestDefaultAssignmentIsRegular() {
-    configureBuildFeature(mySBuild);
+    configureBuildFeature(mySBuild, false);
 
     myProcessor.processBuild(myFailedBuildInfo);
 
     Mockito.verify(myFailedTestAssigner, Mockito.atLeastOnce()).assign(any(), any(), any(), anyList());
   }
 
-  private void configureBuildFeature(SBuild sBuild) {
+  private void configureBuildFeature(@NotNull SBuild sBuild, boolean delayedAssignment) {
     SBuildFeatureDescriptor sBuildFeatureDescriptor = Mockito.mock(SBuildFeatureDescriptor.class);
+    when(sBuildFeatureDescriptor.getParameters()).thenReturn(Collections.singletonMap(Constants.ASSIGN_ON_SECOND_FAILURE, String.valueOf(delayedAssignment)));
     when(sBuild.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE))
       .thenReturn(Collections.singletonList(sBuildFeatureDescriptor));
   }

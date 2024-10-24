@@ -18,12 +18,10 @@ public class FailedBuildInfo {
   private final Set<Integer> myProcessedTests = new HashSet<>();
   private final Set<Integer> myProcessedBuildProblems = new HashSet<>();
   private final HeuristicResult myHeuristicResult = new HeuristicResult();
-  private final boolean myShouldDelayAssignments;
   private int myProcessedCount = 0;
 
-  public FailedBuildInfo(final SBuild sBuild, final boolean shouldDelayAssignments) {
+  public FailedBuildInfo(final SBuild sBuild) {
     mySBuild = sBuild;
-    myShouldDelayAssignments = shouldDelayAssignments;
     myThreshold = CustomParameters.getMaxTestsPerBuildThreshold(sBuild);
   }
 
@@ -65,7 +63,7 @@ public class FailedBuildInfo {
   }
 
   public boolean shouldDelayAssignments() {
-    return myShouldDelayAssignments;
+    return CustomParameters.shouldDelayAssignments(mySBuild);
   }
 
   public boolean isOverProcessedProblemsThreshold() {

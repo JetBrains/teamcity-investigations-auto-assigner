@@ -5,6 +5,7 @@ package jetbrains.buildServer.investigationsAutoAssigner;
 import com.intellij.openapi.diagnostic.Logger;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -26,6 +27,7 @@ import jetbrains.buildServer.util.ThreadUtil;
 import jetbrains.buildServer.util.executors.ExecutorsFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.TestOnly;
 
 public class FailedTestAndBuildProblemsDispatcher {
   private static final Logger LOGGER = Constants.LOGGER;
@@ -73,11 +75,11 @@ public class FailedTestAndBuildProblemsDispatcher {
                                        @NotNull List<BuildProblemData> after) {
         if (!canSendNotifications()) return;
 
-        if (myFailedBuilds.containsKey(sBuild.getBuildId()) || shouldIgnore(sBuild) || !(sBuild instanceof BuildEx)) {
+        if (myFailedBuilds.containsKey(sBuild.getBuildId()) || shouldIgnore(sBuild)) {
           return;
         }
-        boolean shouldDelayAssignments = customParameters.shouldDelayAssignments(sBuild);
-        myFailedBuilds.put(sBuild.getBuildId(), new FailedBuildInfo(sBuild, shouldDelayAssignments));
+
+        myFailedBuilds.put(sBuild.getBuildId(), new FailedBuildInfo(sBuild));
       }
 
       @Override
@@ -261,5 +263,11 @@ public class FailedTestAndBuildProblemsDispatcher {
     }
 
     return !(myCustomParameters.isBuildFeatureEnabled(build) || myCustomParameters.isDefaultSilentModeEnabled(build));
+  }
+
+  @TestOnly
+  @NotNull
+  public Set<Long> getRememberedFailedBuilds() {
+    return myFailedBuilds.keySet();
   }
 }

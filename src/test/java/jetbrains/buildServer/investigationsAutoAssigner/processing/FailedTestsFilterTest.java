@@ -73,7 +73,7 @@ public class FailedTestsFilterTest extends BaseTestCase {
 
     myTestsWrapper = Collections.singletonList(mySTestRun);
     when(mySBuild.getParametersProvider()).thenReturn(Mockito.mock(ParametersProvider.class));
-    myFailedBuildInfo = new FailedBuildInfo(mySBuild, false);
+    myFailedBuildInfo = new FailedBuildInfo(mySBuild);
     myFailedTestFilter = new FailedTestFilter(myFlakyTestDetector, myInvestigationsManager);
   }
 
@@ -187,7 +187,7 @@ public class FailedTestsFilterTest extends BaseTestCase {
     setInternalProperty(Constants.IGNORE_SETUP_TEARDOWN_METHODS, "false");
 
     FailedTestFilter filter = new FailedTestFilter(myFlakyTestDetector, myInvestigationsManager);
-    applicableTestRuns = filter.apply(new FailedBuildInfo(mySBuild, false), mySProject, myTestsWrapper);
+    applicableTestRuns = filter.apply(new FailedBuildInfo(mySBuild), mySProject, myTestsWrapper);
 
     Assert.assertEquals(applicableTestRuns.size(), 3);
     Assert.assertEquals(applicableTestRuns.get(0), mySTestRun);

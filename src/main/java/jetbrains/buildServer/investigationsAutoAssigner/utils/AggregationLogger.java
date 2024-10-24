@@ -51,7 +51,7 @@ public class AggregationLogger {
       return;
     }
 
-    final FailedBuildInfo failedBuildInfo = new FailedBuildInfo(sBuild, true);
+    final FailedBuildInfo failedBuildInfo = new FailedBuildInfo(sBuild);
     String assignTriggeredBy = String.format("Assign was triggered by build '%s'#%s (url: %s).",
                                              sBuild.getBuildTypeName(),
                                              sBuild.getBuildId(),

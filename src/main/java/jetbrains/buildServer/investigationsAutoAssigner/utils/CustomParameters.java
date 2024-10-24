@@ -83,7 +83,7 @@ public class CustomParameters {
     return parsedValue >= 0 ? parsedValue : Integer.MAX_VALUE;
   }
 
-  public boolean shouldDelayAssignments(final SBuild sBuild) {
+  public static boolean shouldDelayAssignments(final SBuild sBuild) {
     final SBuildFeatureDescriptor sBuildFeature = getBuildFeatureDescriptor(sBuild);
     if (sBuildFeature == null) {
       return false;

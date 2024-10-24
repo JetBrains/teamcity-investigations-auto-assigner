@@ -3,7 +3,7 @@
 package jetbrains.buildServer.investigationsAutoAssigner;
 
 import java.util.Collections;
-import jetbrains.buildServer.agentServer.Server;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.DelayedAssignmentsProcessor;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.FailedTestAndBuildProblemsProcessor;
@@ -16,8 +16,7 @@ import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
+import static junit.framework.Assert.*;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.*;
 
@@ -33,6 +32,8 @@ public class FailedTestAndBuildProblemsDispatcherTest {
   private CustomParameters myCustomParameters;
   private DelayedAssignmentsProcessor myDelayedAssignmentsProcessor;
   private SBuildType mySBuildType;
+  private FailedTestAndBuildProblemsDispatcher myDispatcher;
+  private BuildsManager myBuildsManager;
 
   @BeforeMethod
   public void setUp() throws Throwable {
@@ -81,25 +82,34 @@ public class FailedTestAndBuildProblemsDispatcherTest {
 
     AggregationLogger aggregationLogger = mock(AggregationLogger.class);
     myCustomParameters = mock(CustomParameters.class);
-    when(myCustomParameters.shouldDelayAssignments(any())).thenReturn(false);
     when(myCustomParameters.isBuildFeatureEnabled(any())).thenReturn(true);
     StatisticsReporter statisticsReporter = mock(StatisticsReporter.class);
 
     ServerResponsibility serverResponsibility = mock(ServerResponsibility.class);
     when(serverResponsibility.canSendNotifications()).thenReturn(true);
 
-    final BuildsManager buildsManager = mock(BuildsManager.class);
-    when(buildsManager.findBuildInstanceById(239L)).thenReturn(myRunningBuild);
-    when(buildsManager.findBuildInstanceById(238L)).thenReturn(mySecondBuild);
+    myBuildsManager = mock(BuildsManager.class);
+    when(myBuildsManager.findBuildInstanceById(239L)).thenReturn(myRunningBuild);
+    when(myBuildsManager.findBuildInstanceById(238L)).thenReturn(mySecondBuild);
 
-    new FailedTestAndBuildProblemsDispatcher(myBsDispatcher,
-                                             processor,
-                                             myDelayedAssignmentsProcessor,
-                                             aggregationLogger,
-                                             statisticsReporter,
-                                             myCustomParameters,
-                                             buildsManager,
-                                             serverResponsibility);
+    SBuildFeatureDescriptor sBuildFeatureDescriptor = Mockito.mock(SBuildFeatureDescriptor.class);
+    when(sBuildFeatureDescriptor.getParameters()).thenReturn(Collections.singletonMap(Constants.ASSIGN_ON_SECOND_FAILURE, "false"));
+    when(myBuild.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE))
+      .thenReturn(Collections.singletonList(sBuildFeatureDescriptor));
+    when(myRunningBuild.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE))
+      .thenReturn(Collections.singletonList(sBuildFeatureDescriptor));
+    when(mySecondBuild.getBuildFeaturesOfType(Constants.BUILD_FEATURE_TYPE))
+      .thenReturn(Collections.singletonList(sBuildFeatureDescriptor));
+
+    myDispatcher =
+      new FailedTestAndBuildProblemsDispatcher(myBsDispatcher,
+                                               processor,
+                                               myDelayedAssignmentsProcessor,
+                                               aggregationLogger,
+                                               statisticsReporter,
+                                               myCustomParameters,
+                                               myBuildsManager,
+                                               serverResponsibility);
 
   }
 
@@ -107,14 +117,14 @@ public class FailedTestAndBuildProblemsDispatcherTest {
     when(myBuild.isPersonal()).thenReturn(true);
 
     myBsDispatcher.getMulticaster().buildProblemsChanged(myBuild, Collections.emptyList(), Collections.emptyList());
-    verifyMarkOfPassBuildProblemsChanged(0);
+    assertTrue(myDispatcher.getRememberedFailedBuilds().isEmpty());
   }
 
   public void Test_BuildProblemsChanged_FeatureBranchIgnored() {
     when(myBranch.isDefaultBranch()).thenReturn(false);
 
     myBsDispatcher.getMulticaster().buildProblemsChanged(myBuild, Collections.emptyList(), Collections.emptyList());
-    verifyMarkOfPassBuildProblemsChanged(0);
+    assertTrue(myDispatcher.getRememberedFailedBuilds().isEmpty());
   }
 
   public void Test_BuildProblemsChanged_NormalBuildAdded() {
@@ -122,73 +132,42 @@ public class FailedTestAndBuildProblemsDispatcherTest {
     when(myBuild.isPersonal()).thenReturn(false);
 
     myBsDispatcher.getMulticaster().buildProblemsChanged(myBuild, Collections.emptyList(), Collections.emptyList());
-    verifyMarkOfPassBuildProblemsChanged(1);
+    assertFalse(myDispatcher.getRememberedFailedBuilds().isEmpty());
   }
 
   public void Test_BuildProblemsChanged_BuildAddsOnlyOnce() {
     myBsDispatcher.getMulticaster().buildProblemsChanged(myBuild, Collections.emptyList(), Collections.emptyList());
     myBsDispatcher.getMulticaster().buildProblemsChanged(myBuild, Collections.emptyList(), Collections.emptyList());
-    verifyMarkOfPassBuildProblemsChanged(1);
+    assertFalse(myDispatcher.getRememberedFailedBuilds().isEmpty());
   }
 
   public void Test_BuildProblemsChanged_TwoBuilds() {
     myBsDispatcher.getMulticaster().buildProblemsChanged(myBuild, Collections.emptyList(), Collections.emptyList());
     myBsDispatcher.getMulticaster()
                   .buildProblemsChanged(mySecondBuild, Collections.emptyList(), Collections.emptyList());
-    verifyMarkOfPassBuildProblemsChanged(2);
+    assertEquals(2, myDispatcher.getRememberedFailedBuilds().size());
   }
 
   public void Test_BuildFinished_PersonalBuildIgnored() {
     when(myRunningBuild.isPersonal()).thenReturn(true);
     myBsDispatcher.getMulticaster().buildFinished(myRunningBuild);
-    verifyMarkOfPassForBuildFinished(0);
+    assertTrue(myDispatcher.getRememberedFailedBuilds().isEmpty());
   }
 
   public void Test_BuildFinished_FeatureBranchIgnored() {
     when(myBranch.isDefaultBranch()).thenReturn(false);
     myBsDispatcher.getMulticaster().buildFinished(myRunningBuild);
-    verifyMarkOfPassForBuildFinished(0);
+    assertTrue(myDispatcher.getRememberedFailedBuilds().isEmpty());
   }
 
   public void Test_BuildFinished_NormalCase() {
     when(myRunningBuild.isPersonal()).thenReturn(false);
     when(myBranch.isDefaultBranch()).thenReturn(true);
 
+    myBsDispatcher.getMulticaster().buildProblemsChanged(myRunningBuild, Collections.emptyList(), Collections.emptyList());
+    assertFalse(myDispatcher.getRememberedFailedBuilds().isEmpty());
     myBsDispatcher.getMulticaster().buildFinished(myRunningBuild);
-    verifyMarkOfPassForBuildFinished(1);
+    assertTrue(myDispatcher.getRememberedFailedBuilds().isEmpty());
   }
 
-  private void verifyMarkOfPassBuildProblemsChanged(int expectedExecutions) {
-    await().atMost(1, SECONDS)
-           .pollDelay(50, MILLISECONDS)
-           .pollInterval(50, MILLISECONDS)
-           .until(() -> verifyMarkOfPassBuildProblemsChangedSilent(expectedExecutions));
-    verify(myCustomParameters, times(expectedExecutions)).shouldDelayAssignments(any());
-  }
-
-  private boolean verifyMarkOfPassBuildProblemsChangedSilent(int expectedExecutions) {
-    try {
-      verify(myCustomParameters, times(expectedExecutions)).shouldDelayAssignments(any());
-      return true;
-    } catch (AssertionError err) {
-      return false;
-    }
-  }
-
-  private void verifyMarkOfPassForBuildFinished(int expectedExecutions) {
-    await().atMost(1, SECONDS)
-           .pollDelay(50, MILLISECONDS)
-           .pollInterval(50, MILLISECONDS)
-           .until(() -> verifyMarkOfPassForBuildFinishedSilent(expectedExecutions));
-    verify(mySBuildType, times(expectedExecutions)).getInternalId();
-  }
-
-  private boolean verifyMarkOfPassForBuildFinishedSilent(int expectedExecutions) {
-    try {
-      verify(mySBuildType, times(expectedExecutions)).getInternalId();
-      return true;
-    } catch (AssertionError err) {
-      return false;
-    }
-  }
 }
