@@ -1,5 +1,3 @@
-
-
 package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
 import java.util.ArrayList;
@@ -23,23 +21,57 @@ import org.jetbrains.annotations.NotNull;
 
 import static jetbrains.buildServer.investigationsAutoAssigner.common.Constants.LOGGER;
 
+/**
+ * Handles automatic assignment of build problem investigations based on heuristic analysis.
+ * <p>
+ * This class assigns responsibility for build problems to users identified by heuristics.
+ * It uses {@link HeuristicResult} to determine responsible users and delegates responsibility
+ * assignment to {@link BuildProblemResponsibilityFacade}. Assigned responsibilities are reported
+ * via {@link StatisticsReporter}.
+ * </p>
+ *
+ * @see BaseAssigner
+ * @see HeuristicResult
+ * @see BuildProblemResponsibilityFacade
+ */
 public class BuildProblemsAssigner implements BaseAssigner {
 
-  @NotNull private final BuildProblemResponsibilityFacade myBuildProblemResponsibilityFacade;
-  private final StatisticsReporter myStatisticsReporter;
-  private final WebLinks myWebLinks;
-  private final TargetProjectFinder myTargetProjectFinder;
+  @NotNull private final BuildProblemResponsibilityFacade buildProblemResponsibilityFacade;
+  private final StatisticsReporter statisticsReporter;
+  private final WebLinks webLinks;
+  private final TargetProjectFinder targetProjectFinder;
 
+  /**
+   * Constructs a {@code BuildProblemsAssigner} instance.
+   *
+   * @param buildProblemResponsibilityFacade the facade for assigning responsibilities to build problems
+   * @param webLinks                         the utility for generating links to builds
+   * @param statisticsReporter               the reporter for logging assigned investigations
+   * @param targetProjectFinder              the utility to determine the appropriate project for assignment
+   */
   public BuildProblemsAssigner(@NotNull final BuildProblemResponsibilityFacade buildProblemResponsibilityFacade,
                                @NotNull final WebLinks webLinks,
                                @NotNull final StatisticsReporter statisticsReporter,
                                @NotNull final TargetProjectFinder targetProjectFinder) {
-    myBuildProblemResponsibilityFacade = buildProblemResponsibilityFacade;
-    myStatisticsReporter = statisticsReporter;
-    myWebLinks = webLinks;
-    myTargetProjectFinder = targetProjectFinder;
+    this.buildProblemResponsibilityFacade = buildProblemResponsibilityFacade;
+    this.statisticsReporter = statisticsReporter;
+    this.webLinks = webLinks;
+    this.targetProjectFinder = targetProjectFinder;
   }
 
+  /**
+   * Assigns responsibility for build problems based on heuristic analysis.
+   * <p>
+   * This method processes a set of build problems and assigns responsibility to users based
+   * on the results of the provided heuristic analysis. Responsibilities are assigned at the
+   * project level, and the results are logged.
+   * </p>
+   *
+   * @param heuristicsResult the result of the heuristic analysis that determines responsible users
+   * @param sProject         the project where the build problems occurred
+   * @param sBuild           the specific build in which the problems were found
+   * @param buildProblems    the list of build problems to be assigned
+   */
   void assign(final HeuristicResult heuristicsResult,
               final SProject sProject,
               final SBuild sBuild,
@@ -49,13 +81,12 @@ public class BuildProblemsAssigner implements BaseAssigner {
     HashMap<Responsibility, List<BuildProblemInfo>> responsibilityToBuildProblem = new HashMap<>();
     for (BuildProblem buildProblem : buildProblems) {
       Responsibility responsibility = heuristicsResult.getResponsibility(buildProblem);
-      responsibilityToBuildProblem.putIfAbsent(responsibility, new ArrayList<>());
-      List<BuildProblemInfo> buildProblemList = responsibilityToBuildProblem.get(responsibility);
-      buildProblemList.add(buildProblem);
+      responsibilityToBuildProblem
+        .computeIfAbsent(responsibility, k -> new ArrayList<>())
+        .add(buildProblem);
     }
 
-    SProject targetProject =
-      myTargetProjectFinder.getPreferredInvestigationProject(sProject, null);
+    SProject targetProject = this.targetProjectFinder.getPreferredInvestigationProject(sProject, null);
     if (targetProject == null) {
       targetProject = sProject;
     }
@@ -69,8 +100,8 @@ public class BuildProblemsAssigner implements BaseAssigner {
                                   responsibility.getDescription()));
         List<BuildProblemInfo> buildProblemList = responsibilityToBuildProblem.get(responsibility);
 
-        String linkToBuild = myWebLinks.getViewResultsUrl(sBuild);
-        myBuildProblemResponsibilityFacade.setBuildProblemResponsibility(
+        String linkToBuild = this.webLinks.getViewResultsUrl(sBuild);
+        this.buildProblemResponsibilityFacade.setBuildProblemResponsibility(
           buildProblemList,
           targetProject.getProjectId(),
           new ResponsibilityEntryEx(
@@ -78,7 +109,7 @@ public class BuildProblemsAssigner implements BaseAssigner {
             responsibility.getAssignDescription(linkToBuild), getRemoveMethod(sBuild.getBuildType()))
         );
 
-        myStatisticsReporter.reportAssignedInvestigations(buildProblemList.size(), responsibility);
+        this.statisticsReporter.reportAssignedInvestigations(buildProblemList.size(), responsibility);
       }
     }
   }

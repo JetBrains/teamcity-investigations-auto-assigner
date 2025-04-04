@@ -2,9 +2,21 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.common;
 
-import com.intellij.openapi.diagnostic.Logger ;
+import com.intellij.openapi.diagnostic.Logger;
 import jetbrains.buildServer.ArtifactsConstants;
 
+/**
+ * Contains various constants used throughout the Auto-Assigner plugin, including build feature types,
+ * configuration parameters, file paths, and internal properties.
+ * <p>
+ * Key constants include:
+ * <ul>
+ *     <li>{@link #BUILD_FEATURE_TYPE} - The build feature type for investigations auto-assigner.</li>
+ *     <li>{@link #DEFAULT_RESPONSIBLE} - The default responsible user's configuration parameter.</li>
+ *     <li>{@link #MAX_TESTS_PER_BUILD_NUMBER} - The maximum number of tests to process per build.</li>
+ *     <li>{@link #ASSIGN_DESCRIPTION_PREFIX} - The prefix used for assigning descriptions in notifications.</li>
+ * </ul>
+ */
 public class Constants {
   // Plugin's ids
   public static final String BUILD_FEATURE_TYPE = "InvestigationsAutoAssigner";
@@ -18,32 +30,40 @@ public class Constants {
   public static final String ASSIGN_ON_SECOND_FAILURE = "assignOnSecondFailure";
 
   // Build configuration parameter and internal property
-  public static final String DEFAULT_SILENT_MODE_ENABLED = "teamcity.investigationsAutoAssigner.suggestions.enabledByDefault";
-  public static final String ENABLE_FEATURE_BRANCHES_SUPPORT = "teamcity.investigationsAutoAssigner.enableFeatureBranchesSupport";
-  public static final String MAX_TESTS_PER_BUILD_NUMBER = "teamcity.investigationsAutoAssigner.maxTestsFailuresToProcessPerBuild";
-  public static final String SHOULD_PERSIST_FILTERED_TESTS_DESCRIPTION = "teamcity.investigationsAutoAssigner.persistFilteredTests";
+  public static final String DEFAULT_SILENT_MODE_ENABLED =
+    "teamcity.investigationsAutoAssigner.suggestions.enabledByDefault";
+  public static final String ENABLE_FEATURE_BRANCHES_SUPPORT =
+    "teamcity.investigationsAutoAssigner.enableFeatureBranchesSupport";
+  public static final String MAX_TESTS_PER_BUILD_NUMBER =
+    "teamcity.investigationsAutoAssigner.maxTestsFailuresToProcessPerBuild";
+  public static final String SHOULD_PERSIST_FILTERED_TESTS_DESCRIPTION =
+    "teamcity.investigationsAutoAssigner.persistFilteredTests";
   public static final String SHOULD_ASSIGN_RESOLVE_MANUALLY = "investigationsAutoAssigner.assignResolveManually";
 
   // Server internal properties
-  public static final String PROCESSING_DELAY_IN_SECONDS = "teamcity.investigationsAutoAssigner.scheduledTaskInterval.seconds";
+  public static final String PROCESSING_DELAY_IN_SECONDS =
+    "teamcity.investigationsAutoAssigner.scheduledTaskInterval.seconds";
 
   // Server internal properties (debug use only)
   public static final String STATISTICS_ENABLED = "teamcity.investigationsAutoAssigner.statisticsEnabled";
 
-  public static final String MAX_COMPILE_ERRORS_TO_PROCESS = "teamcity.investigationsAutoAssigner.maxCompileErrorsToProcess";
+  public static final String MAX_COMPILE_ERRORS_TO_PROCESS =
+    "teamcity.investigationsAutoAssigner.maxCompileErrorsToProcess";
 
-  public static final String IGNORE_SETUP_TEARDOWN_METHODS = "teamcity.investigationsAutoAssigner.ignoreSetupAndTearDown";
+  public static final String IGNORE_SETUP_TEARDOWN_METHODS =
+    "teamcity.investigationsAutoAssigner.ignoreSetupAndTearDown";
 
   public static final String PREFERRED_INVESTIGATION_PROJECT = "teamcity.internal.preferredInvestigationProject";
   /**
    * When set (default), Auto-assigner will check {@link Constants#PREFERRED_INVESTIGATION_PROJECT} parameter
    * to find out target project for the auto-assigned investigation.
    *
-   * @since 2022.2
    * @see "https://youtrack.jetbrains.com/issue/TW-74512"
+   * @since 2022.2
    */
   public static final String USE_PREFERRED_PROJECT = "teamcity.internal.investigationsAutoAssigner.usePreferredProject";
-  public static final String IGNORE_SNAPSHOT_DEPENDENCY_ERRORS_IN_DEFAULT_HEURISTIC = "teamcity.internal.investigationsAutoAssigner.defaultUserHeuristic.ignoreSnapshotDependencyErrors";
+  public static final String IGNORE_SNAPSHOT_DEPENDENCY_ERRORS_IN_DEFAULT_HEURISTIC =
+    "teamcity.internal.investigationsAutoAssigner.defaultUserHeuristic.ignoreSnapshotDependencyErrors";
 
   //Constants
   public final static String TEAMCITY_DIRECTORY = ArtifactsConstants.TEAMCITY_ARTIFACTS_DIR;
@@ -56,7 +76,8 @@ public class Constants {
   public static final String STATISTICS_FILE_VERSION = "1.6";
   public static final String ASSIGN_DESCRIPTION_PREFIX = "Investigation was automatically assigned to";
   public static final String ASSIGNEE_FILTERED_LITERAL = "-";
-  public static final String ASSIGNEE_FILTERED_DESCRIPTION_PREFIX = "This failed test was filtered by investigation auto assigner because it ";
+  public static final String ASSIGNEE_FILTERED_DESCRIPTION_PREFIX =
+    "This failed test was filtered by investigation auto assigner because it ";
 
   public static final Logger LOGGER = Logger.getInstance("jetbrains.buildServer.investigationsAutoAssigner");
   public static final Logger AGGREGATION_LOGGER = Logger.getInstance("InvestigationsAutoAssignerAggregation");

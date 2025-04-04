@@ -16,7 +16,7 @@ import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import static junit.framework.Assert.*;
+import static org.junit.Assert.*;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.*;
 
