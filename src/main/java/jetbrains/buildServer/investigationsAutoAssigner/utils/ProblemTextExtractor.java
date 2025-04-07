@@ -2,61 +2,38 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.utils;
 
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.HashMap;
+import java.util.Map;
 import jetbrains.buildServer.BuildProblemTypes;
-import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.STest;
 import jetbrains.buildServer.serverSide.STestRun;
-import jetbrains.buildServer.serverSide.TeamCityProperties;
-import jetbrains.buildServer.serverSide.buildLog.LogMessage;
-import jetbrains.buildServer.serverSide.problems.BuildLogCompileErrorCollector;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.tests.TestName;
-import jetbrains.buildServer.util.ItemProcessor;
-import jetbrains.buildServer.util.StringUtil;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import static jetbrains.buildServer.serverSide.impl.problems.types.CompilationErrorTypeDetailsProvider.COMPILE_BLOCK_INDEX;
+import org.jetbrains.annotations.NotNull;
+
 
 public class ProblemTextExtractor {
-  public String getBuildProblemText(@NotNull final BuildProblem problem, @NotNull final SBuild build) {
-    StringBuilder problemSpecificText = new StringBuilder();
+  private final Map<String, BuildProblemTextExtractor> textExtractorsMap = new HashMap<>();
+  private final BuildProblemTextExtractor defaultExtractor;
 
-    // todo make an extension point here
-    if (problem.getBuildProblemData().getType().equals(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE)) {
-      final Integer compileBlockIndex = getCompileBlockIndex(problem);
-      if (compileBlockIndex != null) {
-        AtomicInteger maxErrors = new AtomicInteger(TeamCityProperties.getInteger(Constants.MAX_COMPILE_ERRORS_TO_PROCESS, 100));
-        BuildLogCompileErrorCollector.collectCompileErrors(compileBlockIndex, build, new ItemProcessor<LogMessage>() {
-          @Override
-          public boolean processItem(final LogMessage item) {
-            problemSpecificText.append(item.getText()).append(" ");
-            return maxErrors.decrementAndGet() > 0;
-          }
-        });
-      }
-    }
+  public ProblemTextExtractor() {
+    this.textExtractorsMap.put(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE, new CompilationErrorTextExtractor());
 
-    return problemSpecificText + " " + problem.getBuildProblemDescription();
+    this.defaultExtractor = (problem, build) -> {
+      String description = problem.getBuildProblemDescription();
+      return description != null ? description : "no problem description available";
+    };
+  }
+  public String getBuildProblemText(@NotNull BuildProblem problem, @NotNull SBuild build) {
+    String type = problem.getBuildProblemData().getType();
+    BuildProblemTextExtractor extractor = textExtractorsMap.getOrDefault(type, defaultExtractor);
+    return extractor.extractText(problem, build);
   }
 
-  @Nullable
-  private static Integer getCompileBlockIndex(@NotNull final BuildProblem problem) {
-    final String compilationBlockIndex = problem.getBuildProblemData().getAdditionalData();
-    if (compilationBlockIndex == null) return null;
 
-    try {
-      return Integer.parseInt(
-        StringUtil.stringToProperties(compilationBlockIndex, StringUtil.STD_ESCAPER2).get(COMPILE_BLOCK_INDEX));
-    } catch (Exception e) {
-      return null;
-    }
-  }
-
-  public String getBuildProblemText(STestRun sTestRun) {
+  public String getFailedTestText(@NotNull STestRun sTestRun) {
     final STest test = sTestRun.getTest();
     final TestName testName = test.getName();
     return testName.getAsString() + " " + sTestRun.getFullText();

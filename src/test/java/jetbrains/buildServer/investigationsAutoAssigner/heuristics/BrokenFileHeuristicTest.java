@@ -63,7 +63,7 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
                                               Collections.emptySet());
     myBuildPromotion = Mockito.mock(BuildPromotionEx.class);
     when(SBuild.getBuildPromotion()).thenReturn(myBuildPromotion);
-    when(myProblemTextExtractor.getBuildProblemText(any())).thenReturn("I contain ./path1/path1/path1/filename");
+    when(myProblemTextExtractor.getFailedTestText(any())).thenReturn("I contain ./path1/path1/path1/filename");
     myChangeDescriptor = Mockito.mock(ChangeDescriptor.class);
     final SVcsModification vcsModification = Mockito.mock(SVcsModification.class);
     when(myChangeDescriptor.getRelatedVcsChange()).thenReturn(vcsModification);
@@ -120,7 +120,7 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
   public void TestCorrectCase() {
     String filePath = "./path1/path1/path1/filename";
     String theProblemText = "I contain " + filePath;
-    when(myProblemTextExtractor.getBuildProblemText(any())).thenReturn(theProblemText);
+    when(myProblemTextExtractor.getFailedTestText(any())).thenReturn(theProblemText);
 
     Pair<User, String> result = Pair.create(myUser, filePath);
     when(myFirstVcsChangeWrapped.findProblematicFile(theProblemText, Collections.emptySet())).thenReturn(result);
@@ -147,7 +147,7 @@ public class BrokenFileHeuristicTest extends BaseTestCase {
     String firstFilePath = "./path1/path1/path1/filename";
     String secondFilePath = "./path4/path4/path4/filename";
     String theProblemText = "I contain " + firstFilePath + "and" + secondFilePath;
-    when(myProblemTextExtractor.getBuildProblemText(any())).thenReturn(theProblemText);
+    when(myProblemTextExtractor.getFailedTestText(any())).thenReturn(theProblemText);
 
     Pair<User, String> firstResult = Pair.create(myUser, firstFilePath);
     Pair<User, String> secondResult = Pair.create(mySecondUser, secondFilePath);
