@@ -32,6 +32,8 @@ public class Constants {
 
   public static final String MAX_COMPILE_ERRORS_TO_PROCESS = "teamcity.investigationsAutoAssigner.maxCompileErrorsToProcess";
 
+  public static int DEFAULT_MAX_COMPILE_ERRORS_TO_PROCESS = 100;
+
   public static final String IGNORE_SETUP_TEARDOWN_METHODS = "teamcity.investigationsAutoAssigner.ignoreSetupAndTearDown";
 
   public static final String PREFERRED_INVESTIGATION_PROJECT = "teamcity.internal.preferredInvestigationProject";

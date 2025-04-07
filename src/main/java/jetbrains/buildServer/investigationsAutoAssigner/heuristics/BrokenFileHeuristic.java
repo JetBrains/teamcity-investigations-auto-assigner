@@ -72,7 +72,7 @@ public class BrokenFileHeuristic implements Heuristic {
     SBuild sBuild = heuristicContext.getBuild();
 
     for (STestRun sTestRun : heuristicContext.getTestRuns()) {
-      String problemText = myProblemTextExtractor.getBuildProblemText(sTestRun);
+      String problemText = myProblemTextExtractor.getFailedTestText(sTestRun);
       Responsibility responsibility = findResponsibleUser(vcsChanges, problemText, heuristicContext);
       if (responsibility != null) {
         result.addResponsibility(sTestRun, responsibility);
