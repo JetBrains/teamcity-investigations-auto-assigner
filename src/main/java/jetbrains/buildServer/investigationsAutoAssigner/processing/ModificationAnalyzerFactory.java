@@ -4,9 +4,14 @@ package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
 import com.intellij.openapi.util.Pair;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
-import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicNotApplicableException;
+import jetbrains.buildServer.investigationsAutoAssigner.exceptions.HeuristicNotApplicableException;
 import jetbrains.buildServer.users.SUser;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.util.FileUtil;
@@ -35,23 +40,19 @@ public class ModificationAnalyzerFactory {
     private final SVcsModification myVcsChange;
 
     private ModificationAnalyzer(@NotNull SVcsModification vcsChange) {
-      myVcsChange = vcsChange;
+      this.myVcsChange = vcsChange;
     }
 
     @Nullable
     public Pair<User, String> findProblematicFile(String problemText, Set<String> usersToIgnore)
       throws HeuristicNotApplicableException {
       String filePath = findBrokenFile(myVcsChange, problemText);
-      if (filePath == null) {
-        return null;
-      }
+      if (filePath == null) return null;
 
       @Nullable
       User committer = getOnlyCommitter(usersToIgnore);
 
-      if (committer == null) {
-        return null;
-      }
+      if (committer == null) return null;
 
       return Pair.create(committer, filePath);
     }
@@ -68,9 +69,8 @@ public class ModificationAnalyzerFactory {
                                                 .filter(user -> !usersToIgnore.contains(user.getUsername()))
                                                 .collect(Collectors.toList());
 
-      if (filteredCommitters.isEmpty()) {
-        return null;
-      }
+      if (filteredCommitters.isEmpty()) return null;
+
 
       if (filteredCommitters.size() > 1) {
         throw new HeuristicNotApplicableException("there are more than one committer");
@@ -78,63 +78,63 @@ public class ModificationAnalyzerFactory {
 
       return filteredCommitters.get(0);
     }
-  }
 
-  @Nullable
-  private static String findBrokenFile(@NotNull final SVcsModification vcsChange, @NotNull final String problemText) {
-    for (VcsFileModification modification : vcsChange.getChanges()) {
-      final String filePath = modification.getRelativeFileName();
-      for (String pattern : getPatterns(filePath)) {
-        if (problemText.contains(pattern)) {
-          return filePath;
+    @Nullable
+    private static String findBrokenFile(@NotNull final SVcsModification vcsChange, @NotNull final String problemText) {
+      for (VcsFileModification modification : vcsChange.getChanges()) {
+        final String filePath = modification.getRelativeFileName();
+        for (String pattern : getPatterns(filePath)) {
+          if (problemText.contains(pattern)) {
+            return filePath;
+          }
         }
       }
+      return null;
     }
-    return null;
-  }
 
-  /**
-   * This method is required to separate path1/path2/fileName with path3/path4/fileName.
-   * Also it allows to handle different separators. Currently supported: '.','/','\' separators.
-   *
-   * @param filePath - filePath of the modification
-   * @return various combination of fileName and its parents(up to 2th level) with separators.
-   */
-  @NotNull
-  private static List<String> getPatterns(@NotNull final String filePath) {
-    final List<String> parts = new ArrayList<>();
-    String withoutExtension = FileUtil.getNameWithoutExtension(new File(filePath));
-    if (withoutExtension.isEmpty()) {
-      return Collections.emptyList();
-    }
-    parts.add(withoutExtension);
+    /**
+     * This method is required to separate path1/path2/fileName with path3/path4/fileName.
+     * Also it allows to handle different separators. Currently supported: '.','/','\' separators.
+     *
+     * @param filePath - filePath of the modification
+     * @return various combination of fileName and its parents(up to 2th level) with separators.
+     */
+    @NotNull
+    private static List<String> getPatterns(@NotNull final String filePath) {
+      final List<String> parts = new ArrayList<>();
+      String withoutExtension = FileUtil.getNameWithoutExtension(new File(filePath));
+      if (withoutExtension.isEmpty()) {
+        return Collections.emptyList();
+      }
+      parts.add(withoutExtension);
 
-    String path = getParentPath(filePath);
-    if (path != null) {
-      parts.add(0, new File(path).getName());
-      path = getParentPath(path);
+      String path = getParentPath(filePath);
       if (path != null) {
         parts.add(0, new File(path).getName());
+        path = getParentPath(path);
+        if (path != null) {
+          parts.add(0, new File(path).getName());
+        }
       }
+
+      if (isSmallPattern(parts)) {
+        String withExtension = FileUtil.getName(filePath);
+        parts.set(0, withExtension);
+      }
+
+      return Arrays.asList(join(parts, "."), join(parts, "/"), join(parts, "\\"));
     }
 
-    if (isSmallPattern(parts)) {
-      String withExtension = FileUtil.getName(filePath);
-      parts.set(0, withExtension);
+    private static boolean isSmallPattern(final List<String> parts) {
+      return join(parts, ".").length() <= TOO_SMALL_PATTERN_THRESHOLD;
     }
 
-    return Arrays.asList(join(parts, "."), join(parts, "/"), join(parts, "\\"));
-  }
-
-  private static boolean isSmallPattern(final List<String> parts) {
-    return join(parts, ".").length() <= TOO_SMALL_PATTERN_THRESHOLD;
-  }
-
-  // we do not use File#getParentFile() instead because we must not take current
-  // working directory into account, i.e. getParentPath("abc") must return null
-  @Nullable
-  private static String getParentPath(@NotNull final String path) {
-    final int lastSlashPos = path.replace('\\', '/').lastIndexOf('/');
-    return lastSlashPos == -1 ? null : path.substring(0, lastSlashPos);
+    // we do not use File#getParentFile() instead because we must not take current
+    // working directory into account, i.e. getParentPath("abc") must return null
+    @Nullable
+    private static String getParentPath(@NotNull final String path) {
+      final int lastSlashPos = path.replace('\\', '/').lastIndexOf('/');
+      return lastSlashPos == -1 ? null : path.substring(0, lastSlashPos);
+    }
   }
 }

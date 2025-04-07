@@ -13,7 +13,7 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class StatisticsDao {
+public class StatisticsDao {
 
   private final Path myStatisticsPath;
   private final Path myPluginDataDirectory;
@@ -21,22 +21,22 @@ class StatisticsDao {
   private Statistics myStatisticsOnDisc;
 
   StatisticsDao(@NotNull final Path pluginDataDir) {
-    myGson = new Gson();
-    myPluginDataDirectory = pluginDataDir.resolve(Constants.PLUGIN_DATA_DIR);
-    myStatisticsPath = myPluginDataDirectory.resolve(Constants.STATISTICS_FILE_NAME);
-    myStatisticsOnDisc = new Statistics();
+    this.myGson = new Gson();
+    this.myPluginDataDirectory = pluginDataDir.resolve(Constants.PLUGIN_DATA_DIR);
+    this.myStatisticsPath = myPluginDataDirectory.resolve(Constants.STATISTICS_FILE_NAME);
+    this.myStatisticsOnDisc = new Statistics();
   }
 
   @NotNull
   Statistics read() {
     if (!Files.exists(myStatisticsPath)) {
       myStatisticsOnDisc = new Statistics();
-      return myStatisticsOnDisc.clone();
+      return myStatisticsOnDisc.copy();
     }
 
     try (BufferedReader reader = Files.newBufferedReader(myStatisticsPath)) {
       myStatisticsOnDisc = parseStatistics(reader);
-      return myStatisticsOnDisc.clone();
+      return myStatisticsOnDisc.copy();
     } catch (IOException ex) {
       throw new RuntimeException("An error during reading statistics occurs", ex);
     }

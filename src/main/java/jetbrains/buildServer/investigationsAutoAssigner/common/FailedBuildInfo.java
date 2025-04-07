@@ -12,7 +12,6 @@ import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.jetbrains.annotations.NotNull;
 
 public class FailedBuildInfo {
-
   private final SBuild myBuild;
   private final int myThreshold;
   private final Set<Integer> myProcessedTests = new HashSet<>();
@@ -21,8 +20,8 @@ public class FailedBuildInfo {
   private int myProcessedCount = 0;
 
   public FailedBuildInfo(@NotNull final SBuild build) {
-    myBuild = build;
-    myThreshold = CustomParameters.getMaxTestsPerBuildThreshold(build);
+    this.myBuild = build;
+    this.myThreshold = CustomParameters.getMaxTestsPerBuildThreshold(build);
   }
 
   @NotNull
@@ -34,25 +33,15 @@ public class FailedBuildInfo {
     return myBuild.getBuildId();
   }
 
-  public void addProcessedTestRuns(@NotNull Collection<STestRun> tests) {
-    for (STestRun testRun : tests) {
-      myProcessedTests.add(testRun.getTestRunId());
-    }
-  }
+  public void addProcessedTestRuns(@NotNull Collection<STestRun> tests) { tests.forEach(testRun -> myProcessedTests.add(testRun.getTestRunId())); }
 
-  public void addProcessedBuildProblems(@NotNull Collection<BuildProblem> buildProblems) {
-    for (BuildProblem buildProblem : buildProblems) {
-      myProcessedBuildProblems.add(buildProblem.getId());
-    }
-  }
+  public void addProcessedBuildProblems(@NotNull Collection<BuildProblem> buildProblems) { buildProblems.forEach(buildProblem -> myProcessedBuildProblems.add(buildProblem.getId())); }
 
   public boolean checkNotProcessed(STestRun sTestRun) {
     return !myProcessedTests.contains(sTestRun.getTestRunId());
   }
 
-  public boolean checkNotProcessed(final BuildProblem buildProblem) {
-    return !myProcessedBuildProblems.contains(buildProblem.getId());
-  }
+  public boolean checkNotProcessed(final BuildProblem buildProblem) { return !myProcessedBuildProblems.contains(buildProblem.getId()); }
 
   public void addHeuristicsResult(final HeuristicResult heuristicsResult) {
     myHeuristicResult.merge(heuristicsResult);
@@ -74,7 +63,5 @@ public class FailedBuildInfo {
     return myThreshold - myProcessedCount;
   }
 
-  public void increaseProcessedNumber(final int numberOfProcessedProblems) {
-    myProcessedCount += numberOfProcessedProblems;
-  }
+  public void increaseProcessedNumber(final int numberOfProcessedProblems) { myProcessedCount += numberOfProcessedProblems; }
 }

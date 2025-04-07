@@ -9,7 +9,12 @@ import jetbrains.buildServer.investigationsAutoAssigner.utils.TargetProjectFinde
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
 import jetbrains.buildServer.responsibility.ResponsibilityEntryEx;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityFacade;
-import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.serverSide.ProjectManager;
+import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.SBuildServer;
+import jetbrains.buildServer.serverSide.SProject;
+import jetbrains.buildServer.serverSide.STest;
+import jetbrains.buildServer.serverSide.STestManager;
 import jetbrains.buildServer.serverSide.auth.AuthorityHolder;
 import jetbrains.buildServer.serverSide.auth.Permission;
 import jetbrains.buildServer.serverSide.auth.SecurityContext;
@@ -41,13 +46,13 @@ public class AssignInvestigationController extends BaseController {
                                        @NotNull final ProjectManager projectManager,
                                        @NotNull final TargetProjectFinder targetProjectFinder) {
     super(server);
-    mySecurityContext = securityContext;
-    myProjectManager = projectManager;
-    myTargetProjectFinder = targetProjectFinder;
+    this.mySecurityContext = securityContext;
+    this.myProjectManager = projectManager;
+    this.myTargetProjectFinder = targetProjectFinder;
     controllerManager.registerController("/assignInvestigation.html", this);
-    myTestNameResponsibilityFacade = testNameResponsibilityFacade;
-    myUserModel = userModelEx;
-    myTestManager = sTestManager;
+    this.myTestNameResponsibilityFacade = testNameResponsibilityFacade;
+    this.myUserModel = userModelEx;
+    this.myTestManager = sTestManager;
   }
 
   @Nullable
@@ -66,9 +71,7 @@ public class AssignInvestigationController extends BaseController {
     }
 
     final String description = request.getParameter("description");
-    if (description == null) {
-      throw new IllegalArgumentException("Description is not specified");
-    }
+    if (description == null) throw new IllegalArgumentException("Description is not specified");
 
 
     AuthorityHolder authorityHolder = mySecurityContext.getAuthorityHolder();
@@ -76,9 +79,7 @@ public class AssignInvestigationController extends BaseController {
     @Nullable
     User reporterUser = authorityHolder.getAssociatedUser();
 
-    if (reporterUser == null) {
-      reporterUser = SessionUser.getUser(request);
-    }
+    if (reporterUser == null) reporterUser = SessionUser.getUser(request);
 
     @Nullable final SBuild build = myServer.findBuildInstanceById(buildId);
     if (build == null) throw new IllegalStateException("Build was not found by provided buildId");
@@ -117,6 +118,4 @@ public class AssignInvestigationController extends BaseController {
 
     return null;
   }
-
-
 }

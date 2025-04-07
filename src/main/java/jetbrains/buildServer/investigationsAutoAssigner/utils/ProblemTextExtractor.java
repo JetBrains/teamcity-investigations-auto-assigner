@@ -2,19 +2,15 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.utils;
 
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.serverSide.SBuild;
-import jetbrains.buildServer.serverSide.STest;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.serverSide.TeamCityProperties;
-import jetbrains.buildServer.serverSide.buildLog.LogMessage;
 import jetbrains.buildServer.serverSide.problems.BuildLogCompileErrorCollector;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.tests.TestName;
-import jetbrains.buildServer.util.ItemProcessor;
 import jetbrains.buildServer.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,12 +26,10 @@ public class ProblemTextExtractor {
       final Integer compileBlockIndex = getCompileBlockIndex(problem);
       if (compileBlockIndex != null) {
         AtomicInteger maxErrors = new AtomicInteger(TeamCityProperties.getInteger(Constants.MAX_COMPILE_ERRORS_TO_PROCESS, 100));
-        BuildLogCompileErrorCollector.collectCompileErrors(compileBlockIndex, build, new ItemProcessor<LogMessage>() {
-          @Override
-          public boolean processItem(final LogMessage item) {
-            problemSpecificText.append(item.getText()).append(" ");
-            return maxErrors.decrementAndGet() > 0;
-          }
+
+        BuildLogCompileErrorCollector.collectCompileErrors(compileBlockIndex, build, item -> {
+          problemSpecificText.append(item.getText()).append(" ");
+          return maxErrors.decrementAndGet() > 0;
         });
       }
     }
@@ -57,8 +51,7 @@ public class ProblemTextExtractor {
   }
 
   public String getBuildProblemText(STestRun sTestRun) {
-    final STest test = sTestRun.getTest();
-    final TestName testName = test.getName();
+    final TestName testName = sTestRun.getTest().getName();
     return testName.getAsString() + " " + sTestRun.getFullText();
   }
 }

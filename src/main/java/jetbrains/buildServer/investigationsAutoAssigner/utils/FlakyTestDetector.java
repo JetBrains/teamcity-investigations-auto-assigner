@@ -2,7 +2,13 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.utils;
 
-import javax.management.*;
+import com.intellij.openapi.diagnostic.Logger;
+import javax.management.InstanceNotFoundException;
+import javax.management.MBeanException;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
+import javax.management.ReflectionException;
 
 import static java.lang.String.format;
 import static java.lang.management.ManagementFactory.getPlatformMBeanServer;
@@ -16,7 +22,7 @@ public class FlakyTestDetector {
    * Whether InstanceNotFoundException has been caught.
    */
   private boolean instanceNotFound = false;
-  private final com.intellij.openapi.diagnostic.Logger LOGGER = com.intellij.openapi.diagnostic.Logger.getInstance(FlakyTestDetector.class.getName());
+  private static final Logger LOGGER = Logger.getInstance(FlakyTestDetector.class.getName());
 
   /**
    * If Flaky Test Detector plug-in is not installed, returns false

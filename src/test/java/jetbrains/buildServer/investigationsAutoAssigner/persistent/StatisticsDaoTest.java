@@ -4,11 +4,13 @@ package jetbrains.buildServer.investigationsAutoAssigner.persistent;
 
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
-import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -91,11 +93,13 @@ public class StatisticsDaoTest {
   }
 
   private String readGold(String resourceName) {
-    File resource = new File(SuggestionsDao.class.getResource("/gold/" + resourceName).getFile());
-
+    URL resource = StatisticsDaoTest.class.getResource("/gold/" + resourceName);
+    if (resource == null) {
+        throw new RuntimeException("GOLD " + resourceName + " not found");
+    }
     try {
-      return new String(Files.readAllBytes(resource.toPath()));
-    } catch (IOException e) {
+      return new String(Files.readAllBytes(Paths.get(resource.toURI())));
+    } catch (IOException | URISyntaxException e) {
       throw new RuntimeException("Can not read GOLD " + resourceName);
     }
   }

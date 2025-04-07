@@ -11,9 +11,15 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerArtifactDao;
-import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.parameters.ParametersProvider;
-import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.serverSide.BuildEx;
+import jetbrains.buildServer.serverSide.BuildStatistics;
+import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.SBuildFeatureDescriptor;
+import jetbrains.buildServer.serverSide.SBuildType;
+import jetbrains.buildServer.serverSide.SProject;
+import jetbrains.buildServer.serverSide.STest;
+import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import jetbrains.buildServer.tests.TestName;
 import jetbrains.buildServer.users.SUser;
@@ -37,7 +43,6 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
   private FailedBuildInfo myFailedBuildInfo;
   private HeuristicResult myNotEmptyHeuristicResult;
   private FailedTestAssigner myFailedTestAssigner;
-  private ParametersProvider myParametersProvider;
   private SUser mySUser;
   private BuildProblemsAssigner myBuildProblemsAssigner;
   private BuildProblemsFilter myBuildProblemsFilter;
@@ -57,8 +62,7 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
                                                           myFailedTestAssigner,
                                                           myBuildProblemsFilter,
                                                           myBuildProblemsAssigner,
-                                                          myAssignerArtifactDao,
-                                                          new CustomParameters());
+                                                          myAssignerArtifactDao);
 
     //configure tests
     TestName testNameMock = Mockito.mock(TestName.class);
@@ -84,7 +88,7 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
     when(mySBuildType.getProject()).thenReturn(sProject);
 
     //configure parameters provider
-    myParametersProvider = Mockito.mock(ParametersProvider.class);
+    final ParametersProvider myParametersProvider = Mockito.mock(ParametersProvider.class);
 
     //configure build
     mySBuild = Mockito.mock(BuildEx.class);
@@ -188,14 +192,6 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
   }
 
   public void TestRegularAssignment() {
-    configureBuildFeature(mySBuild, false);
-
-    myProcessor.processBuild(myFailedBuildInfo);
-
-    Mockito.verify(myFailedTestAssigner, Mockito.atLeastOnce()).assign(any(), any(), any(), anyList());
-  }
-
-  public void TestDefaultAssignmentIsRegular() {
     configureBuildFeature(mySBuild, false);
 
     myProcessor.processBuild(myFailedBuildInfo);

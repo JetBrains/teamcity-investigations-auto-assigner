@@ -13,7 +13,11 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerArtifactDao;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
-import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.serverSide.BuildEx;
+import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.SProject;
+import jetbrains.buildServer.serverSide.STestRun;
+import jetbrains.buildServer.serverSide.TeamCityProperties;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +31,6 @@ public class FailedTestAndBuildProblemsProcessor extends BaseProcessor {
   private final FailedTestAssigner myFailedTestAssigner;
   private final BuildProblemsAssigner myBuildProblemsAssigner;
   @NotNull private final AssignerArtifactDao myAssignerArtifactDao;
-  private final CustomParameters myCustomParameters;
   @NotNull private final ResponsibleUserFinder myResponsibleUserFinder;
 
 
@@ -36,15 +39,13 @@ public class FailedTestAndBuildProblemsProcessor extends BaseProcessor {
                                              @NotNull final FailedTestAssigner failedTestAssigner,
                                              @NotNull final BuildProblemsFilter buildProblemsFilter,
                                              @NotNull final BuildProblemsAssigner buildProblemsAssigner,
-                                             @NotNull final AssignerArtifactDao assignerArtifactDao,
-                                             @NotNull final CustomParameters customParameters) {
-    myResponsibleUserFinder = responsibleUserFinder;
-    myFailedTestFilter = failedTestFilter;
-    myFailedTestAssigner = failedTestAssigner;
-    myBuildProblemsFilter = buildProblemsFilter;
-    myBuildProblemsAssigner = buildProblemsAssigner;
-    myAssignerArtifactDao = assignerArtifactDao;
-    myCustomParameters = customParameters;
+                                             @NotNull final AssignerArtifactDao assignerArtifactDao) {
+    this.myResponsibleUserFinder = responsibleUserFinder;
+    this.myFailedTestFilter = failedTestFilter;
+    this.myFailedTestAssigner = failedTestAssigner;
+    this.myBuildProblemsFilter = buildProblemsFilter;
+    this.myBuildProblemsAssigner = buildProblemsAssigner;
+    this.myAssignerArtifactDao = assignerArtifactDao;
   }
 
   public void processBuild(final FailedBuildInfo failedBuildInfo) {
@@ -85,7 +86,7 @@ public class FailedTestAndBuildProblemsProcessor extends BaseProcessor {
       return;
     }
 
-    if (myCustomParameters.isBuildFeatureEnabled(sBuild) && !failedBuildInfo.shouldDelayAssignments()) {
+    if (CustomParameters.isBuildFeatureEnabled(sBuild) && !failedBuildInfo.shouldDelayAssignments()) {
       myFailedTestAssigner.assign(heuristicsResult, sProject, sBuild, testsForAssign);
       myBuildProblemsAssigner.assign(heuristicsResult, sProject, sBuild, problemsForAssign);
       failedBuildInfo.addHeuristicsResult(heuristicsResult);
@@ -93,7 +94,7 @@ public class FailedTestAndBuildProblemsProcessor extends BaseProcessor {
       return;
     }
 
-    if (!myCustomParameters.isBuildFeatureEnabled(sBuild)) {
+    if (!CustomParameters.isBuildFeatureEnabled(sBuild)) {
       if (LOGGER.isDebugEnabled()) {
         LOGGER.debug(String.format("Build id:%s. Found investigations but build feature is not configured.",
                                    sBuild.getBuildId()));

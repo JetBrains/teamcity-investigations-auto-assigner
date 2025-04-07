@@ -2,7 +2,6 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.heuristics;
 
-import com.intellij.openapi.diagnostic.Logger;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.DefaultUserResponsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
@@ -19,16 +18,13 @@ import jetbrains.buildServer.users.impl.UserEx;
 import jetbrains.buildServer.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
-import static jetbrains.buildServer.investigationsAutoAssigner.processing.BuildProblemsFilter.snapshotDependencyErrorTypes;
+import static jetbrains.buildServer.investigationsAutoAssigner.processing.BuildProblemsFilter.SNAPSHOT_DEPENDENCY_ERROR_TYPES;
 
 public class DefaultUserHeuristic implements Heuristic {
-
-  private static final Logger LOGGER = Constants.LOGGER;
-
   @NotNull private final UserModelEx myUserModel;
 
   public DefaultUserHeuristic(@NotNull final UserModelEx userModel) {
-    myUserModel = userModel;
+    this.myUserModel = userModel;
   }
 
   @Override
@@ -59,7 +55,7 @@ public class DefaultUserHeuristic implements Heuristic {
     Responsibility responsibility = new DefaultUserResponsibility(responsibleUser);
     heuristicContext.getBuildProblems()
                     .stream()
-                    .filter(buildProblem -> applyForSnapshotDependencyErrors || !snapshotDependencyErrorTypes.contains(buildProblem.getBuildProblemData().getType()))
+                    .filter(buildProblem -> applyForSnapshotDependencyErrors || !SNAPSHOT_DEPENDENCY_ERROR_TYPES.contains(buildProblem.getBuildProblemData().getType()))
                     .forEach(buildProblem -> result.addResponsibility(buildProblem, responsibility));
     heuristicContext.getTestRuns().forEach(testRun -> result.addResponsibility(testRun, responsibility));
 
@@ -67,9 +63,8 @@ public class DefaultUserHeuristic implements Heuristic {
   }
 
   private boolean shouldApplyForSnapshotDependencyErrors(SBuild build) {
-    if (build.isCompositeBuild()) {
-      return true;
-    }
+    if (build.isCompositeBuild()) return true;
+
     SBuildType buildType = build.getBuildType();
     boolean ignoreSnapshotDependencyErrors =
       buildType instanceof BuildTypeEx

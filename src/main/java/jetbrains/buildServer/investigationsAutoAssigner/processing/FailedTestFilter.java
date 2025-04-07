@@ -13,7 +13,11 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.FailedBuildInfo;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.FlakyTestDetector;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.InvestigationsManager;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.Utils;
-import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.SProject;
+import jetbrains.buildServer.serverSide.STest;
+import jetbrains.buildServer.serverSide.STestRun;
+import jetbrains.buildServer.serverSide.TeamCityProperties;
 import jetbrains.buildServer.tests.TestName;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
@@ -28,9 +32,9 @@ public class FailedTestFilter {
 
   public FailedTestFilter(@NotNull FlakyTestDetector flakyTestDetector,
                           @NotNull InvestigationsManager investigationsManager) {
-    myFlakyTestDetector = flakyTestDetector;
-    myInvestigationsManager = investigationsManager;
-    myIgnoreSetupMethods = TeamCityProperties.getBooleanOrTrue(Constants.IGNORE_SETUP_TEARDOWN_METHODS);
+    this.myFlakyTestDetector = flakyTestDetector;
+    this.myInvestigationsManager = investigationsManager;
+    this.myIgnoreSetupMethods = TeamCityProperties.getBooleanOrTrue(Constants.IGNORE_SETUP_TEARDOWN_METHODS);
   }
 
   List<STestRun> apply(@NotNull final FailedBuildInfo failedBuildInfo,
@@ -44,9 +48,7 @@ public class FailedTestFilter {
                        @NotNull final List<STestRun> testRuns,
                        @NotNull final Map<Long, String> notApplicableTestDescription) {
     SBuild sBuild = failedBuildInfo.getBuild();
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug(String.format("Filtering of failed tests for build id:%s started", sBuild.getBuildId()));
-    }
+    loggerDebugInfo(String.format("Filtering of failed tests for build id:%s started", sBuild.getBuildId()));
 
     List<STestRun> filteredTestRuns = testRuns.stream()
                                               .sorted(Comparator.comparingInt(STestRun::getOrderId))
@@ -72,9 +74,7 @@ public class FailedTestFilter {
                                     @NotNull final List<STestRun> testRuns,
                                     @NotNull final Map<Long, String> notApplicableTestDescription) {
     SBuild sBuild = failedBuildInfo.getBuild();
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug(String.format("Filtering before assign of failed tests for build id:%s started", sBuild.getBuildId()));
-    }
+    loggerDebugInfo(String.format("Filtering before assign of failed tests for build id:%s started", sBuild.getBuildId()));
     return testRuns.stream()
                    .filter(testRun -> isApplicable(sProject, sBuild, testRun, notApplicableTestDescription))
                    .collect(Collectors.toList());
@@ -102,13 +102,11 @@ public class FailedTestFilter {
     }
 
     boolean isApplicable = reason == null;
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug(String.format("%s Test problem is %s.%s",
+    loggerDebugInfo(String.format("%s Test problem is %s.%s",
                                  Utils.getLogPrefix(testRun),
                                  (isApplicable ? "applicable" : "not applicable"),
-                                 (isApplicable ? "" : String.format(" Reason: this test %s.", reason))
-      ));
-    }
+                                 (isApplicable ? "" : String.format(" Reason: this test %s.", reason))));
+
     if (!isApplicable && testRun.isNewFailure()) {
       notApplicableTestDescription.put(testRun.getTest().getTestNameId(), reason);
     }
@@ -118,5 +116,11 @@ public class FailedTestFilter {
   private boolean isSetUpOrTearDown(@NotNull TestName testName) {
     final String methodName = testName.getTestMethodName().toLowerCase();
     return methodName.contains("setup") || methodName.contains("teardown");
+  }
+
+  private void loggerDebugInfo(String message) {
+    if(LOGGER.isDebugEnabled()) {
+      LOGGER.debug(message);
+    }
   }
 }

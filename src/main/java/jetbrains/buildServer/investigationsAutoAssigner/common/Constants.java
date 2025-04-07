@@ -2,7 +2,7 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.common;
 
-import com.intellij.openapi.diagnostic.Logger ;
+import com.intellij.openapi.diagnostic.Logger;
 import jetbrains.buildServer.ArtifactsConstants;
 
 public class Constants {
@@ -46,10 +46,10 @@ public class Constants {
   public static final String IGNORE_SNAPSHOT_DEPENDENCY_ERRORS_IN_DEFAULT_HEURISTIC = "teamcity.internal.investigationsAutoAssigner.defaultUserHeuristic.ignoreSnapshotDependencyErrors";
 
   //Constants
-  public final static String TEAMCITY_DIRECTORY = ArtifactsConstants.TEAMCITY_ARTIFACTS_DIR;
-  public final static String TEST_RUN_IN_REQUEST = "loadedTestRun";
-  public final static int DEFAULT_TEST_COUNT_THRESHOLD = 100;
-  public final static String ARTIFACT_DIRECTORY = "investigationsAutoAssigner";
+  public static final String TEAMCITY_DIRECTORY = ArtifactsConstants.TEAMCITY_ARTIFACTS_DIR;
+  public static final String TEST_RUN_IN_REQUEST = "loadedTestRun";
+  public static final int DEFAULT_TEST_COUNT_THRESHOLD = 100;
+  public static final String ARTIFACT_DIRECTORY = "investigationsAutoAssigner";
   public static final String PLUGIN_DATA_DIR = ARTIFACT_DIRECTORY;
   public static final String ARTIFACT_FILENAME = "suggestions.json";
   public static final String STATISTICS_FILE_NAME = "statistics.json";

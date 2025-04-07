@@ -16,31 +16,23 @@ public class HeuristicResult {
   private HashMap<Integer, Responsibility> buildProblem2Responsibility;
 
   public HeuristicResult() {
-    testRun2Responsibility = new HashMap<>();
-    buildProblem2Responsibility = new HashMap<>();
+    this.testRun2Responsibility = new HashMap<>();
+    this.buildProblem2Responsibility = new HashMap<>();
   }
 
-  public void addResponsibility(final STestRun sTestRun, final Responsibility responsibility) {
-    testRun2Responsibility.put(sTestRun.getTestRunId(), responsibility);
-  }
+  public void addResponsibility(final STestRun sTestRun, final Responsibility responsibility) { testRun2Responsibility.put(sTestRun.getTestRunId(), responsibility); }
 
-  public void addResponsibility(final BuildProblem buildProblem, final Responsibility responsibility) {
-    buildProblem2Responsibility.put(buildProblem.getId(), responsibility);
-  }
+  public void addResponsibility(final BuildProblem buildProblem, final Responsibility responsibility) { buildProblem2Responsibility.put(buildProblem.getId(), responsibility); }
 
   @Nullable
-  public Responsibility getResponsibility(final STestRun sTestRun) {
-    return testRun2Responsibility.get(sTestRun.getTestRunId());
-  }
+  public Responsibility getResponsibility(final STestRun sTestRun) { return testRun2Responsibility.get(sTestRun.getTestRunId()); }
 
   @Nullable
-  public Responsibility getResponsibility(final BuildProblem buildProblem) {
-    return buildProblem2Responsibility.get(buildProblem.getId());
-  }
+  public Responsibility getResponsibility(final BuildProblem buildProblem) { return buildProblem2Responsibility.get(buildProblem.getId()); }
 
   public void merge(final HeuristicResult heuristicResult) {
-    testRun2Responsibility.putAll(heuristicResult.testRun2Responsibility);
-    buildProblem2Responsibility.putAll(heuristicResult.buildProblem2Responsibility);
+    this.testRun2Responsibility.putAll(heuristicResult.testRun2Responsibility);
+    this.buildProblem2Responsibility.putAll(heuristicResult.buildProblem2Responsibility);
   }
 
   public boolean isEmpty() {

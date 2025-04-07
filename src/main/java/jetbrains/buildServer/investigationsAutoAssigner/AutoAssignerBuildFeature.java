@@ -16,7 +16,7 @@ public class AutoAssignerBuildFeature extends BuildFeature {
   private final String myEditUrl;
 
   public AutoAssignerBuildFeature(@NotNull final PluginDescriptor descriptor) {
-    myEditUrl = descriptor.getPluginResourcesPath(AutoAssignerBuildFeatureController.CONTROLLER_URL);
+    this.myEditUrl = descriptor.getPluginResourcesPath(AutoAssignerBuildFeatureController.CONTROLLER_URL);
   }
 
   @NotNull

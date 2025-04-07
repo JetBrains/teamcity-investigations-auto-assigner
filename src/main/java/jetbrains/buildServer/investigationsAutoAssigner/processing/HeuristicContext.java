@@ -19,18 +19,18 @@ public final class HeuristicContext {
   private final List<STestRun> mySTestRuns;
   private final SBuild mySBuild;
   private final Set<String> myUsersToIgnore;
-  private Set<Long> myCommitersIds = null;
+  private Set<Long> myCommittersIds = null;
 
   public HeuristicContext(SBuild sBuild,
                           SProject sProject,
                           List<BuildProblem> buildProblems,
                           List<STestRun> sTestRuns,
                           @NotNull Set<String> usernameBlackList) {
-    mySBuild = sBuild;
-    mySProject = sProject;
-    myBuildProblems = buildProblems;
-    mySTestRuns = sTestRuns;
-    myUsersToIgnore = usernameBlackList;
+    this.mySBuild = sBuild;
+    this.mySProject = sProject;
+    this.myBuildProblems = buildProblems;
+    this.mySTestRuns = sTestRuns;
+    this.myUsersToIgnore = usernameBlackList;
   }
 
   @NotNull
@@ -57,12 +57,9 @@ public final class HeuristicContext {
   }
 
   @NotNull
-  public Set<Long> getCommitersIds() {
-    if (myCommitersIds == null) {
-      myCommitersIds = calculateCommitersIds(mySBuild);
-    }
-
-    return myCommitersIds;
+  public Set<Long> getCommittersIds() {
+    if (myCommittersIds == null) myCommittersIds = calculateCommitersIds(mySBuild);
+    return myCommittersIds;
   }
 
   private static Set<Long> calculateCommitersIds(SBuild sBuild) {

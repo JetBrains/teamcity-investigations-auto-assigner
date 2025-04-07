@@ -13,17 +13,16 @@ import jetbrains.buildServer.util.StringUtil;
 
 public class StatisticsReporter {
   private final StatisticsDao myStatisticsDao;
-  private Statistics myStatistics;
+  private final Statistics myStatistics;
 
   public StatisticsReporter(StatisticsDaoFactory statisticsDaoFactory,
                             ExecutorServices executorServices) {
-    myStatisticsDao = statisticsDaoFactory.get();
-    myStatistics = myStatisticsDao.read();
-    StatisticsReporter instance = this;
+    this.myStatisticsDao = statisticsDaoFactory.get();
+    this.myStatistics = myStatisticsDao.read();
     int delayInSeconds = CustomParameters.getProcessingDelayInSeconds();
     executorServices
       .getNormalExecutorService()
-      .scheduleWithFixedDelay(instance::saveDataOnDisk, delayInSeconds, delayInSeconds, TimeUnit.SECONDS);
+      .scheduleWithFixedDelay(this::saveDataOnDisk, delayInSeconds, delayInSeconds, TimeUnit.SECONDS);
   }
 
   public synchronized void reportShownButton() {

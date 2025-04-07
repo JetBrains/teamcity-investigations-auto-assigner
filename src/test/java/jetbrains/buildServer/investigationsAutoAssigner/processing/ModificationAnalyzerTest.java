@@ -6,7 +6,7 @@ import com.intellij.openapi.util.Pair;
 import java.util.Arrays;
 import java.util.Collections;
 import jetbrains.buildServer.BaseTestCase;
-import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicNotApplicableException;
+import jetbrains.buildServer.investigationsAutoAssigner.exceptions.HeuristicNotApplicableException;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.users.impl.UserEx;
 import jetbrains.buildServer.vcs.SVcsModification;
@@ -25,7 +25,7 @@ public class ModificationAnalyzerTest extends BaseTestCase {
   private UserEx mySecondUser;
   private SVcsModification myMod;
   private ModificationAnalyzerFactory.ModificationAnalyzer myWrappedVcsChange;
-  private String myFilePath =  "./path1/path1/path1/filename";
+  private static final String MY_FILE_PATH =  "./path1/path1/path1/filename";
 
   @BeforeMethod
   @Override
@@ -41,7 +41,7 @@ public class ModificationAnalyzerTest extends BaseTestCase {
     when(mySecondUser.getUsername()).thenReturn(secondUserUsername);
 
     VcsFileModification changeMod = Mockito.mock(VcsFileModification.class);
-    when(changeMod.getRelativeFileName()).thenReturn(myFilePath);
+    when(changeMod.getRelativeFileName()).thenReturn(MY_FILE_PATH);
     myMod = Mockito.mock(SVcsModification.class);
     when(myMod.getCommitters()).thenReturn(Collections.singletonList(myFirstUser));
     when(myMod.getChanges()).thenReturn(Collections.singletonList(changeMod));
@@ -59,11 +59,11 @@ public class ModificationAnalyzerTest extends BaseTestCase {
   }
 
   public void TestBrokenFile_CorrectCase() {
-    String problematicText = "I contain " + myFilePath;
+    String problematicText = "I contain " + MY_FILE_PATH;
     Pair<User, String> result = myWrappedVcsChange.findProblematicFile(problematicText, Collections.emptySet());
     Assert.assertNotNull(result);
     Assert.assertEquals(result.first, myFirstUser);
-    Assert.assertEquals(result.second, myFilePath);
+    Assert.assertEquals(result.second, MY_FILE_PATH);
   }
 
   public void TestBrokenFile_GitIgnoreCase() {
@@ -79,7 +79,7 @@ public class ModificationAnalyzerTest extends BaseTestCase {
 
   @Test(expectedExceptions = HeuristicNotApplicableException.class)
   public void TestBrokenFile_ManyCommitters() {
-    String problematicText = "I contain " + myFilePath;
+    String problematicText = "I contain " + MY_FILE_PATH;
 
     when(myMod.getCommitters()).thenReturn(Arrays.asList(myFirstUser, mySecondUser));
 
@@ -87,7 +87,7 @@ public class ModificationAnalyzerTest extends BaseTestCase {
   }
 
   public void TestBrokenFile_UsersToIgnore() {
-    String problematicText = "I contain " + myFilePath;
+    String problematicText = "I contain " + MY_FILE_PATH;
 
     when(myMod.getCommitters()).thenReturn(Arrays.asList(myFirstUser, mySecondUser));
 

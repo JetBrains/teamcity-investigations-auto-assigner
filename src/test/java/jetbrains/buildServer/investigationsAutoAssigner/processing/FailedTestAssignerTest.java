@@ -13,7 +13,11 @@ import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsRep
 import jetbrains.buildServer.investigationsAutoAssigner.utils.TargetProjectFinder;
 import jetbrains.buildServer.parameters.ParametersProvider;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityFacade;
-import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.SProject;
+import jetbrains.buildServer.serverSide.STest;
+import jetbrains.buildServer.serverSide.STestRun;
+import jetbrains.buildServer.serverSide.WebLinks;
 import jetbrains.buildServer.tests.TestName;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.users.UserSet;
@@ -24,7 +28,10 @@ import org.testng.annotations.Test;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.only;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 
 @Test
 public class FailedTestAssignerTest extends BaseTestCase {

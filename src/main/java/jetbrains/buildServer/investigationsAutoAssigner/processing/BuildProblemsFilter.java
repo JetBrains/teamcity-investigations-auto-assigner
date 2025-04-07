@@ -3,7 +3,11 @@
 package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
 import com.intellij.openapi.diagnostic.Logger;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import jetbrains.buildServer.BuildProblemTypes;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
@@ -22,9 +26,9 @@ import org.springframework.stereotype.Component;
 public class BuildProblemsFilter {
 
   private static final Logger LOGGER = Constants.LOGGER;
-  public final static Set<String> supportedEverywhereTypes = Collections.unmodifiableSet(
+  public static final Set<String> SUPPORTED_EVERYWHERE_TYPES = Collections.unmodifiableSet(
     new HashSet<>(Arrays.asList(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE, BuildProblemTypes.TC_EXIT_CODE_TYPE)));
-  public final static Set<String> snapshotDependencyErrorTypes = Collections.unmodifiableSet(
+  public static final Set<String> SNAPSHOT_DEPENDENCY_ERROR_TYPES = Collections.unmodifiableSet(
     new HashSet<>(Arrays.asList(ErrorData.SNAPSHOT_DEPENDENCY_ERROR_BUILD_PROCEEDS_TYPE,
                                 ErrorData.SNAPSHOT_DEPENDENCY_ERROR_TYPE)));
   private final BuildProblemUtils myBuildProblemUtils;
@@ -34,18 +38,17 @@ public class BuildProblemsFilter {
   public BuildProblemsFilter(@NotNull final InvestigationsManager investigationsManager,
                              @NotNull final BuildProblemUtils buildProblemUtils,
                              @NotNull final CustomParameters customParameters) {
-    myInvestigationsManager = investigationsManager;
-    myBuildProblemUtils = buildProblemUtils;
-    myCustomParameters = customParameters;
+    this.myInvestigationsManager = investigationsManager;
+    this.myBuildProblemUtils = buildProblemUtils;
+    this.myCustomParameters = customParameters;
   }
 
   List<BuildProblem> apply(final FailedBuildInfo failedBuildInfo,
                            final SProject sProject,
                            final List<BuildProblem> buildProblems) {
     SBuild sBuild = failedBuildInfo.getBuild();
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug(String.format("Filtering of build problems for build id:%s started", sBuild.getBuildId()));
-    }
+    loggerDebugInfo(String.format("Filtering of build problems for build id:%s started", sBuild.getBuildId()));
+
 
     List<BuildProblem> filteredBuildProblems = buildProblems.stream()
                                                             .filter(failedBuildInfo::checkNotProcessed)
@@ -64,9 +67,7 @@ public class BuildProblemsFilter {
                                         final SProject sProject,
                                         final List<BuildProblem> allBuildProblems) {
     SBuild sBuild = failedBuildInfo.getBuild();
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug(String.format("Filtering before assign of build problems for build id:%s started", sBuild.getBuildId()));
-    }
+    loggerDebugInfo(String.format("Filtering before assign of build problems for build id:%s started", sBuild.getBuildId()));
 
     return allBuildProblems.stream()
                            .filter(buildProblem -> isApplicable(sProject, sBuild, buildProblem))
@@ -92,15 +93,17 @@ public class BuildProblemsFilter {
     }
 
     boolean isApplicable = reason == null;
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug(String.format("Build problem id:%s:%s is %s.%s",
+    loggerDebugInfo(String.format("Build problem id:%s:%s is %s.%s",
                                  sBuild.getBuildId(),
                                  problem.getTypeDescription(),
                                  (isApplicable ? "applicable" : "not applicable"),
-                                 (isApplicable ? "" : String.format(" Reason: this build problem %s.", reason))
-      ));
-    }
-
+                                 (isApplicable ? "" : String.format(" Reason: this build problem %s.", reason))));
     return isApplicable;
+  }
+
+  private void loggerDebugInfo(String message) {
+    if(LOGGER.isDebugEnabled()) {
+        LOGGER.debug(message);
+    }
   }
 }

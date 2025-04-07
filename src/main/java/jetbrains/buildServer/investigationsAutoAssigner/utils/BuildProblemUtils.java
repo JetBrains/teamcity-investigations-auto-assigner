@@ -25,10 +25,6 @@ public class BuildProblemUtils {
   private boolean containsBuildProblem(@Nullable List<BuildProblem> problems,
                                               @NotNull BuildProblem buildProblem) {
     if (problems == null) return false;
-
-    for (BuildProblem problem: problems) {
-      if (buildProblem.getId() == problem.getId()) return true;
-    }
-    return false;
+    return problems.stream().anyMatch(problem -> buildProblem.getId() == problem.getId());
   }
 }

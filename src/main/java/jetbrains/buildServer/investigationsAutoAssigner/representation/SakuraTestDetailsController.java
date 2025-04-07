@@ -7,7 +7,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import jetbrains.buildServer.controllers.BaseController;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
-import jetbrains.buildServer.web.openapi.*;
+import jetbrains.buildServer.web.openapi.PagePlaces;
+import jetbrains.buildServer.web.openapi.PlaceId;
+import jetbrains.buildServer.web.openapi.PluginDescriptor;
+import jetbrains.buildServer.web.openapi.PluginUIContext;
+import jetbrains.buildServer.web.openapi.SimplePageExtension;
+import jetbrains.buildServer.web.openapi.WebControllerManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.web.servlet.ModelAndView;
@@ -20,11 +25,11 @@ public class SakuraTestDetailsController extends BaseController {
                                      @NotNull final PluginDescriptor descriptor,
                                      @NotNull final WebControllerManager controllerManager) {
     String url = "/sakuraTestDetailsExtension.html";
-    myExtension = new SimplePageExtension(pagePlaces,
+    this.myExtension = new SimplePageExtension(pagePlaces,
           new PlaceId("SAKURA_TEST_DETAILS_ACTIONS"),
           Constants.BUILD_FEATURE_TYPE,
           url);
-    myPluginDescriptor = descriptor;
+    this.myPluginDescriptor = descriptor;
     controllerManager.registerController(url, this);
   }
 

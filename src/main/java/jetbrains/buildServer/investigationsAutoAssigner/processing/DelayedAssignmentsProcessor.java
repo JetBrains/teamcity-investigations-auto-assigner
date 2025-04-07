@@ -18,7 +18,6 @@ import jetbrains.buildServer.serverSide.problems.BuildProblem;
 
 public class DelayedAssignmentsProcessor extends BaseProcessor {
   private static final Logger LOGGER = Constants.LOGGER;
-
   private final BuildProblemsFilter myBuildProblemsFilter;
   private final FailedTestFilter myFailedTestFilter;
   private final AggregationLogger myAggregationLogger;
@@ -30,11 +29,11 @@ public class DelayedAssignmentsProcessor extends BaseProcessor {
                                      BuildProblemsFilter buildProblemsFilter,
                                      FailedTestFilter failedTestFilter,
                                      AggregationLogger aggregationLogger) {
-    myBuildProblemsAssigner = buildProblemsAssigner;
-    myFailedTestAssigner = failedTestAssigner;
-    myBuildProblemsFilter = buildProblemsFilter;
-    myFailedTestFilter = failedTestFilter;
-    myAggregationLogger = aggregationLogger;
+    this.myBuildProblemsAssigner = buildProblemsAssigner;
+    this.myFailedTestAssigner = failedTestAssigner;
+    this.myBuildProblemsFilter = buildProblemsFilter;
+    this.myFailedTestFilter = failedTestFilter;
+    this.myAggregationLogger = aggregationLogger;
   }
 
   public void processBuild(final FailedBuildInfo failedBuildInfo, SBuild nextBuild) {

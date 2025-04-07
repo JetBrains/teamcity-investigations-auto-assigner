@@ -33,10 +33,10 @@ public class AssignerArtifactDao {
                              @NotNull final SuggestionsDao suggestionsDao,
                              @NotNull final AssignerResultsFilePath assignerResultsFilePath,
                              @NotNull final StatisticsReporter statisticsReporter) {
-    myUserModel = userModel;
-    mySuggestionsDao = suggestionsDao;
-    myAssignerResultsFilePath = assignerResultsFilePath;
-    myStatisticsReporter = statisticsReporter;
+    this.myUserModel = userModel;
+    this.mySuggestionsDao = suggestionsDao;
+    this.myAssignerResultsFilePath = assignerResultsFilePath;
+    this.myStatisticsReporter = statisticsReporter;
   }
 
   public void appendHeuristicsResult(@NotNull SBuild build,
@@ -80,9 +80,9 @@ public class AssignerArtifactDao {
     for (STestRun testRun : testRuns) {
       Responsibility responsibility = heuristicResult.getResponsibility(testRun);
       if (responsibility != null) {
-        result.add(new ResponsibilityPersistentInfo(String.valueOf(testRun.getTest().getTestNameId()),
-                                                    String.valueOf(responsibility.getUser().getId()),
-                                                    responsibility.getDescription()));
+        result.add(generatePersistentInfo(String.valueOf(testRun.getTest().getTestNameId()),
+                                          String.valueOf(responsibility.getUser().getId()),
+                                          responsibility.getDescription()));
       }
     }
     return result;
@@ -91,43 +91,47 @@ public class AssignerArtifactDao {
   @Nullable
   public Responsibility get(@Nullable SBuild firstFailedBuild, @NotNull STestRun testRun) {
     List<ResponsibilityPersistentInfo> suggestions;
-    try {
-      Path resultsFilePath = firstFailedBuild != null ?
-                             myAssignerResultsFilePath.getIfExist(firstFailedBuild, testRun) :
-                             myAssignerResultsFilePath.getIfExist(testRun.getBuild(), testRun);
+    String testRunLogPrefix = Utils.getLogPrefix(testRun);
 
+    try {
+      Path resultsFilePath = getResultsFilePath(firstFailedBuild, testRun);
       suggestions = mySuggestionsDao.read(resultsFilePath);
     } catch (IOException ex) {
-      LOGGER.warn(String.format("%s An error occurs during reading of file with results",
-                                Utils.getLogPrefix(testRun)), ex);
+      LOGGER.warn(String.format("%s An error occurs during reading of file with results", testRunLogPrefix), ex);
       return null;
     }
 
     for (ResponsibilityPersistentInfo persistentInfo : suggestions) {
       if (persistentInfo.testNameId.equals(String.valueOf(testRun.getTest().getTestNameId()))) {
-        if (persistentInfo.investigatorId.equals(Constants.ASSIGNEE_FILTERED_LITERAL)) {
+        if (persistentInfo.investigatorId.equals(Constants.ASSIGNEE_FILTERED_LITERAL)) return generateFilteredResponsibility(persistentInfo.reason);
 
-          return TeamCityProperties.getBoolean(SHOULD_PERSIST_FILTERED_TESTS_DESCRIPTION) ?
-                 new Responsibility(myUserModel.getGuestUser(),
-                                    Constants.ASSIGNEE_FILTERED_DESCRIPTION_PREFIX + persistentInfo.reason) :
-                 null;
-        }
-        LOGGER.debug(String.format("%s Investigation for testRun %s was found",
-                                   Utils.getLogPrefix(testRun), testRun.getTestRunId()));
+        LOGGER.debug(String.format("%s Investigation for testRun %s was found", testRunLogPrefix, testRun.getTestRunId()));
+
         User user = myUserModel.findUserById(Long.parseLong(persistentInfo.investigatorId));
-        if (user == null) {
-          LOGGER.warn(String.format("%s User with id '%s' was not found in user model.", Utils.getLogPrefix(testRun),
-                                    persistentInfo.investigatorId));
-        }
-        return user != null ? new Responsibility(user, persistentInfo.reason) : null;
+        if (user != null) return new Responsibility(user, persistentInfo.reason);
+
+        LOGGER.warn(String.format("%s User with id '%s' was not found in user model.", testRunLogPrefix, persistentInfo.investigatorId));
+        return null;
       }
     }
 
     if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug(String.format("%s Investigation for testRun '%s' wasn't found",
-                                 Utils.getLogPrefix(testRun), testRun.getTestRunId()));
+      LOGGER.debug(String.format("%s Investigation for testRun '%s' wasn't found", testRunLogPrefix, testRun.getTestRunId()));
     }
     return null;
+  }
+
+  private Responsibility generateFilteredResponsibility(String persistentInfoReason) {
+    if (TeamCityProperties.getBoolean(SHOULD_PERSIST_FILTERED_TESTS_DESCRIPTION)) {
+      return new Responsibility(myUserModel.getGuestUser(), Constants.ASSIGNEE_FILTERED_DESCRIPTION_PREFIX + persistentInfoReason);
+    }
+    return null;
+  }
+
+  private Path getResultsFilePath(@Nullable SBuild firstFailedBuild, @NotNull STestRun testRun) throws IOException {
+    return firstFailedBuild != null
+           ? myAssignerResultsFilePath.getIfExist(firstFailedBuild, testRun)
+           : myAssignerResultsFilePath.getIfExist(testRun.getBuild(), testRun);
   }
 
   public void appendNotApplicableTestsDescription(@NotNull final SBuild build,
@@ -140,11 +144,14 @@ public class AssignerArtifactDao {
   private List<ResponsibilityPersistentInfo> getPersistentInfoList(final Map<Long, String> notApplicableTestsDescription) {
     List<ResponsibilityPersistentInfo> result = new ArrayList<>();
     for (final Map.Entry<Long, String> longStringEntry : notApplicableTestsDescription.entrySet()) {
-      result.add(new ResponsibilityPersistentInfo(longStringEntry.getKey().toString(),
-                                                  Constants.ASSIGNEE_FILTERED_LITERAL,
-                                                  longStringEntry.getValue()));
+      result.add(generatePersistentInfo(longStringEntry.getKey().toString(), Constants.ASSIGNEE_FILTERED_LITERAL, longStringEntry.getValue()));
     }
-
     return result;
+  }
+
+  private static ResponsibilityPersistentInfo generatePersistentInfo(final String testNameId,
+                                                                     final String investigatorId,
+                                                                     final String reason) {
+    return new ResponsibilityPersistentInfo(testNameId, investigatorId, reason);
   }
 }

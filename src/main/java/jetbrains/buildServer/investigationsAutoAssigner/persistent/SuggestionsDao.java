@@ -18,13 +18,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class SuggestionsDao {
-  private final Logger LOGGER = Constants.LOGGER;
+  private static final Logger LOGGER = Constants.LOGGER;
   private final ServerSettings mySettings;
   private final Gson myGson;
 
   public SuggestionsDao(@NotNull final ServerSettings settings) {
-    mySettings = settings;
-    myGson = new Gson();
+    this.mySettings = settings;
+    this.myGson = new Gson();
   }
 
   public void write(Path resultsFilePath, List<ResponsibilityPersistentInfo> infoToAdd) throws IOException {

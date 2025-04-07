@@ -6,7 +6,7 @@ import jetbrains.buildServer.users.SUser;
 import org.mockito.Mockito;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertTrue;
 
 @Test
 public class DefaultUserResponsibilityTest {

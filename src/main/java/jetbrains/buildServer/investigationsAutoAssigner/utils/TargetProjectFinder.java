@@ -2,7 +2,6 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.utils;
 
-import jetbrains.buildServer.serverSide.Parameter;
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.auth.Permission;
@@ -20,7 +19,7 @@ public class TargetProjectFinder {
   private final @NotNull ProjectManager myProjectManager;
 
   public TargetProjectFinder(@NotNull final ProjectManager projectManager) {
-    myProjectManager = projectManager;
+    this.myProjectManager = projectManager;
   }
 
   @Nullable

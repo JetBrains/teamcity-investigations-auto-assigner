@@ -19,7 +19,16 @@ import jetbrains.buildServer.investigationsAutoAssigner.processing.FailedTestAnd
 import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.AggregationLogger;
 import jetbrains.buildServer.responsibility.ResponsibilityEntry;
-import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.serverSide.Branch;
+import jetbrains.buildServer.serverSide.BuildPromotion;
+import jetbrains.buildServer.serverSide.BuildServerAdapter;
+import jetbrains.buildServer.serverSide.BuildServerListenerEventDispatcher;
+import jetbrains.buildServer.serverSide.BuildsManager;
+import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.SBuildType;
+import jetbrains.buildServer.serverSide.SProject;
+import jetbrains.buildServer.serverSide.SRunningBuild;
+import jetbrains.buildServer.serverSide.ServerResponsibility;
 import jetbrains.buildServer.serverSide.problems.BuildProblemInfo;
 import jetbrains.buildServer.tests.TestName;
 import jetbrains.buildServer.util.NamedThreadFactory;
@@ -38,7 +47,6 @@ public class FailedTestAndBuildProblemsDispatcher {
   @NotNull private final AggregationLogger myAggregationLogger;
   private final ServerResponsibility myServerResponsibility;
   private final StatisticsReporter myStatisticsReporter;
-  private final CustomParameters myCustomParameters;
   @NotNull
   private final Set<Long> myFailedBuilds = ConcurrentHashMap.newKeySet();
   @NotNull
@@ -52,18 +60,16 @@ public class FailedTestAndBuildProblemsDispatcher {
                                               @NotNull final DelayedAssignmentsProcessor delayedAssignmentsProcessor,
                                               @NotNull final AggregationLogger aggregationLogger,
                                               @NotNull final StatisticsReporter statisticsReporter,
-                                              @NotNull final CustomParameters customParameters,
                                               @NotNull final BuildsManager buildsManager,
                                               @NotNull final ServerResponsibility serverResponsibility) {
-    myProcessor = processor;
-    myDelayedAssignmentsProcessor = delayedAssignmentsProcessor;
-    myAggregationLogger = aggregationLogger;
-    myStatisticsReporter = statisticsReporter;
-    myCustomParameters = customParameters;
-    myBuildsManager = buildsManager;
-    myServerResponsibility = serverResponsibility;
-    myExecutor = ExecutorsFactory.newFixedScheduledDaemonExecutor(Constants.BUILD_FEATURE_TYPE, 1);
-    myExecutor.scheduleWithFixedDelay(this::processBrokenBuildsOneThread,
+    this.myProcessor = processor;
+    this.myDelayedAssignmentsProcessor = delayedAssignmentsProcessor;
+    this.myAggregationLogger = aggregationLogger;
+    this.myStatisticsReporter = statisticsReporter;
+    this.myBuildsManager = buildsManager;
+    this.myServerResponsibility = serverResponsibility;
+    this.myExecutor = ExecutorsFactory.newFixedScheduledDaemonExecutor(Constants.BUILD_FEATURE_TYPE, 1);
+    this.myExecutor.scheduleWithFixedDelay(this::processBrokenBuildsOneThread,
                                       CustomParameters.getProcessingDelayInSeconds(),
                                       CustomParameters.getProcessingDelayInSeconds(),
                                       TimeUnit.SECONDS);
@@ -207,7 +213,7 @@ public class FailedTestAndBuildProblemsDispatcher {
       putIntoDelayAssignments(failedBuildInfo);
     }
 
-    if (!failedBuildInfo.getHeuristicsResult().isEmpty() && myCustomParameters.isBuildFeatureEnabled(failedBuildInfo.getBuild())) {
+    if (!failedBuildInfo.getHeuristicsResult().isEmpty() && CustomParameters.isBuildFeatureEnabled(failedBuildInfo.getBuild())) {
       int numberOfChanges = failedBuildInfo.getBuild().getContainingChanges().size();
       myStatisticsReporter.reportProcessedBuildWithChanges(numberOfChanges);
     }
@@ -277,7 +283,7 @@ public class FailedTestAndBuildProblemsDispatcher {
       return true;
     }
 
-    return !(myCustomParameters.isBuildFeatureEnabled(build) || myCustomParameters.isDefaultSilentModeEnabled(build));
+    return !(CustomParameters.isBuildFeatureEnabled(build) || CustomParameters.isDefaultSilentModeEnabled(build));
   }
 
   @TestOnly

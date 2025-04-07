@@ -13,7 +13,15 @@ import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.FlakyTestDetector;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.InvestigationsManager;
 import jetbrains.buildServer.responsibility.TestNameResponsibilityEntry;
-import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.serverSide.Branch;
+import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.SBuildServer;
+import jetbrains.buildServer.serverSide.SBuildType;
+import jetbrains.buildServer.serverSide.SProject;
+import jetbrains.buildServer.serverSide.STest;
+import jetbrains.buildServer.serverSide.STestRun;
+import jetbrains.buildServer.serverSide.SecurityContextEx;
+import jetbrains.buildServer.serverSide.TeamCityProperties;
 import jetbrains.buildServer.serverSide.auth.AuthorityHolder;
 import jetbrains.buildServer.serverSide.auth.Permission;
 import jetbrains.buildServer.serverSide.stat.FirstFailedInFixedInCalculator;
@@ -49,15 +57,15 @@ public class AutoAssignerDetailsController extends BaseController {
                                        @NotNull final CustomParameters customParameters,
                                        @NotNull final SecurityContextEx securityContext) {
     super(server);
-    myStatisticsProvider = statisticsProvider;
-    myAssignerArtifactDao = assignerArtifactDao;
-    myFlakyTestDetector = flakyTestDetector;
-    myDynamicTestDetailsExtensionPath = descriptor.getPluginResourcesPath("dynamicTestDetailsExtension.jsp");
-    myCssPath = descriptor.getPluginResourcesPath("testDetailsExtension.css");
-    myInvestigationsManager = investigationsManager;
-    myStatisticsReporter = statisticsReporter;
-    myCustomParameters = customParameters;
-    mySecurityContext = securityContext;
+    this.myStatisticsProvider = statisticsProvider;
+    this.myAssignerArtifactDao = assignerArtifactDao;
+    this.myFlakyTestDetector = flakyTestDetector;
+    this.myDynamicTestDetailsExtensionPath = descriptor.getPluginResourcesPath("dynamicTestDetailsExtension.jsp");
+    this.myCssPath = descriptor.getPluginResourcesPath("testDetailsExtension.css");
+    this.myInvestigationsManager = investigationsManager;
+    this.myStatisticsReporter = statisticsReporter;
+    this.myCustomParameters = customParameters;
+    this.mySecurityContext = securityContext;
     controllerManager.registerController("/autoAssignerController.html", this);
   }
 
@@ -80,9 +88,7 @@ public class AutoAssignerDetailsController extends BaseController {
     boolean isDefaultBranch = branch == null || branch.isDefaultBranch();
 
     STestRun sTestRun = build.getBuildStatistics(ALL_TESTS_NO_DETAILS).findTestByTestRunId(testId);
-    if (sTestRun == null) {
-      return null;
-    }
+    if (sTestRun == null) return null;
 
     boolean assignShouldNotBeShow = !isDefaultBranch ||
                                      myFlakyTestDetector.isFlaky(sTestRun.getTest().getTestNameId()) ||
@@ -101,9 +107,7 @@ public class AutoAssignerDetailsController extends BaseController {
 
       boolean isFilteredTestDescription = TeamCityProperties.getBoolean(SHOULD_PERSIST_FILTERED_TESTS_DESCRIPTION) &&
                                           responsibility.getDescription().startsWith(Constants.ASSIGNEE_FILTERED_DESCRIPTION_PREFIX);
-      if (assignShouldNotBeShow && !isFilteredTestDescription) {
-        return null;
-      }
+      if (assignShouldNotBeShow && !isFilteredTestDescription) return null;
 
       modelAndView.getModel().put("isFilteredDescription", isFilteredTestDescription);
       modelAndView.getModel().put("userId", responsibility.getUser().getId());

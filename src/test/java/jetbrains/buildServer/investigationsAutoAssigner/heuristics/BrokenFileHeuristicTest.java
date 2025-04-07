@@ -8,12 +8,16 @@ import java.util.Collections;
 import java.util.List;
 import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
-import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicNotApplicableException;
+import jetbrains.buildServer.investigationsAutoAssigner.exceptions.HeuristicNotApplicableException;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicContext;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.ModificationAnalyzerFactory;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.ProblemTextExtractor;
-import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.serverSide.BuildPromotionEx;
+import jetbrains.buildServer.serverSide.ChangeDescriptor;
+import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.SProject;
+import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.users.SUser;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.vcs.SVcsModification;
@@ -24,7 +28,9 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @Test

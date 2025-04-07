@@ -7,18 +7,28 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.DelayedAssignmentsProcessor;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.FailedTestAndBuildProblemsProcessor;
-import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.AggregationLogger;
 import jetbrains.buildServer.parameters.ParametersProvider;
-import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.serverSide.Branch;
+import jetbrains.buildServer.serverSide.BuildEx;
+import jetbrains.buildServer.serverSide.BuildServerListenerEventDispatcher;
+import jetbrains.buildServer.serverSide.BuildsManager;
+import jetbrains.buildServer.serverSide.SBuildFeatureDescriptor;
+import jetbrains.buildServer.serverSide.SBuildType;
+import jetbrains.buildServer.serverSide.SRunningBuild;
+import jetbrains.buildServer.serverSide.SecurityContextEx;
+import jetbrains.buildServer.serverSide.ServerResponsibility;
 import jetbrains.buildServer.serverSide.impl.auth.SecurityContextImpl;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import static junit.framework.Assert.*;
-import static org.awaitility.Awaitility.await;
-import static org.mockito.Mockito.*;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @Test
 public class FailedTestAndBuildProblemsDispatcherTest {
@@ -26,19 +36,14 @@ public class FailedTestAndBuildProblemsDispatcherTest {
   private BuildServerListenerEventDispatcher myBsDispatcher;
   private BuildEx myBuild;
   private Branch myBranch;
-  private ParametersProvider myParametersProvider;
   private BuildEx mySecondBuild;
   private SRunningBuild myRunningBuild;
-  private CustomParameters myCustomParameters;
-  private DelayedAssignmentsProcessor myDelayedAssignmentsProcessor;
-  private SBuildType mySBuildType;
   private FailedTestAndBuildProblemsDispatcher myDispatcher;
-  private BuildsManager myBuildsManager;
 
   @BeforeMethod
   public void setUp() throws Throwable {
 
-    myParametersProvider = mock(ParametersProvider.class);
+    ParametersProvider parametersProvider = mock(ParametersProvider.class);
     myBranch = mock(Branch.class);
     when(myBranch.isDefaultBranch()).thenReturn(true);
 
@@ -48,7 +53,7 @@ public class FailedTestAndBuildProblemsDispatcherTest {
     when(myBuild.getBranch()).thenReturn(myBranch);
     when(myBuild.getBuildType()).thenReturn(mock(SBuildType.class));
     when(myBuild.isPersonal()).thenReturn(false);
-    when(myBuild.getParametersProvider()).thenReturn(myParametersProvider);
+    when(myBuild.getParametersProvider()).thenReturn(parametersProvider);
 
     //configure second build
     mySecondBuild = mock(BuildEx.class);
@@ -56,17 +61,17 @@ public class FailedTestAndBuildProblemsDispatcherTest {
     when(mySecondBuild.getBranch()).thenReturn(myBranch);
     when(mySecondBuild.getBuildType()).thenReturn(mock(SBuildType.class));
     when(mySecondBuild.isPersonal()).thenReturn(false);
-    when(mySecondBuild.getParametersProvider()).thenReturn(myParametersProvider);
+    when(mySecondBuild.getParametersProvider()).thenReturn(parametersProvider);
 
     //configure running build
     myRunningBuild = mock(SRunningBuild.class);
     when(myRunningBuild.getBuildId()).thenReturn(239L);
     when(myRunningBuild.getBranch()).thenReturn(myBranch);
-    mySBuildType = mock(SBuildType.class);
-    when(mySBuildType.getInternalId()).thenReturn("INTERNAL_iD");
-    when(myRunningBuild.getBuildType()).thenReturn(mySBuildType);
+    SBuildType SBuildType = mock(jetbrains.buildServer.serverSide.SBuildType.class);
+    when(SBuildType.getInternalId()).thenReturn("INTERNAL_iD");
+    when(myRunningBuild.getBuildType()).thenReturn(SBuildType);
     when(myRunningBuild.isPersonal()).thenReturn(false);
-    when(myRunningBuild.getParametersProvider()).thenReturn(myParametersProvider);
+    when(myRunningBuild.getParametersProvider()).thenReturn(parametersProvider);
 
     //configure security context
     final SecurityContextEx securityContextEx = Mockito.mock(SecurityContextImpl.class);
@@ -78,19 +83,17 @@ public class FailedTestAndBuildProblemsDispatcherTest {
     //configure event dispatcher
     myBsDispatcher = new BuildServerListenerEventDispatcher(securityContextEx);
     FailedTestAndBuildProblemsProcessor processor = mock(FailedTestAndBuildProblemsProcessor.class);
-    myDelayedAssignmentsProcessor = mock(DelayedAssignmentsProcessor.class);
+    DelayedAssignmentsProcessor delayedAssignmentsProcessor = mock(DelayedAssignmentsProcessor.class);
 
     AggregationLogger aggregationLogger = mock(AggregationLogger.class);
-    myCustomParameters = mock(CustomParameters.class);
-    when(myCustomParameters.isBuildFeatureEnabled(any())).thenReturn(true);
     StatisticsReporter statisticsReporter = mock(StatisticsReporter.class);
 
     ServerResponsibility serverResponsibility = mock(ServerResponsibility.class);
     when(serverResponsibility.canSendNotifications()).thenReturn(true);
 
-    myBuildsManager = mock(BuildsManager.class);
-    when(myBuildsManager.findBuildInstanceById(239L)).thenReturn(myRunningBuild);
-    when(myBuildsManager.findBuildInstanceById(238L)).thenReturn(mySecondBuild);
+    BuildsManager buildsManager = mock(BuildsManager.class);
+    when(buildsManager.findBuildInstanceById(239L)).thenReturn(myRunningBuild);
+    when(buildsManager.findBuildInstanceById(238L)).thenReturn(mySecondBuild);
 
     SBuildFeatureDescriptor sBuildFeatureDescriptor = Mockito.mock(SBuildFeatureDescriptor.class);
     when(sBuildFeatureDescriptor.getParameters()).thenReturn(Collections.singletonMap(Constants.ASSIGN_ON_SECOND_FAILURE, "false"));
@@ -104,11 +107,10 @@ public class FailedTestAndBuildProblemsDispatcherTest {
     myDispatcher =
       new FailedTestAndBuildProblemsDispatcher(myBsDispatcher,
                                                processor,
-                                               myDelayedAssignmentsProcessor,
+                                               delayedAssignmentsProcessor,
                                                aggregationLogger,
                                                statisticsReporter,
-                                               myCustomParameters,
-                                               myBuildsManager,
+                                               buildsManager,
                                                serverResponsibility);
 
   }

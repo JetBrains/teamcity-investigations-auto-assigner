@@ -34,10 +34,10 @@ public class BuildProblemsAssigner implements BaseAssigner {
                                @NotNull final WebLinks webLinks,
                                @NotNull final StatisticsReporter statisticsReporter,
                                @NotNull final TargetProjectFinder targetProjectFinder) {
-    myBuildProblemResponsibilityFacade = buildProblemResponsibilityFacade;
-    myStatisticsReporter = statisticsReporter;
-    myWebLinks = webLinks;
-    myTargetProjectFinder = targetProjectFinder;
+    this.myBuildProblemResponsibilityFacade = buildProblemResponsibilityFacade;
+    this.myStatisticsReporter = statisticsReporter;
+    this.myWebLinks = webLinks;
+    this.myTargetProjectFinder = targetProjectFinder;
   }
 
   void assign(final HeuristicResult heuristicsResult,

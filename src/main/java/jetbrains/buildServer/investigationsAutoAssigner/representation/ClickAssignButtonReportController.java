@@ -20,7 +20,7 @@ public class ClickAssignButtonReportController extends BaseController {
                                            @NotNull final WebControllerManager controllerManager,
                                            @NotNull final StatisticsReporter statisticsReporter) {
     super(server);
-    myStatisticsReporter = statisticsReporter;
+    this.myStatisticsReporter = statisticsReporter;
     controllerManager.registerController("/autoAssignerStatisticsReporter.html", this);
   }
 

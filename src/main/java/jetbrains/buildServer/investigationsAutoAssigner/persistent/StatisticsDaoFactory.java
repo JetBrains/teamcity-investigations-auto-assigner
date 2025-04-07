@@ -11,7 +11,7 @@ public class StatisticsDaoFactory {
   private final Path myPluginDataDirectory;
 
   public StatisticsDaoFactory(@NotNull final ServerPaths serverPaths) {
-    myPluginDataDirectory = Paths.get(serverPaths.getPluginDataDirectory().getPath());
+    this.myPluginDataDirectory = Paths.get(serverPaths.getPluginDataDirectory().getPath());
   }
 
   public StatisticsDao get() {

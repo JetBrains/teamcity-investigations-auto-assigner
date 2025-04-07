@@ -2,9 +2,7 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.heuristics;
 
-import com.intellij.openapi.diagnostic.Logger;
-import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
-import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicNotApplicableException;
+import jetbrains.buildServer.investigationsAutoAssigner.exceptions.HeuristicNotApplicableException;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.BuildProblemsFilter;
@@ -20,7 +18,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class OneCommitterHeuristic implements Heuristic {
-  private static final Logger LOGGER = Constants.LOGGER;
   private final ModificationAnalyzerFactory myModificationAnalyzerFactory;
 
   public OneCommitterHeuristic(@NotNull ModificationAnalyzerFactory modificationAnalyzerFactory) {
@@ -56,7 +53,7 @@ public class OneCommitterHeuristic implements Heuristic {
 
     if (responsible != null) {
       if (isCompilationErrorFixed(build)) {
-        LOGGER.debug("Heuristic \"OneCommitter\" found " + responsible.getDescriptiveName() + "as responsible but " +
+        LOGGER.debug("Heuristic \"OneCommitter\" found " + responsible.getDescriptiveName() + "as responsible, but " +
                      "results are ignored as previous build contained compilation errors." +
                      "  Build: " + LogUtil.describe(build));
         return result;
@@ -67,7 +64,7 @@ public class OneCommitterHeuristic implements Heuristic {
 
       heuristicContext.getBuildProblems()
                       .stream()
-                      .filter(problem -> BuildProblemsFilter.supportedEverywhereTypes.contains(problem.getBuildProblemData().getType()))
+                      .filter(problem -> BuildProblemsFilter.SUPPORTED_EVERYWHERE_TYPES.contains(problem.getBuildProblemData().getType()))
                       .forEach(buildProblem -> result.addResponsibility(buildProblem, responsibility));
     }
     return result;
@@ -85,7 +82,7 @@ public class OneCommitterHeuristic implements Heuristic {
   private void ensureSameUsers(@Nullable User first,
                                @Nullable User second) {
     if (first != null && second != null && !first.equals(second)) {
-      throw new HeuristicNotApplicableException("there are more then one TeamCity user");
+      throw new HeuristicNotApplicableException("There are more than one TeamCity users");
     }
   }
 }

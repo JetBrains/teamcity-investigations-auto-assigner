@@ -34,10 +34,10 @@ public class FailedTestAssigner implements BaseAssigner {
                             @NotNull final WebLinks webLinks,
                             @NotNull final StatisticsReporter statisticsReporter,
                             @NotNull final TargetProjectFinder targetProjectFinder) {
-    myTestNameResponsibilityFacade = testNameResponsibilityFacade;
-    myWebLinks = webLinks;
-    myStatisticsReporter = statisticsReporter;
-    myTargetProjectFinder = targetProjectFinder;
+    this.myTestNameResponsibilityFacade = testNameResponsibilityFacade;
+    this.myWebLinks = webLinks;
+    this.myStatisticsReporter = statisticsReporter;
+    this.myTargetProjectFinder = targetProjectFinder;
   }
 
   void assign(final HeuristicResult heuristicsResult,

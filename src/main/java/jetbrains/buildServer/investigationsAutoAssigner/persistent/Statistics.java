@@ -2,12 +2,12 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.persistent;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
+import java.util.Objects;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 
-class Statistics implements Cloneable {
-
+class Statistics {
   private final String version;
   private final Map<StatisticsValuesEnum, Integer> values;
 
@@ -29,13 +29,13 @@ class Statistics implements Cloneable {
   }
 
   Statistics() {
-    version = Constants.STATISTICS_FILE_VERSION;
-    values = new HashMap<>();
+    this.version = Constants.STATISTICS_FILE_VERSION;
+    this.values = new EnumMap<>(StatisticsValuesEnum.class);
   }
 
   private Statistics(String version, Map<StatisticsValuesEnum, Integer> values) {
     this.version = version;
-    this.values = new HashMap<>(values);
+    this.values = new EnumMap<>(values);
   }
 
   @Override
@@ -47,6 +47,11 @@ class Statistics implements Cloneable {
     Statistics another = (Statistics)obj;
     return version.equals(another.version) &&
            values.equals(another.values);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(version, values);
   }
 
   @Override
@@ -62,8 +67,7 @@ class Statistics implements Cloneable {
                          get(StatisticsValuesEnum.savedSuggestionsCount));
   }
 
-  @Override
-  protected Statistics clone() {
+  public Statistics copy() {
     return new Statistics(version, values);
   }
 }

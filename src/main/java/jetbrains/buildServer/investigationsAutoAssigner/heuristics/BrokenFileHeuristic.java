@@ -2,13 +2,11 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.heuristics;
 
-import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.util.Pair;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
-import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicNotApplicableException;
+import jetbrains.buildServer.investigationsAutoAssigner.exceptions.HeuristicNotApplicableException;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.processing.BuildProblemsFilter;
@@ -16,7 +14,11 @@ import jetbrains.buildServer.investigationsAutoAssigner.processing.HeuristicCont
 import jetbrains.buildServer.investigationsAutoAssigner.processing.ModificationAnalyzerFactory;
 import jetbrains.buildServer.investigationsAutoAssigner.utils.ProblemTextExtractor;
 import jetbrains.buildServer.log.LogUtil;
-import jetbrains.buildServer.serverSide.*;
+import jetbrains.buildServer.serverSide.BuildPromotion;
+import jetbrains.buildServer.serverSide.BuildPromotionEx;
+import jetbrains.buildServer.serverSide.ChangeDescriptor;
+import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.vcs.SVcsModification;
@@ -25,15 +27,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class BrokenFileHeuristic implements Heuristic {
-
-  private static final Logger LOGGER = Constants.LOGGER;
   private final ProblemTextExtractor myProblemTextExtractor;
   private final ModificationAnalyzerFactory myModificationAnalyzerFactory;
 
   public BrokenFileHeuristic(@NotNull ProblemTextExtractor problemTextExtractor,
                              @NotNull ModificationAnalyzerFactory modificationAnalyzerFactory) {
-    myProblemTextExtractor = problemTextExtractor;
-    myModificationAnalyzerFactory = modificationAnalyzerFactory;
+    this.myProblemTextExtractor = problemTextExtractor;
+    this.myModificationAnalyzerFactory = modificationAnalyzerFactory;
   }
 
   @Override
@@ -81,7 +81,7 @@ public class BrokenFileHeuristic implements Heuristic {
 
     for (BuildProblem buildProblem : heuristicContext.getBuildProblems()) {
       String buildProblemType = buildProblem.getBuildProblemData().getType();
-      if (!BuildProblemsFilter.supportedEverywhereTypes.contains(buildProblemType)) {
+      if (!BuildProblemsFilter.SUPPORTED_EVERYWHERE_TYPES.contains(buildProblemType)) {
         continue;
       }
 
@@ -123,7 +123,7 @@ public class BrokenFileHeuristic implements Heuristic {
     if (foundBrokenFile != null &&
         broken != null &&
         !foundBrokenFile.first.equals(broken.first)) {
-      throw new HeuristicNotApplicableException("there are more then one TeamCity user");
+      throw new HeuristicNotApplicableException("There are more than one TeamCity users");
     }
   }
 }

@@ -42,25 +42,15 @@ public class AssignerResultsFilePath {
       return null;
     }
 
-    Path autoAssignerDirectoryPath = teamcityDirectoryPath.resolve(Constants.ARTIFACT_DIRECTORY);
-    if (!Files.exists(autoAssignerDirectoryPath)) {
-      if (createIfNotExist) {
-        Files.createDirectory(autoAssignerDirectoryPath);
-      } else {
-        return null;
-      }
-    }
+    Path autoAssignerDirectoryPath = checkIfExists(teamcityDirectoryPath.resolve(Constants.ARTIFACT_DIRECTORY), createIfNotExist, false);
+    if (autoAssignerDirectoryPath == null) return null;
+    return checkIfExists(autoAssignerDirectoryPath.resolve(Constants.ARTIFACT_FILENAME), createIfNotExist, true);
+  }
 
-    Path resultsPath = autoAssignerDirectoryPath.resolve(Constants.ARTIFACT_FILENAME);
-    if (!Files.exists(resultsPath)) {
-      if (createIfNotExist) {
-        Files.createFile(resultsPath);
-      } else {
-        return null;
-      }
-    }
-
-    return resultsPath;
+  private Path checkIfExists(Path path, boolean createIfNotExist, boolean fileFlag) throws IOException {
+    if (Files.exists(path)) return path;
+    if (createIfNotExist) return fileFlag ? Files.createFile(path) : Files.createDirectory(path);
+    return null;
   }
 
 }
