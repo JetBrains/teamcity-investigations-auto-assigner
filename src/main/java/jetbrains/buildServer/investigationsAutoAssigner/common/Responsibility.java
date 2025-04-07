@@ -2,53 +2,49 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.common;
 
-import java.util.Arrays;
+package jetbrains.buildServer.investigationsAutoAssigner.common;
+
+import java.util.Objects;
 import jetbrains.buildServer.users.User;
 import org.jetbrains.annotations.NotNull;
 
 public class Responsibility {
-  private final User myUser;
-  private final String myDescription;
+  private final User user;
+  private final String description;
 
   public Responsibility(@NotNull User user, @NotNull String description) {
-    myUser = user;
-    myDescription = description;
+    this.user = user;
+    this.description = description;
   }
 
   @NotNull
   public User getUser() {
-    return myUser;
+    return user;
   }
 
   @NotNull
   public String getDescription() {
-    return myDescription;
+    return description;
   }
 
   public String getAssignDescription(String linkToBuild) {
     return String.format("%s %s who %s (initial build: %s).",
                          Constants.ASSIGN_DESCRIPTION_PREFIX,
-                         myUser.getDescriptiveName(),
-                         myDescription,
+                         user.getDescriptiveName(),
+                         description,
                          linkToBuild);
   }
 
   @Override
-  public boolean equals(final Object another) {
-    if (!(another instanceof Responsibility)) {
-      return false;
-    }
-
-    Responsibility anotherResponsibility = (Responsibility)another;
-    return myUser.getId() == anotherResponsibility.getUser().getId() &&
-           myDescription.equals(anotherResponsibility.getDescription());
+  public boolean equals(final Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    Responsibility that = (Responsibility) o;
+    return user.getId() == that.user.getId() && Objects.equals(description, that.description);
   }
 
   @Override
   public int hashCode() {
-    return Arrays.hashCode(new Object[]{
-      myUser.getId(),
-      myDescription
-    });
+    return Objects.hash(user.getId(), description);
   }
 }

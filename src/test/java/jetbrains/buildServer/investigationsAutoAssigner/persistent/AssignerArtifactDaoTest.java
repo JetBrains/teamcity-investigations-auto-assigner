@@ -131,6 +131,38 @@ public class AssignerArtifactDaoTest {
     Assert.assertEquals(mySuggestedDaoChecker.setInfoToAdd.get(1).reason, reason);
   }
 
+  @Test
+  public void testFilteredInvestigatorId() {
+    ResponsibilityPersistentInfo filteredInfo = new ResponsibilityPersistentInfo(
+      String.valueOf(mySTest.getTestNameId()), "-", "was filtered");
+
+    mySuggestedDaoChecker.mockReadResult(Collections.singletonList(filteredInfo));
+
+    Responsibility result = myAssignerArtifactDaoForTest.get(mySBuild, mySTestRun);
+    Assert.assertNull(result, "Expected no responsibility returned for filtered test when persistence is off");
+  }
+
+  @Test
+  public void testMalformedInvestigatorId() {
+    ResponsibilityPersistentInfo badInfo = new ResponsibilityPersistentInfo("111", "not-a-number", "bad data");
+
+    mySuggestedDaoChecker.mockReadResult(Collections.singletonList(badInfo));
+    Responsibility result = myAssignerArtifactDaoForTest.get(mySBuild, mySTestRun);
+
+    Assert.assertNull(result, "Expected null due to malformed investigator ID");
+  }
+
+  @Test
+  public void testUserIdNotFound() {
+    ResponsibilityPersistentInfo missingUserInfo = new ResponsibilityPersistentInfo("111", "999", "ghost user");
+
+    mySuggestedDaoChecker.mockReadResult(Collections.singletonList(missingUserInfo));
+    Responsibility result = myAssignerArtifactDaoForTest.get(mySBuild, mySTestRun);
+
+    Assert.assertNull(result, "Expected null because user model didn’t resolve the given ID");
+  }
+
+
   private class MySuggestedDaoChecker extends SuggestionsDao {
 
     Path setResultsFilePath;
@@ -160,4 +192,5 @@ public class AssignerArtifactDaoTest {
       myReadResult = readResult;
     }
   }
+
 }

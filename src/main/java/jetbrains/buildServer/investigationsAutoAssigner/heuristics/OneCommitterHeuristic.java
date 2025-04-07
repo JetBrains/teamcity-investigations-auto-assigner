@@ -21,10 +21,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class OneCommitterHeuristic implements Heuristic {
   private static final Logger LOGGER = Constants.LOGGER;
-  private final ModificationAnalyzerFactory myModificationAnalyzerFactory;
+  private final ModificationAnalyzerFactory modificationAnalyzerFactory;
 
   public OneCommitterHeuristic(@NotNull ModificationAnalyzerFactory modificationAnalyzerFactory) {
-    myModificationAnalyzerFactory = modificationAnalyzerFactory;
+    this.modificationAnalyzerFactory = modificationAnalyzerFactory;
   }
 
   @Override
@@ -35,57 +35,57 @@ public class OneCommitterHeuristic implements Heuristic {
 
   @NotNull
   @Override
-  public HeuristicResult findResponsibleUser(@NotNull HeuristicContext heuristicContext) {
+  public HeuristicResult findResponsibleUser(@NotNull HeuristicContext context) {
     HeuristicResult result = new HeuristicResult();
-    SBuild build = heuristicContext.getBuild();
-    User responsible = null;
-    final SelectPrevBuildPolicy selectPrevBuildPolicy = SelectPrevBuildPolicy.SINCE_LAST_BUILD;
-    for (SVcsModification vcsChange : build.getChanges(selectPrevBuildPolicy, true)) {
-      try {
-        ModificationAnalyzerFactory.ModificationAnalyzer vcsChangeWrapped = myModificationAnalyzerFactory.getInstance(vcsChange);
-        User probableResponsible = vcsChangeWrapped.getOnlyCommitter(heuristicContext.getUsersToIgnore());
-        if (probableResponsible == null) continue;
-        ensureSameUsers(responsible, probableResponsible);
-        responsible = probableResponsible;
-      } catch (HeuristicNotApplicableException ex) {
-        LOGGER.debug("Heuristic \"OneCommitter\" is ignored as " + ex.getMessage() + ". Build: " +
-                     LogUtil.describe(build));
-        return result;
-      }
-    }
+    SBuild build = context.getBuild();
 
-    if (responsible != null) {
-      if (isCompilationErrorFixed(build)) {
-        LOGGER.debug("Heuristic \"OneCommitter\" found " + responsible.getDescriptiveName() + "as responsible but " +
-                     "results are ignored as previous build contained compilation errors." +
-                     "  Build: " + LogUtil.describe(build));
-        return result;
-      }
+    User responsible = getOnlyCommitter(build, context);
+    if (responsible == null || isCompilationErrorFixed(build)) return result;
 
-      Responsibility responsibility = new Responsibility(responsible, "was the only committer to the build");
-      heuristicContext.getTestRuns().forEach(sTestRun -> result.addResponsibility(sTestRun, responsibility));
+    Responsibility responsibility = new Responsibility(responsible, "was the only committer to the build");
 
-      heuristicContext.getBuildProblems()
-                      .stream()
-                      .filter(problem -> BuildProblemsFilter.supportedEverywhereTypes.contains(problem.getBuildProblemData().getType()))
-                      .forEach(buildProblem -> result.addResponsibility(buildProblem, responsibility));
-    }
+    context.getTestRuns().forEach(testRun -> result.addResponsibility(testRun, responsibility));
+
+    context.getBuildProblems().stream()
+           .filter(
+             problem -> BuildProblemsFilter.supportedEverywhereTypes.contains(problem.getBuildProblemData().getType()))
+           .forEach(problem -> result.addResponsibility(problem, responsibility));
+
     return result;
   }
 
-  private boolean isCompilationErrorFixed(final SBuild build) {
-    SBuild previousFinished = build.getPreviousFinished();
-    return !containsCompilationErrors(build) && previousFinished != null && containsCompilationErrors(previousFinished);
+  @Nullable
+  private User getOnlyCommitter(SBuild build, HeuristicContext context) {
+    User responsible = null;
+    for (SVcsModification change : build.getChanges(SelectPrevBuildPolicy.SINCE_LAST_BUILD, true)) {
+      try {
+        User probable = modificationAnalyzerFactory.getInstance(change).getOnlyCommitter(context.getUsersToIgnore());
+        if (probable == null) continue;
+        ensureSameUsers(responsible, probable);
+        responsible = probable;
+      } catch (HeuristicNotApplicableException ex) {
+        LOGGER.debug("Heuristic \"OneCommitter\" is ignored as "
+                     + ex.getMessage() + ". Build: "
+                     + LogUtil.describe(build));
+        return null;
+      }
+    }
+    return responsible;
   }
 
-  private boolean containsCompilationErrors(@NotNull SBuild build) {
-      BuildStatisticsOptions opts = new BuildStatisticsOptions(BuildStatisticsOptions.COMPILATION_ERRORS, 0);
-      return build.getBuildStatistics(opts).getCompilationErrorsCount() > 0;
+  private boolean isCompilationErrorFixed(@NotNull SBuild build) {
+    SBuild previous = build.getPreviousFinished();
+    return previous != null && !hasCompilationErrors(build) && hasCompilationErrors(previous);
   }
-  private void ensureSameUsers(@Nullable User first,
-                               @Nullable User second) {
-    if (first != null && second != null && !first.equals(second)) {
-      throw new HeuristicNotApplicableException("there are more then one TeamCity user");
+
+  private boolean hasCompilationErrors(@NotNull SBuild build) {
+    return build.getBuildStatistics(new BuildStatisticsOptions(BuildStatisticsOptions.COMPILATION_ERRORS, 0))
+                .getCompilationErrorsCount() > 0;
+  }
+
+  private void ensureSameUsers(@Nullable User existing, @Nullable User next) {
+    if (existing != null && next != null && !existing.equals(next)) {
+      throw new HeuristicNotApplicableException("there are more than one TeamCity user");
     }
   }
 }

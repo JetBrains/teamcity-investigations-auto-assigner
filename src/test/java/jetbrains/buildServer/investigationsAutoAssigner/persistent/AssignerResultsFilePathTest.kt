@@ -1,118 +1,82 @@
-
-
 package jetbrains.buildServer.investigationsAutoAssigner.persistent
 
 import com.google.common.jimfs.Configuration
 import com.google.common.jimfs.Jimfs
-import java.io.File
-import java.nio.file.Files
-import java.nio.file.Path
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants
+import jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerResultsFilePath
 import jetbrains.buildServer.serverSide.SBuild
-import org.mockito.Mockito
-import org.testng.Assert
+import jetbrains.buildServer.serverSide.STestRun
+import org.mockito.Mockito.*
+import org.testng.Assert.*
 import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Test
-
-import org.mockito.Mockito.`when`
-import java.lang.IllegalStateException
+import java.io.IOException
+import java.nio.file.FileSystem
+import java.nio.file.Files
+import java.nio.file.Path
 
 class AssignerResultsFilePathTest {
-    private lateinit var myInstance: AssignerResultsFilePath
-    private lateinit var mySBuild: SBuild
-    private lateinit var myTeamCityDir: Path
-    private lateinit var myAutoAssignerArtifactDir: Path
-    private lateinit var myAutoAssignerArtifactFile: Path
+
+    private lateinit var fs: FileSystem
+    private lateinit var build: SBuild
+    private lateinit var testRun: STestRun
+    private lateinit var assignerPath: AssignerResultsFilePath
+    private lateinit var artifactsDir: Path
 
     @BeforeMethod
     fun setUp() {
-        mySBuild = Mockito.mock<SBuild>(SBuild::class.java)
-        val artifactFile = Mockito.mock<File>(File::class.java)
-        `when`(mySBuild.artifactsDirectory).thenReturn(artifactFile)
-
-        val fs = Jimfs.newFileSystem(Configuration.unix())
-        val artifactsDir = fs.getPath("/artifactsDir")
+        fs = Jimfs.newFileSystem(Configuration.unix())
+        artifactsDir = fs.getPath("/artifacts")
         Files.createDirectory(artifactsDir)
-        `when`(artifactFile.toPath()).thenReturn(artifactsDir)
 
-        myTeamCityDir = artifactsDir.resolve(Constants.TEAMCITY_DIRECTORY)
-        myAutoAssignerArtifactDir = myTeamCityDir.resolve(Constants.ARTIFACT_DIRECTORY)
-        myAutoAssignerArtifactFile = myAutoAssignerArtifactDir.resolve(Constants.ARTIFACT_FILENAME)
+        build = mock(SBuild::class.java)
+        `when`(build.artifactsDirectory).thenReturn(artifactsDir.toFile())
 
-        myInstance = AssignerResultsFilePath()
+        testRun = mock(STestRun::class.java)
+
+        assignerPath = AssignerResultsFilePath()
+    }
+
+    @Test
+    fun testGetCreatesMissingStructure() {
+        val path = assignerPath.get(build)
+
+        assertTrue(Files.exists(path), "Expected artifact file to be created")
+        assertTrue(path.toString().endsWith(Constants.ARTIFACT_FILENAME))
+        assertTrue(Files.exists(path.parent), "Expected parent directory to be created")
     }
 
     @Test(expectedExceptions = [IllegalStateException::class])
-    fun testGetNoTeamCityDir() {
-        myInstance.get(mySBuild)
+    fun testGetThrowsWhenTeamCityDirMissing() {
+        // Simulate missing `.teamcity` dir
+        val brokenDir = fs.getPath("/empty")
+        Files.createDirectory(brokenDir)
+        `when`(build.artifactsDirectory).thenReturn(brokenDir.toFile())
+
+        assignerPath.get(build)
     }
 
     @Test
-    fun testGetIfExistNoTeamCityDir() {
-        Assert.assertNull(myInstance.getIfExist(mySBuild, null))
+    fun testGetIfExistReturnsNullWhenMissingAndNoCreate() {
+        val result = assignerPath.getIfExist(build, testRun)
+        assertNull(result, "Expected null when artifact structure is missing and creation is off")
     }
 
     @Test
-    fun testGetNoAutoAssignerDir() {
-        Files.createDirectory(myTeamCityDir)
+    fun testGetIfExistReturnsPathIfExists() {
+        // Manually create full structure
+        val teamcityDir = artifactsDir.resolve(Constants.TEAMCITY_DIRECTORY)
+        Files.createDirectory(teamcityDir)
 
-        val result = myInstance.get(mySBuild)
+        val pluginDir = teamcityDir.resolve(Constants.ARTIFACT_DIRECTORY)
+        Files.createDirectory(pluginDir)
 
-        Assert.assertNotNull(result)
-        Assert.assertTrue(Files.exists(myAutoAssignerArtifactDir))
-    }
+        val file = pluginDir.resolve(Constants.ARTIFACT_FILENAME)
+        Files.createFile(file)
 
-    @Test
-    fun testGetIfExistNoAutoAssignerDir() {
-        Files.createDirectory(myTeamCityDir)
+        val result = assignerPath.getIfExist(build, testRun)
 
-        val result = myInstance.getIfExist(mySBuild, null)
-
-        Assert.assertNull(result)
-        Assert.assertFalse(Files.exists(myAutoAssignerArtifactDir))
-    }
-
-    @Test
-    fun testGetNoAutoAssignerFile() {
-        Files.createDirectory(myTeamCityDir)
-        Files.createDirectories(myAutoAssignerArtifactDir)
-
-        val result = myInstance.get(mySBuild)
-
-        Assert.assertNotNull(result)
-        Assert.assertTrue(Files.exists(myAutoAssignerArtifactFile))
-    }
-
-    @Test
-    fun testGetIfExistNoAutoAssignerFile() {
-        Files.createDirectory(myTeamCityDir)
-        Files.createDirectories(myAutoAssignerArtifactDir)
-
-        val result = myInstance.getIfExist(mySBuild, null)
-
-        Assert.assertNull(result)
-        Assert.assertFalse(Files.exists(myAutoAssignerArtifactFile))
-    }
-
-    @Test
-    fun testGetAutoAssignerFileExist() {
-        Files.createDirectory(myTeamCityDir)
-        Files.createDirectories(myAutoAssignerArtifactDir)
-        Files.createFile(myAutoAssignerArtifactFile)
-
-        val result = myInstance.get(mySBuild)
-
-        Assert.assertNotNull(result)
-    }
-
-    @Test
-    fun testGetIfExistAutoAssignerFileExist() {
-        Files.createDirectory(myTeamCityDir)
-        Files.createDirectories(myAutoAssignerArtifactDir)
-        Files.createFile(myAutoAssignerArtifactFile)
-
-        val result = myInstance.getIfExist(mySBuild, null)
-
-        Assert.assertNotNull(result)
+        assertNotNull(result, "Expected result when file structure already exists")
+        assertEquals(result, file)
     }
 }

@@ -90,14 +90,17 @@ public class StatisticsDaoTest {
     Assert.assertEquals(new Statistics(), statistics);
   }
 
-  private String readGold(String resourceName) {
-    File resource = new File(SuggestionsDao.class.getResource("/gold/" + resourceName).getFile());
-
+  private String readGold(String name) {
     try {
-      return new String(Files.readAllBytes(resource.toPath()));
+      return Files.readString(goldFile(name)).trim();
     } catch (IOException e) {
-      throw new RuntimeException("Can not read GOLD " + resourceName);
+      throw new RuntimeException("Cannot read GOLD file: " + name, e);
     }
+  }
+
+  private Path goldFile(String name) {
+    return Path.of(Objects.requireNonNull(
+      SuggestionsDao.class.getResource("/gold/" + name)).getPath());
   }
 
   @Test
@@ -135,7 +138,8 @@ public class StatisticsDaoTest {
     Path assignerDataDir = myPluginsDataDir.resolve(Constants.PLUGIN_DATA_DIR);
     Files.createDirectory(assignerDataDir);
     Path myStatisticsPath = assignerDataDir.resolve(Constants.STATISTICS_FILE_NAME);
-    Files.write(myStatisticsPath, readGold("StatisticsDaoTest_TestWriteNotUpdatedStatisticsInitial_Gold.txt").getBytes());
+    Files.write(myStatisticsPath,
+                readGold("StatisticsDaoTest_TestWriteNotUpdatedStatisticsInitial_Gold.txt").getBytes());
     Statistics statistics = myStatisticsDao.read();
 
     Files.write(myStatisticsPath, readGold("StatisticsDaoTest_TestWriteNotUpdatedStatistics_Gold.txt").getBytes());
@@ -169,4 +173,5 @@ public class StatisticsDaoTest {
     String fileContent = new String(Files.readAllBytes(myStatisticsPath));
     Assert.assertEquals(fileContent, "UPDATED");
   }
+
 }

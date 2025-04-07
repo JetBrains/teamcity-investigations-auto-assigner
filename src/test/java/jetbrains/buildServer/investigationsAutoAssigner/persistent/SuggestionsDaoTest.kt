@@ -1,5 +1,3 @@
-
-
 package jetbrains.buildServer.investigationsAutoAssigner.persistent
 
 import com.google.common.jimfs.Configuration
@@ -95,6 +93,26 @@ class SuggestionsDaoTest {
         val result = myInstance.read(myArtifactsFile)
 
         Assert.assertEquals(result.size, 0)
+    }
+
+    @Test
+    fun testReadEmptyFile() {
+        Files.write(myArtifactsFile, byteArrayOf())
+        val result = myInstance.read(myArtifactsFile)
+        Assert.assertTrue(result.isEmpty(), "Expected empty result from empty file")
+    }
+
+    @Test
+    fun testMalformedJson() {
+        Files.write(myArtifactsFile, "not a json".toByteArray())
+        val result = myInstance.read(myArtifactsFile)
+        Assert.assertTrue(result.isEmpty(), "Expected empty result from malformed JSON")
+    }
+
+    @Test
+    fun testMissingFile() {
+        val result = myInstance.read(myArtifactsFile.resolveSibling("missing.json"))
+        Assert.assertTrue(result.isEmpty(), "Expected empty result when file does not exist")
     }
 
     private fun readGold(resourceName: String): String {

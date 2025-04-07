@@ -2,12 +2,17 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.persistent;
 
+// Optimized AssignerArtifactDao.java
+package jetbrains.buildServer.investigationsAutoAssigner.persistent;
+
 import com.intellij.openapi.diagnostic.Logger;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
@@ -24,127 +29,108 @@ import static jetbrains.buildServer.investigationsAutoAssigner.common.Constants.
 
 public class AssignerArtifactDao {
   private static final Logger LOGGER = Constants.LOGGER;
-  private final UserModelEx myUserModel;
-  private final SuggestionsDao mySuggestionsDao;
-  private final AssignerResultsFilePath myAssignerResultsFilePath;
-  private final StatisticsReporter myStatisticsReporter;
+  private final UserModelEx userModel;
+  private final SuggestionsDao suggestionsDao;
+  private final AssignerResultsFilePath resultsFilePathResolver;
+  private final StatisticsReporter statisticsReporter;
 
-  public AssignerArtifactDao(@NotNull final UserModelEx userModel,
-                             @NotNull final SuggestionsDao suggestionsDao,
-                             @NotNull final AssignerResultsFilePath assignerResultsFilePath,
-                             @NotNull final StatisticsReporter statisticsReporter) {
-    myUserModel = userModel;
-    mySuggestionsDao = suggestionsDao;
-    myAssignerResultsFilePath = assignerResultsFilePath;
-    myStatisticsReporter = statisticsReporter;
+  public AssignerArtifactDao(@NotNull UserModelEx userModel,
+                             @NotNull SuggestionsDao suggestionsDao,
+                             @NotNull AssignerResultsFilePath resultsFilePath,
+                             @NotNull StatisticsReporter statisticsReporter) {
+    this.userModel = userModel;
+    this.suggestionsDao = suggestionsDao;
+    this.resultsFilePathResolver = resultsFilePath;
+    this.statisticsReporter = statisticsReporter;
   }
 
   public void appendHeuristicsResult(@NotNull SBuild build,
                                      @NotNull List<STestRun> testRuns,
                                      @NotNull HeuristicResult heuristicResult) {
-    doAppend(build, getPersistentInfoList(testRuns, heuristicResult));
+    List<ResponsibilityPersistentInfo> entries = testRuns.stream()
+                                                         .map(testRun -> Optional.ofNullable(heuristicResult.getResponsibility(testRun))
+                                                                                 .map(responsibility -> new ResponsibilityPersistentInfo(
+                                                                                   String.valueOf(testRun.getTest().getTestNameId()),
+                                                                                   String.valueOf(responsibility.getUser().getId()),
+                                                                                   responsibility.getDescription()))
+                                                                                 .orElse(null))
+                                                         .filter(info -> info != null)
+                                                         .collect(Collectors.toList());
+
+    persistResponsibilities(build, entries);
   }
 
-  private void doAppend(@NotNull final SBuild build,
-                        @NotNull List<ResponsibilityPersistentInfo> infoToAdd) {
-    if (infoToAdd.isEmpty()) return;
+  public void appendNotApplicableTestsDescription(@NotNull SBuild build,
+                                                  @NotNull Map<Long, String> notApplicableDescriptions) {
+    List<ResponsibilityPersistentInfo> entries = notApplicableDescriptions.entrySet().stream()
+                                                                          .map(e -> new ResponsibilityPersistentInfo(
+                                                                            String.valueOf(e.getKey()),
+                                                                            Constants.ASSIGNEE_FILTERED_LITERAL,
+                                                                            e.getValue()))
+                                                                          .collect(Collectors.toList());
 
-    try {
-      myStatisticsReporter.reportSavedSuggestions(infoToAdd.size());
-      Path resultsFilePath = myAssignerResultsFilePath.get(build);
-
-      List<ResponsibilityPersistentInfo> previouslyAdded = mySuggestionsDao.read(resultsFilePath);
-
-      if (previouslyAdded.isEmpty()) {
-        //should be called only once per build
-        myStatisticsReporter.reportBuildWithSuggestions();
-      }
-
-      infoToAdd.addAll(previouslyAdded);
-      LOGGER.debug(String.format("Build id:%s :: Read %s previously added investigations",
-                                 build.getBuildId(), previouslyAdded.size()));
-
-      mySuggestionsDao.write(resultsFilePath, infoToAdd);
-      LOGGER.debug(String.format("Build id:%s :: Wrote %s new found investigations",
-                                 build.getBuildId(), infoToAdd.size() - previouslyAdded.size()));
-    } catch (IOException ex) {
-      LOGGER.warn(String.format("Build id:%s :: An error occurs during appending results", build.getBuildId()), ex);
-    }
-  }
-
-
-  @NotNull
-  private List<ResponsibilityPersistentInfo> getPersistentInfoList(@NotNull final List<STestRun> testRuns,
-                                                                   @NotNull final HeuristicResult heuristicResult) {
-    List<ResponsibilityPersistentInfo> result = new ArrayList<>();
-    for (STestRun testRun : testRuns) {
-      Responsibility responsibility = heuristicResult.getResponsibility(testRun);
-      if (responsibility != null) {
-        result.add(new ResponsibilityPersistentInfo(String.valueOf(testRun.getTest().getTestNameId()),
-                                                    String.valueOf(responsibility.getUser().getId()),
-                                                    responsibility.getDescription()));
-      }
-    }
-    return result;
+    persistResponsibilities(build, entries);
   }
 
   @Nullable
   public Responsibility get(@Nullable SBuild firstFailedBuild, @NotNull STestRun testRun) {
-    List<ResponsibilityPersistentInfo> suggestions;
     try {
-      Path resultsFilePath = firstFailedBuild != null ?
-                             myAssignerResultsFilePath.getIfExist(firstFailedBuild, testRun) :
-                             myAssignerResultsFilePath.getIfExist(testRun.getBuild(), testRun);
+      Path path = firstFailedBuild != null
+                  ? resultsFilePathResolver.getIfExist(firstFailedBuild, testRun)
+                  : resultsFilePathResolver.getIfExist(testRun.getBuild(), testRun);
 
-      suggestions = mySuggestionsDao.read(resultsFilePath);
-    } catch (IOException ex) {
-      LOGGER.warn(String.format("%s An error occurs during reading of file with results",
-                                Utils.getLogPrefix(testRun)), ex);
+      List<ResponsibilityPersistentInfo> suggestions = suggestionsDao.read(path);
+      return suggestions.stream()
+                        .filter(info -> info.testNameId.equals(String.valueOf(testRun.getTest().getTestNameId())))
+                        .map(info -> resolveResponsibility(testRun, info))
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
+                        .findFirst()
+                        .orElse(null);
+    } catch (IOException e) {
+      LOGGER.warn(Utils.getLogPrefix(testRun) + " Error reading suggestions file", e);
       return null;
     }
+  }
 
-    for (ResponsibilityPersistentInfo persistentInfo : suggestions) {
-      if (persistentInfo.testNameId.equals(String.valueOf(testRun.getTest().getTestNameId()))) {
-        if (persistentInfo.investigatorId.equals(Constants.ASSIGNEE_FILTERED_LITERAL)) {
+  private void persistResponsibilities(@NotNull SBuild build, @NotNull List<ResponsibilityPersistentInfo> entries) {
+    if (entries.isEmpty()) return;
 
-          return TeamCityProperties.getBoolean(SHOULD_PERSIST_FILTERED_TESTS_DESCRIPTION) ?
-                 new Responsibility(myUserModel.getGuestUser(),
-                                    Constants.ASSIGNEE_FILTERED_DESCRIPTION_PREFIX + persistentInfo.reason) :
-                 null;
-        }
-        LOGGER.debug(String.format("%s Investigation for testRun %s was found",
-                                   Utils.getLogPrefix(testRun), testRun.getTestRunId()));
-        User user = myUserModel.findUserById(Long.parseLong(persistentInfo.investigatorId));
-        if (user == null) {
-          LOGGER.warn(String.format("%s User with id '%s' was not found in user model.", Utils.getLogPrefix(testRun),
-                                    persistentInfo.investigatorId));
-        }
-        return user != null ? new Responsibility(user, persistentInfo.reason) : null;
+    try {
+      statisticsReporter.reportSavedSuggestions(entries.size());
+      Path path = resultsFilePathResolver.get(build);
+
+      List<ResponsibilityPersistentInfo> existing = suggestionsDao.read(path);
+      if (existing.isEmpty()) statisticsReporter.reportBuildWithSuggestions();
+
+      entries.addAll(existing);
+      LOGGER.debug(String.format("Build id:%s :: Merged %d responsibilities", build.getBuildId(), entries.size()));
+      suggestionsDao.write(path, entries);
+    } catch (IOException ex) {
+      LOGGER.warn(String.format("Build id:%s :: Error persisting suggestions", build.getBuildId()), ex);
+    }
+  }
+
+  private Optional<Responsibility> resolveResponsibility(STestRun testRun, ResponsibilityPersistentInfo info) {
+    if (Constants.ASSIGNEE_FILTERED_LITERAL.equals(info.investigatorId)) {
+      if (TeamCityProperties.getBoolean(SHOULD_PERSIST_FILTERED_TESTS_DESCRIPTION)) {
+        return Optional.of(new Responsibility(userModel.getGuestUser(),
+                                              Constants.ASSIGNEE_FILTERED_DESCRIPTION_PREFIX + info.reason));
       }
+      return Optional.empty();
     }
 
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug(String.format("%s Investigation for testRun '%s' wasn't found",
-                                 Utils.getLogPrefix(testRun), testRun.getTestRunId()));
+    try {
+      long userId = Long.parseLong(info.investigatorId);
+      User user = userModel.findUserById(userId);
+      if (user == null) {
+        LOGGER.warn(Utils.getLogPrefix(testRun) + " User with ID not found: " + info.investigatorId);
+        return Optional.empty();
+      }
+      return Optional.of(new Responsibility(user, info.reason));
+    } catch (NumberFormatException e) {
+      LOGGER.warn(Utils.getLogPrefix(testRun) + " Invalid user ID format: " + info.investigatorId);
+      return Optional.empty();
     }
-    return null;
-  }
-
-  public void appendNotApplicableTestsDescription(@NotNull final SBuild build,
-                                                  @NotNull final Map<Long, String> notApplicableTestsDescription) {
-    doAppend(build, getPersistentInfoList(notApplicableTestsDescription));
-  }
-
-
-  @NotNull
-  private List<ResponsibilityPersistentInfo> getPersistentInfoList(final Map<Long, String> notApplicableTestsDescription) {
-    List<ResponsibilityPersistentInfo> result = new ArrayList<>();
-    for (final Map.Entry<Long, String> longStringEntry : notApplicableTestsDescription.entrySet()) {
-      result.add(new ResponsibilityPersistentInfo(longStringEntry.getKey().toString(),
-                                                  Constants.ASSIGNEE_FILTERED_LITERAL,
-                                                  longStringEntry.getValue()));
-    }
-
-    return result;
   }
 }

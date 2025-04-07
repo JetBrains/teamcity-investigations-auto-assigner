@@ -1,5 +1,6 @@
 
 
+// DefaultUserHeuristic.java
 package jetbrains.buildServer.investigationsAutoAssigner.heuristics;
 
 import com.intellij.openapi.diagnostic.Logger;
@@ -24,11 +25,10 @@ import static jetbrains.buildServer.investigationsAutoAssigner.processing.BuildP
 public class DefaultUserHeuristic implements Heuristic {
 
   private static final Logger LOGGER = Constants.LOGGER;
-
-  @NotNull private final UserModelEx myUserModel;
+  @NotNull private final UserModelEx userModel;
 
   public DefaultUserHeuristic(@NotNull final UserModelEx userModel) {
-    myUserModel = userModel;
+    this.userModel = userModel;
   }
 
   @Override
@@ -39,42 +39,46 @@ public class DefaultUserHeuristic implements Heuristic {
 
   @NotNull
   @Override
-  public HeuristicResult findResponsibleUser(@NotNull HeuristicContext heuristicContext) {
+  public HeuristicResult findResponsibleUser(@NotNull HeuristicContext context) {
     HeuristicResult result = new HeuristicResult();
+    SBuild build = context.getBuild();
+    String username = CustomParameters.getDefaultResponsible(build);
 
-    SBuild build = heuristicContext.getBuild();
-    String defaultResponsible = CustomParameters.getDefaultResponsible(build);
-    if (StringUtil.isEmpty(defaultResponsible)) return result;
+    if (StringUtil.isEmpty(username)) return result;
 
-    UserEx responsibleUser = myUserModel.findUserAccount(null, defaultResponsible);
-    if (responsibleUser == null) {
-      LOGGER.warn("Ignoring heuristic \"DefaultUser\" as there is no TeamCity user with the username \"" +
-                  defaultResponsible + "\" specified in the Investigations Auto-Assigner settings in the build: " +
-                  LogUtil.describe(build) + "Affected build configuration: " +
-                  LogUtil.describe(build.getBuildType()));
+    UserEx user = userModel.findUserAccount(null, username);
+    if (user == null) {
+      logUserNotFound(build, username);
       return result;
     }
 
-    boolean applyForSnapshotDependencyErrors = shouldApplyForSnapshotDependencyErrors(build);
-    Responsibility responsibility = new DefaultUserResponsibility(responsibleUser);
-    heuristicContext.getBuildProblems()
-                    .stream()
-                    .filter(buildProblem -> applyForSnapshotDependencyErrors || !snapshotDependencyErrorTypes.contains(buildProblem.getBuildProblemData().getType()))
-                    .forEach(buildProblem -> result.addResponsibility(buildProblem, responsibility));
-    heuristicContext.getTestRuns().forEach(testRun -> result.addResponsibility(testRun, responsibility));
+    Responsibility responsibility = new DefaultUserResponsibility(user);
+    boolean includeSnapshotErrors = shouldIncludeSnapshotErrors(build);
 
+    context.getBuildProblems().stream()
+           .filter(problem -> includeSnapshotErrors ||
+                              !snapshotDependencyErrorTypes.contains(problem.getBuildProblemData().getType()))
+           .forEach(problem -> result.addResponsibility(problem, responsibility));
+
+    context.getTestRuns().forEach(test -> result.addResponsibility(test, responsibility));
     return result;
   }
 
-  private boolean shouldApplyForSnapshotDependencyErrors(SBuild build) {
-    if (build.isCompositeBuild()) {
-      return true;
-    }
-    SBuildType buildType = build.getBuildType();
-    boolean ignoreSnapshotDependencyErrors =
-      buildType instanceof BuildTypeEx
-      ? ((BuildTypeEx)buildType).getBooleanInternalParameterOrTrue(Constants.IGNORE_SNAPSHOT_DEPENDENCY_ERRORS_IN_DEFAULT_HEURISTIC)
-      : TeamCityProperties.getBooleanOrTrue(Constants.IGNORE_SNAPSHOT_DEPENDENCY_ERRORS_IN_DEFAULT_HEURISTIC);
-    return !ignoreSnapshotDependencyErrors;
+  private boolean shouldIncludeSnapshotErrors(SBuild build) {
+    if (build.isCompositeBuild()) return true;
+
+    SBuildType type = build.getBuildType();
+    return !(type instanceof BuildTypeEx
+             ? ((BuildTypeEx)type).getBooleanInternalParameterOrTrue(
+      Constants.IGNORE_SNAPSHOT_DEPENDENCY_ERRORS_IN_DEFAULT_HEURISTIC)
+             : TeamCityProperties.getBooleanOrTrue(Constants.IGNORE_SNAPSHOT_DEPENDENCY_ERRORS_IN_DEFAULT_HEURISTIC));
+  }
+
+  private void logUserNotFound(SBuild build, String username) {
+    LOGGER.warn(String.format(
+      "Ignoring heuristic \"DefaultUser\": no user \"%s\" in build settings. Build: %s, Configuration: %s",
+      username,
+      LogUtil.describe(build),
+      LogUtil.describe(build.getBuildType())));
   }
 }

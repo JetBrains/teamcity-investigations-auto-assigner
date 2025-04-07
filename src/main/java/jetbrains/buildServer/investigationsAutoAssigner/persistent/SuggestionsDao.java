@@ -12,58 +12,64 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.serverSide.ServerSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class SuggestionsDao {
-  private final Logger LOGGER = Constants.LOGGER;
-  private final ServerSettings mySettings;
-  private final Gson myGson;
+  private final Logger logger = Constants.LOGGER;
+  private final ServerSettings serverSettings;
+  private final Gson gson;
 
   public SuggestionsDao(@NotNull final ServerSettings settings) {
-    mySettings = settings;
-    myGson = new Gson();
+    this.serverSettings = settings;
+    this.gson = new Gson();
   }
 
-  public void write(Path resultsFilePath, List<ResponsibilityPersistentInfo> infoToAdd) throws IOException {
+  public void write(@NotNull Path resultsFilePath, @NotNull List<ResponsibilityPersistentInfo> suggestions) throws IOException {
+    ArtifactContent content = new ArtifactContent(serverSettings.getServerUUID(), suggestions);
     try (BufferedWriter writer = Files.newBufferedWriter(resultsFilePath, StandardCharsets.UTF_8)) {
-      ArtifactContent artifactContent = new ArtifactContent(mySettings.getServerUUID(), infoToAdd);
-      myGson.toJson(artifactContent, writer);
+      gson.toJson(content, writer);
     }
   }
 
   @NotNull
   public List<ResponsibilityPersistentInfo> read(@Nullable Path resultsFilePath) throws IOException {
-
-    if (resultsFilePath != null && Files.exists(resultsFilePath) && Files.size(resultsFilePath) != 0) {
-      try (BufferedReader reader = Files.newBufferedReader(resultsFilePath)) {
-        ArtifactContent artifactContent = myGson.fromJson(reader, ArtifactContent.class);
-        if (artifactContent == null || artifactContent.suggestions == null) {
-          return Collections.emptyList();
-        } else if (artifactContent.serverUUID == null ||
-                   !artifactContent.serverUUID.equals(mySettings.getServerUUID())) {
-          LOGGER.warn("%s: Server UUIDs don't match");
-          return Collections.emptyList();
-        } else {
-          if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(String.format("Read %s stored investigations", artifactContent.suggestions.size()));
-          }
-
-          return artifactContent.suggestions;
-        }
-      }
+    if (resultsFilePath == null || !Files.exists(resultsFilePath) || Files.size(resultsFilePath) == 0) {
+      return Collections.emptyList();
     }
 
-    return Collections.emptyList();
+    try (BufferedReader reader = Files.newBufferedReader(resultsFilePath)) {
+      return Optional.ofNullable(gson.fromJson(reader, ArtifactContent.class))
+                     .filter(this::isValidContent)
+                     .map(content -> content.suggestions)
+                     .orElse(Collections.emptyList());
+    } catch (Exception e) {
+      logger.warn("Failed to read suggestions from file: " + resultsFilePath, e);
+      return Collections.emptyList();
+    }
+  }
+
+  private boolean isValidContent(@NotNull ArtifactContent content) {
+    if (content.suggestions == null || content.serverUUID == null) {
+      return false;
+    }
+
+    if (!serverSettings.getServerUUID().equals(content.serverUUID)) {
+      logger.warn("Server UUID mismatch: expected " + serverSettings.getServerUUID() + ", got " + content.serverUUID);
+      return false;
+    }
+
+    return true;
   }
 
   private static class ArtifactContent {
     String serverUUID;
     List<ResponsibilityPersistentInfo> suggestions;
 
-    private ArtifactContent(String serverUUID, List<ResponsibilityPersistentInfo> suggestions) {
+    ArtifactContent(String serverUUID, List<ResponsibilityPersistentInfo> suggestions) {
       this.serverUUID = serverUUID;
       this.suggestions = suggestions;
     }
