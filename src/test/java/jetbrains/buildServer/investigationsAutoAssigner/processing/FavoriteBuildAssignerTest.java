@@ -78,6 +78,6 @@ public class FavoriteBuildAssignerTest extends BaseTestCase {
     setInternalProperty(Constants.SHOULD_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE, "true");
     when(myUser1.getBooleanProperty(new SimplePropertyKey(Constants.USER_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE_INTERNAL_PROPERTY))).thenReturn(true);
     myFavoriteBuildAssigner.markAsFavorite(mySBuild, myUser1);
-    Mockito.verify(myFavoriteBuildsManager, Mockito.atLeastOnce()).tagBuild(mySBuild.getBuildPromotion(), myUser1);
+    Mockito.verify(myFavoriteBuildsManager, Mockito.only()).tagBuild(mySBuild.getBuildPromotion(), myUser1);
   }
 }

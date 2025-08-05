@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import jetbrains.buildServer.BaseTestCase;
+import jetbrains.buildServer.favoriteBuilds.FavoriteBuildsManager;
 import jetbrains.buildServer.investigationsAutoAssigner.common.DefaultUserResponsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
@@ -18,6 +19,7 @@ import jetbrains.buildServer.tests.TestName;
 import jetbrains.buildServer.users.User;
 import jetbrains.buildServer.users.UserSet;
 import jetbrains.buildServer.users.impl.UserImpl;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -39,6 +41,7 @@ public class FailedTestAssignerTest extends BaseTestCase {
   private FailedTestAssigner myTestedFailedTestAssigner;
   private SBuild mySBuild;
   private TargetProjectFinder myTargetProjectFinderMock;
+  private AbstractFavoriteBuildAssigner  myFavoriteBuildAssigner;
 
   @BeforeMethod
   @Override
@@ -69,28 +72,40 @@ public class FailedTestAssignerTest extends BaseTestCase {
     when(myUser2.getId()).thenReturn(2L);
     myHeuristicResult = new HeuristicResult();
 
+    BuildPromotion buildPromotion = Mockito.mock(BuildPromotion.class);
+    when(mySBuild.getBuildPromotion()).thenReturn(buildPromotion);
+
     UserSet userSetMock = Mockito.mock(UserSet.class);
     when(userSetMock.getUsers()).thenReturn(new HashSet<>(Arrays.asList(myUser1, myUser2)));
     when(mySBuild.getCommitters(any())).thenReturn(userSetMock);
     when(mySBuild.getParametersProvider()).thenReturn(Mockito.mock(ParametersProvider.class));
 
+    final FavoriteBuildsManager favoriteBuildsManager = Mockito.mock(FavoriteBuildsManager.class);
+    myFavoriteBuildAssigner = Mockito.mock(FavoriteBuildAssigner.class,
+                                           Mockito.withSettings().useConstructor(favoriteBuildsManager)
+                                                  .defaultAnswer(Mockito.CALLS_REAL_METHODS));
+    doNothing().when(myFavoriteBuildAssigner).markAsFavorite(any(), any());
+
     myTargetProjectFinderMock = Mockito.mock(TargetProjectFinder.class);
     myTestedFailedTestAssigner = new FailedTestAssigner(myTestNameResponsibilityFacade,
                                                         webLinks,
                                                         Mockito.mock(StatisticsReporter.class),
-                                                        myTargetProjectFinderMock);
+                                                        myTargetProjectFinderMock,
+                                                        myFavoriteBuildAssigner);
   }
 
   public void Test_NoTestRuns() {
     myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, mySBuild, Collections.emptyList());
 
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.never()).setTestNameResponsibility(anyList(), any(), any());
+    Mockito.verify(myFavoriteBuildAssigner, Mockito.never()).markAsFavorite(any(), any());
   }
 
   public void Test_NoResponsibilitiesFound() {
     myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, mySBuild, Collections.singletonList(mySTestRun1));
 
     Mockito.verify(myTestNameResponsibilityFacade, Mockito.never()).setTestNameResponsibility(anyList(), any(), any());
+    Mockito.verify(myFavoriteBuildAssigner, Mockito.never()).markAsFavorite(any(), any());
   }
 
   public void Test_OneResponsibilityFound() {
@@ -100,6 +115,7 @@ public class FailedTestAssignerTest extends BaseTestCase {
     myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, mySBuild, Collections.singletonList(mySTestRun1));
 
     Mockito.verify(myTestNameResponsibilityFacade, only()).setTestNameResponsibility(anyList(), any(), any());
+    Mockito.verify(myFavoriteBuildAssigner, only()).markAsFavorite(any(), any());
   }
 
   public void Test_SetResponsibilityDifferentProject() {
@@ -113,6 +129,7 @@ public class FailedTestAssignerTest extends BaseTestCase {
     myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, mySBuild, Collections.singletonList(mySTestRun1));
 
     Mockito.verify(myTestNameResponsibilityFacade, only()).setTestNameResponsibility(anyList(), Mockito.eq("project2"), any());
+    Mockito.verify(myFavoriteBuildAssigner, only()).markAsFavorite(any(), any());
   }
 
   public void Test_TwoSameResponsibilitiesFound() {
@@ -145,6 +162,7 @@ public class FailedTestAssignerTest extends BaseTestCase {
     myHeuristicResult.addResponsibility(mySTestRun2, new Responsibility(myUser2, "any description 2"));
     myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, mySBuild, Arrays.asList(mySTestRun1, mySTestRun2));
     Mockito.verify(myTestNameResponsibilityFacade, times(2)).setTestNameResponsibility(anyList(), any(), any());
+    Mockito.verify(myFavoriteBuildAssigner, times(6)).markAsFavorite(any(), any());
   }
 
   public void Test_FoundNoCommittersOneDefaultResponsibility() {
@@ -157,5 +175,6 @@ public class FailedTestAssignerTest extends BaseTestCase {
     myTestedFailedTestAssigner.assign(myHeuristicResult, mySProject, mySBuild, Collections.singletonList(mySTestRun1));
 
     Mockito.verify(myTestNameResponsibilityFacade, only()).setTestNameResponsibility(anyList(), any(), any());
+    Mockito.verify(myFavoriteBuildAssigner, only()).markAsFavorite(any(), any());
   }
 }

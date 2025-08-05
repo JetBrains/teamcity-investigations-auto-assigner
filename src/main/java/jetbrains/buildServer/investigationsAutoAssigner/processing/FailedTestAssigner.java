@@ -18,6 +18,7 @@ import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.STestRun;
 import jetbrains.buildServer.serverSide.WebLinks;
 import jetbrains.buildServer.tests.TestName;
+import jetbrains.buildServer.users.SUser;
 import jetbrains.buildServer.util.Dates;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,15 +30,18 @@ public class FailedTestAssigner implements BaseAssigner {
   private final WebLinks myWebLinks;
   private final StatisticsReporter myStatisticsReporter;
   private final TargetProjectFinder myTargetProjectFinder;
+  private final AbstractFavoriteBuildAssigner myFavoriteBuildAssigner;
 
   public FailedTestAssigner(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade,
                             @NotNull final WebLinks webLinks,
                             @NotNull final StatisticsReporter statisticsReporter,
-                            @NotNull final TargetProjectFinder targetProjectFinder) {
+                            @NotNull final TargetProjectFinder targetProjectFinder,
+                            @NotNull final AbstractFavoriteBuildAssigner favoriteBuildAssigner) {
     myTestNameResponsibilityFacade = testNameResponsibilityFacade;
     myWebLinks = webLinks;
     myStatisticsReporter = statisticsReporter;
     myTargetProjectFinder = targetProjectFinder;
+    myFavoriteBuildAssigner = favoriteBuildAssigner;
   }
 
   void assign(final HeuristicResult heuristicsResult,
@@ -78,6 +82,7 @@ public class FailedTestAssigner implements BaseAssigner {
             ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
             responsibility.getAssignDescription(linkToBuild), getRemoveMethod(sBuild.getBuildType()))
         );
+        myFavoriteBuildAssigner.markAsFavorite(sBuild, (SUser)responsibility.getUser());
 
         myStatisticsReporter.reportAssignedInvestigations(testNameList.size(), responsibility);
       }
