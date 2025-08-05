@@ -16,5 +16,13 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
+import jetbrains.buildServer.favoriteBuilds.FavoriteBuildsManager;
+import org.jetbrains.annotations.NotNull;
+
 public final class FavoriteBuildAssigner {
+  private final FavoriteBuildsManager myFavoriteBuildsManager;
+
+  public FavoriteBuildAssigner(@NotNull FavoriteBuildsManager favoriteBuildsManager) {
+    myFavoriteBuildsManager = favoriteBuildsManager;
+  }
 }
