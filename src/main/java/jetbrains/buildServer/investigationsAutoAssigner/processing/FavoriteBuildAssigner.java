@@ -17,7 +17,9 @@
 package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
 import jetbrains.buildServer.favoriteBuilds.FavoriteBuildsManager;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.TeamCityProperties;
 import jetbrains.buildServer.users.SUser;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +31,7 @@ public final class FavoriteBuildAssigner {
   }
 
   private boolean shouldMarkAsFavorite() {
-    return false;
+    return TeamCityProperties.getBoolean(Constants.SHOULD_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE);
   }
 
   public void markAsFavorite(@NotNull SBuild sBuild, @NotNull SUser user) {
