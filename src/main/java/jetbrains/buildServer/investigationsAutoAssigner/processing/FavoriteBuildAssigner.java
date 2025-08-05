@@ -39,7 +39,7 @@ public final class FavoriteBuildAssigner {
   }
 
   public void markAsFavorite(@NotNull SBuild sBuild, @NotNull SUser user) {
-    if (shouldMarkAsFavorite()) {
+    if (shouldMarkAsFavorite(user)) {
       myFavoriteBuildsManager.tagBuild(sBuild.getBuildPromotion(), user);
     }
   }
