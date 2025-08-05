@@ -34,8 +34,7 @@ public final class FavoriteBuildAssigner {
 
   private boolean shouldMarkAsFavorite(@NotNull SUser user) {
     return TeamCityProperties.getBoolean(Constants.SHOULD_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE) &&
-           Boolean.getBoolean(user.getProperties()
-                                  .getOrDefault(new SimplePropertyKey(Constants.USER_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE_INTERNAL_PROPERTY), "false"));
+           Boolean.getBoolean(user.getPropertyValue(new SimplePropertyKey(Constants.USER_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE_INTERNAL_PROPERTY)));
   }
 
   public void markAsFavorite(@NotNull SBuild sBuild, @NotNull SUser user) {
