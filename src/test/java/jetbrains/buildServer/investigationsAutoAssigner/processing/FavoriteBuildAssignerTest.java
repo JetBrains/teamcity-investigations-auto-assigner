@@ -21,13 +21,13 @@ import jetbrains.buildServer.favoriteBuilds.FavoriteBuildsManager;
 import jetbrains.buildServer.serverSide.BuildPromotion;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.users.SUser;
-import jetbrains.buildServer.users.User;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
+@Test
 public class FavoriteBuildAssignerTest extends BaseTestCase {
 
   private FavoriteBuildAssigner myFavoriteBuildAssigner;
@@ -53,5 +53,10 @@ public class FavoriteBuildAssignerTest extends BaseTestCase {
 
     //FavoriteBuildAssigner
     myFavoriteBuildAssigner = new FavoriteBuildAssigner(myFavoriteBuildsManager);
+  }
+
+  public void Test_TeamCityPropertyDisabledUsersCheckboxTrue() {
+    myFavoriteBuildAssigner.markAsFavorite(mySBuild, myUser1);
+    Mockito.verify(myFavoriteBuildsManager, Mockito.never()).tagBuild(mySBuild.getBuildPromotion(), myUser1);
   }
 }
