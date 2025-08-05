@@ -31,9 +31,20 @@ public abstract class AbstractFavoriteBuildAssigner {
     myFavoriteBuildsManager = favoriteBuildsManager;
   }
 
+  /**
+   * Check if it is possible to mark as favorite an important build.
+   * @param user {@link SUser} object used for querying specific internal properties.
+   * @return a boolean representing if it is possible to mark continue the procedure of marking.
+   */
   protected boolean shouldMarkAsFavorite(@NotNull final SUser user) {
     return TeamCityProperties.getBoolean(Constants.SHOULD_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE) &&
            user.getBooleanProperty(new SimplePropertyKey(Constants.USER_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE_INTERNAL_PROPERTY));
   }
+
+  /**
+   * Mark the input build as favorite for the input user.
+   * @param sBuild {@link  SBuild} object that represents the current build.
+   * @param user {@link SUser} the user for whom the build should be marked as favorite.
+   */
   abstract void markAsFavorite(@NotNull final SBuild sBuild, @NotNull final SUser user);
 }
