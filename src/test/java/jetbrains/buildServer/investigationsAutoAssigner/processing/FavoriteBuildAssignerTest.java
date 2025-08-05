@@ -16,5 +16,42 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
-public class FavoriteBuildAssignerTest {
+import jetbrains.buildServer.BaseTestCase;
+import jetbrains.buildServer.favoriteBuilds.FavoriteBuildsManager;
+import jetbrains.buildServer.serverSide.BuildPromotion;
+import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.users.User;
+import org.mockito.Mockito;
+import org.testng.annotations.BeforeMethod;
+
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
+
+public class FavoriteBuildAssignerTest extends BaseTestCase {
+
+  private FavoriteBuildAssigner myFavoriteBuildAssigner;
+  private FavoriteBuildsManager myFavoriteBuildsManager;
+  private SBuild mySBuild;
+  private SUser myUser1;
+
+  @BeforeMethod
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+
+    mySBuild = Mockito.mock(SBuild.class);
+    myUser1 = Mockito.mock(SUser.class);
+    myFavoriteBuildsManager = Mockito.mock(FavoriteBuildsManager.class);
+
+    //SBuild
+    final BuildPromotion buildPromotion = Mockito.mock(BuildPromotion.class);
+    when(mySBuild.getBuildPromotion()).thenReturn(buildPromotion);
+
+    //FavoriteBuildsManager
+    doNothing().when(myFavoriteBuildsManager).tagBuild(buildPromotion, myUser1);
+
+    //FavoriteBuildAssigner
+    myFavoriteBuildAssigner = new FavoriteBuildAssigner(myFavoriteBuildsManager);
+  }
 }

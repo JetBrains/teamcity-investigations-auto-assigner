@@ -33,6 +33,8 @@ public final class FavoriteBuildAssigner {
   }
 
   public void markAsFavorite(@NotNull SBuild sBuild, @NotNull SUser user) {
-    
+    if (shouldMarkAsFavorite()) {
+      myFavoriteBuildsManager.tagBuild(sBuild.getBuildPromotion(), user);
+    }
   }
 }

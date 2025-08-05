@@ -23,9 +23,11 @@ public class Constants {
   public static final String MAX_TESTS_PER_BUILD_NUMBER = "teamcity.investigationsAutoAssigner.maxTestsFailuresToProcessPerBuild";
   public static final String SHOULD_PERSIST_FILTERED_TESTS_DESCRIPTION = "teamcity.investigationsAutoAssigner.persistFilteredTests";
   public static final String SHOULD_ASSIGN_RESOLVE_MANUALLY = "investigationsAutoAssigner.assignResolveManually";
+  public static final String USER_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE_INTERNAL_PROPERTY = "automaticallyMarkImportantBuildsAsFavorite";
 
   // Server internal properties
   public static final String PROCESSING_DELAY_IN_SECONDS = "teamcity.investigationsAutoAssigner.scheduledTaskInterval.seconds";
+  public static final String SHOULD_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE = "teamcity.properties.automaticallyMarkImportantBuildsAsFavorite.enabled";
 
   // Server internal properties (debug use only)
   public static final String STATISTICS_ENABLED = "teamcity.investigationsAutoAssigner.statisticsEnabled";
