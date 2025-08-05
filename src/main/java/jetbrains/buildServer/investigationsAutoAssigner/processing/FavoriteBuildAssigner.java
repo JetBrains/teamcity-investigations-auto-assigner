@@ -17,6 +17,8 @@
 package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
 import jetbrains.buildServer.favoriteBuilds.FavoriteBuildsManager;
+import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.users.SUser;
 import org.jetbrains.annotations.NotNull;
 
 public final class FavoriteBuildAssigner {
@@ -24,5 +26,13 @@ public final class FavoriteBuildAssigner {
 
   public FavoriteBuildAssigner(@NotNull FavoriteBuildsManager favoriteBuildsManager) {
     myFavoriteBuildsManager = favoriteBuildsManager;
+  }
+
+  private boolean shouldMarkAsFavorite() {
+    return false;
+  }
+
+  public void markAsFavorite(@NotNull SBuild sBuild, @NotNull SUser user) {
+    
   }
 }
