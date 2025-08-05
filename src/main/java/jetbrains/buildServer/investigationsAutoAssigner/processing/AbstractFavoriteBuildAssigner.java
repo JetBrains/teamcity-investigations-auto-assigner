@@ -17,20 +17,23 @@
 package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
 import jetbrains.buildServer.favoriteBuilds.FavoriteBuildsManager;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.TeamCityProperties;
 import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.users.SimplePropertyKey;
 import org.jetbrains.annotations.NotNull;
 
-public class FavoriteBuildAssigner extends AbstractFavoriteBuildAssigner {
+public abstract class AbstractFavoriteBuildAssigner {
 
-  public FavoriteBuildAssigner(@NotNull final FavoriteBuildsManager favoriteBuildsManager) {
-    super(favoriteBuildsManager);
+  protected final FavoriteBuildsManager myFavoriteBuildsManager;
+  protected AbstractFavoriteBuildAssigner(@NotNull final FavoriteBuildsManager favoriteBuildsManager) {
+    myFavoriteBuildsManager = favoriteBuildsManager;
   }
 
-  @Override
-  public void markAsFavorite(@NotNull final SBuild sBuild, @NotNull final SUser user) {
-    if (shouldMarkAsFavorite(user)) {
-      myFavoriteBuildsManager.tagBuild(sBuild.getBuildPromotion(), user);
-    }
+  protected boolean shouldMarkAsFavorite(@NotNull final SUser user) {
+    return TeamCityProperties.getBoolean(Constants.SHOULD_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE) &&
+           user.getBooleanProperty(new SimplePropertyKey(Constants.USER_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE_INTERNAL_PROPERTY));
   }
+  abstract void markAsFavorite(@NotNull final SBuild sBuild, @NotNull final SUser user);
 }

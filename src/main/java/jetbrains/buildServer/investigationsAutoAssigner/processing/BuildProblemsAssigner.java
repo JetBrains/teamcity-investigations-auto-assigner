@@ -30,13 +30,13 @@ public class BuildProblemsAssigner implements BaseAssigner {
   private final StatisticsReporter myStatisticsReporter;
   private final WebLinks myWebLinks;
   private final TargetProjectFinder myTargetProjectFinder;
-  private final FavoriteBuildAssigner myFavoriteBuildAssigner;
+  private final AbstractFavoriteBuildAssigner myFavoriteBuildAssigner;
 
   public BuildProblemsAssigner(@NotNull final BuildProblemResponsibilityFacade buildProblemResponsibilityFacade,
                                @NotNull final WebLinks webLinks,
                                @NotNull final StatisticsReporter statisticsReporter,
                                @NotNull final TargetProjectFinder targetProjectFinder,
-                               @NotNull final FavoriteBuildAssigner favoriteBuildAssigner) {
+                               @NotNull final AbstractFavoriteBuildAssigner favoriteBuildAssigner) {
     myBuildProblemResponsibilityFacade = buildProblemResponsibilityFacade;
     myStatisticsReporter = statisticsReporter;
     myWebLinks = webLinks;
