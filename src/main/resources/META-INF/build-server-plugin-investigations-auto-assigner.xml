@@ -55,4 +55,5 @@
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.persistent.SuggestionsDao"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerResultsFilePath"/>
   <bean class="jetbrains.buildServer.investigationsAutoAssigner.processing.ModificationAnalyzerFactory"/>
+  <bean class="jetbrains.buildServer.investigationsAutoAssigner.processing.FavoriteBuildAssigner"/>
 </beans>
