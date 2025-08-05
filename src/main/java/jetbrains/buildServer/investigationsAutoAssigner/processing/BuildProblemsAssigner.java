@@ -18,6 +18,7 @@ import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.WebLinks;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.serverSide.problems.BuildProblemInfo;
+import jetbrains.buildServer.users.SUser;
 import jetbrains.buildServer.util.Dates;
 import org.jetbrains.annotations.NotNull;
 
@@ -80,6 +81,7 @@ public class BuildProblemsAssigner implements BaseAssigner {
             ResponsibilityEntry.State.TAKEN, responsibility.getUser(), null, Dates.now(),
             responsibility.getAssignDescription(linkToBuild), getRemoveMethod(sBuild.getBuildType()))
         );
+        myFavoriteBuildAssigner.markAsFavorite(sBuild, (SUser)responsibility.getUser());
 
         myStatisticsReporter.reportAssignedInvestigations(buildProblemList.size(), responsibility);
       }
