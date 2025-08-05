@@ -18,9 +18,13 @@ package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
 import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.favoriteBuilds.FavoriteBuildsManager;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.serverSide.BuildPromotion;
 import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.TeamCityProperties;
 import jetbrains.buildServer.users.SUser;
+import jetbrains.buildServer.users.SimplePropertyKey;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -56,7 +60,26 @@ public class FavoriteBuildAssignerTest extends BaseTestCase {
   }
 
   public void Test_TeamCityPropertyDisabledUsersCheckboxTrue() {
+    when(myUser1.getPropertyValue(new SimplePropertyKey(Constants.USER_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE_INTERNAL_PROPERTY))).thenReturn("true");
     myFavoriteBuildAssigner.markAsFavorite(mySBuild, myUser1);
     Mockito.verify(myFavoriteBuildsManager, Mockito.never()).tagBuild(mySBuild.getBuildPromotion(), myUser1);
+  }
+
+  public void Test_TeamCityPropertyDisabledUsersCheckboxFalse() {
+    myFavoriteBuildAssigner.markAsFavorite(mySBuild, myUser1);
+    Mockito.verify(myFavoriteBuildsManager, Mockito.never()).tagBuild(mySBuild.getBuildPromotion(), myUser1);
+  }
+
+  public void Test_TeamCityPropertyEnabledUsersCheckboxFalse() {
+    setInternalProperty(Constants.SHOULD_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE, "true");
+    myFavoriteBuildAssigner.markAsFavorite(mySBuild, myUser1);
+    Mockito.verify(myFavoriteBuildsManager, Mockito.never()).tagBuild(mySBuild.getBuildPromotion(), myUser1);
+  }
+
+  public void Test_TeamCityPropertyEnabledUsersCheckboxTrue() {
+    setInternalProperty(Constants.SHOULD_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE, "true");
+    when(myUser1.getBooleanProperty(new SimplePropertyKey(Constants.USER_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE_INTERNAL_PROPERTY))).thenReturn(true);
+    myFavoriteBuildAssigner.markAsFavorite(mySBuild, myUser1);
+    Mockito.verify(myFavoriteBuildsManager, Mockito.atLeastOnce()).tagBuild(mySBuild.getBuildPromotion(), myUser1);
   }
 }
