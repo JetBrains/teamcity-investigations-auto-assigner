@@ -22,21 +22,22 @@ import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.TeamCityProperties;
 import jetbrains.buildServer.users.SUser;
 import jetbrains.buildServer.users.SimplePropertyKey;
+import jetbrains.buildServer.users.User;
 import org.jetbrains.annotations.NotNull;
 
 public final class FavoriteBuildAssigner {
   private final FavoriteBuildsManager myFavoriteBuildsManager;
 
-  public FavoriteBuildAssigner(@NotNull FavoriteBuildsManager favoriteBuildsManager) {
+  public FavoriteBuildAssigner(@NotNull final FavoriteBuildsManager favoriteBuildsManager) {
     myFavoriteBuildsManager = favoriteBuildsManager;
   }
 
-  private boolean shouldMarkAsFavorite(@NotNull SUser user) {
+  private boolean shouldMarkAsFavorite(@NotNull final SUser user) {
     return TeamCityProperties.getBoolean(Constants.SHOULD_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE) &&
            user.getBooleanProperty(new SimplePropertyKey(Constants.USER_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE_INTERNAL_PROPERTY));
   }
 
-  public void markAsFavorite(@NotNull SBuild sBuild, @NotNull SUser user) {
+  public void markAsFavorite(@NotNull final SBuild sBuild, @NotNull final SUser user) {
     if (shouldMarkAsFavorite(user)) {
       myFavoriteBuildsManager.tagBuild(sBuild.getBuildPromotion(), user);
     }

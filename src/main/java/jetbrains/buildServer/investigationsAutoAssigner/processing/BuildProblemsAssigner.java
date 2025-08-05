@@ -29,15 +29,18 @@ public class BuildProblemsAssigner implements BaseAssigner {
   private final StatisticsReporter myStatisticsReporter;
   private final WebLinks myWebLinks;
   private final TargetProjectFinder myTargetProjectFinder;
+  private final FavoriteBuildAssigner myFavoriteBuildAssigner;
 
   public BuildProblemsAssigner(@NotNull final BuildProblemResponsibilityFacade buildProblemResponsibilityFacade,
                                @NotNull final WebLinks webLinks,
                                @NotNull final StatisticsReporter statisticsReporter,
-                               @NotNull final TargetProjectFinder targetProjectFinder) {
+                               @NotNull final TargetProjectFinder targetProjectFinder,
+                               @NotNull final FavoriteBuildAssigner favoriteBuildAssigner) {
     myBuildProblemResponsibilityFacade = buildProblemResponsibilityFacade;
     myStatisticsReporter = statisticsReporter;
     myWebLinks = webLinks;
     myTargetProjectFinder = targetProjectFinder;
+    myFavoriteBuildAssigner = favoriteBuildAssigner;
   }
 
   void assign(final HeuristicResult heuristicsResult,
