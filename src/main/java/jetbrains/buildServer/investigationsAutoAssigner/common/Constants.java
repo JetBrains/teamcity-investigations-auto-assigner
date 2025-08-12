@@ -27,7 +27,6 @@ public class Constants {
 
   // Server internal properties
   public static final String PROCESSING_DELAY_IN_SECONDS = "teamcity.investigationsAutoAssigner.scheduledTaskInterval.seconds";
-  public static final String SHOULD_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE = "teamcity.properties.automaticallyMarkImportantBuildsAsFavorite.enabled";
 
   // Server internal properties (debug use only)
   public static final String STATISTICS_ENABLED = "teamcity.investigationsAutoAssigner.statisticsEnabled";

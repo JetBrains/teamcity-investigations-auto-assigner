@@ -37,8 +37,7 @@ public abstract class AbstractFavoriteBuildAssigner {
    * @return a boolean representing if it is possible to mark continue the procedure of marking.
    */
   protected boolean shouldMarkAsFavorite(@NotNull final SUser user) {
-    return TeamCityProperties.getBoolean(Constants.SHOULD_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE) &&
-           user.getBooleanProperty(new SimplePropertyKey(Constants.USER_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE_INTERNAL_PROPERTY));
+    return user.getBooleanProperty(new SimplePropertyKey(Constants.USER_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE_INTERNAL_PROPERTY));
   }
 
   /**

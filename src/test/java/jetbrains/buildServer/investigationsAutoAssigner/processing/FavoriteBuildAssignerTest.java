@@ -57,27 +57,14 @@ public class FavoriteBuildAssignerTest extends BaseTestCase {
     myFavoriteBuildAssigner = new FavoriteBuildAssigner(myFavoriteBuildsManager);
   }
 
-  public void Test_TeamCityPropertyDisabledUsersCheckboxTrue() {
-    when(myUser1.getPropertyValue(new SimplePropertyKey(Constants.USER_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE_INTERNAL_PROPERTY))).thenReturn("true");
-    myFavoriteBuildAssigner.markAsFavorite(mySBuild, myUser1);
-    Mockito.verify(myFavoriteBuildsManager, Mockito.never()).tagBuild(mySBuild.getBuildPromotion(), myUser1);
-  }
-
-  public void Test_TeamCityPropertyDisabledUsersCheckboxFalse() {
-    myFavoriteBuildAssigner.markAsFavorite(mySBuild, myUser1);
-    Mockito.verify(myFavoriteBuildsManager, Mockito.never()).tagBuild(mySBuild.getBuildPromotion(), myUser1);
-  }
-
-  public void Test_TeamCityPropertyEnabledUsersCheckboxFalse() {
-    setInternalProperty(Constants.SHOULD_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE, "true");
-    myFavoriteBuildAssigner.markAsFavorite(mySBuild, myUser1);
-    Mockito.verify(myFavoriteBuildsManager, Mockito.never()).tagBuild(mySBuild.getBuildPromotion(), myUser1);
-  }
-
-  public void Test_TeamCityPropertyEnabledUsersCheckboxTrue() {
-    setInternalProperty(Constants.SHOULD_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE, "true");
+  public void Test_UsersCheckboxTrue() {
     when(myUser1.getBooleanProperty(new SimplePropertyKey(Constants.USER_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE_INTERNAL_PROPERTY))).thenReturn(true);
     myFavoriteBuildAssigner.markAsFavorite(mySBuild, myUser1);
     Mockito.verify(myFavoriteBuildsManager, Mockito.only()).tagBuild(mySBuild.getBuildPromotion(), myUser1);
+  }
+
+  public void Test_CheckboxFalse() {
+    myFavoriteBuildAssigner.markAsFavorite(mySBuild, myUser1);
+    Mockito.verify(myFavoriteBuildsManager, Mockito.never()).tagBuild(mySBuild.getBuildPromotion(), myUser1);
   }
 }
