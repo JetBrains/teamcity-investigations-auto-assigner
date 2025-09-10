@@ -19,12 +19,13 @@ package jetbrains.buildServer.investigationsAutoAssigner.processing;
 import jetbrains.buildServer.favoriteBuilds.FavoriteBuildsManager;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.serverSide.SBuild;
-import jetbrains.buildServer.serverSide.TeamCityProperties;
 import jetbrains.buildServer.users.SUser;
 import jetbrains.buildServer.users.SimplePropertyKey;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractFavoriteBuildAssigner {
+
+  private static final SimplePropertyKey USER_CHECKBOX_VALUE = new SimplePropertyKey(Constants.USER_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE_INTERNAL_PROPERTY);
 
   protected final FavoriteBuildsManager myFavoriteBuildsManager;
   protected AbstractFavoriteBuildAssigner(@NotNull final FavoriteBuildsManager favoriteBuildsManager) {
@@ -37,8 +38,7 @@ public abstract class AbstractFavoriteBuildAssigner {
    * @return a boolean representing if it is possible to mark continue the procedure of marking.
    */
   protected boolean shouldMarkAsFavorite(@NotNull final SUser user) {
-    return TeamCityProperties.getBoolean(Constants.SHOULD_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE) &&
-           user.getBooleanProperty(new SimplePropertyKey(Constants.USER_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE_INTERNAL_PROPERTY));
+    return user.getBooleanProperty(USER_CHECKBOX_VALUE);
   }
 
   /**
