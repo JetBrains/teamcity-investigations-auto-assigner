@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import jetbrains.buildServer.favoriteBuilds.FavoriteBuildsManager;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
 import jetbrains.buildServer.investigationsAutoAssigner.persistent.StatisticsReporter;
@@ -30,13 +31,13 @@ public class BuildProblemsAssigner implements BaseAssigner {
   private final StatisticsReporter myStatisticsReporter;
   private final WebLinks myWebLinks;
   private final TargetProjectFinder myTargetProjectFinder;
-  private final AbstractFavoriteBuildAssigner myFavoriteBuildAssigner;
+  private final FavoriteBuildAssigner myFavoriteBuildAssigner;
 
   public BuildProblemsAssigner(@NotNull final BuildProblemResponsibilityFacade buildProblemResponsibilityFacade,
                                @NotNull final WebLinks webLinks,
                                @NotNull final StatisticsReporter statisticsReporter,
                                @NotNull final TargetProjectFinder targetProjectFinder,
-                               @NotNull final AbstractFavoriteBuildAssigner favoriteBuildAssigner) {
+                               @NotNull final FavoriteBuildAssigner favoriteBuildAssigner) {
     myBuildProblemResponsibilityFacade = buildProblemResponsibilityFacade;
     myStatisticsReporter = statisticsReporter;
     myWebLinks = webLinks;

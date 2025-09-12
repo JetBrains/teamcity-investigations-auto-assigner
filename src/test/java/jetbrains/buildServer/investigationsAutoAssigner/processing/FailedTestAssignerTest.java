@@ -41,7 +41,7 @@ public class FailedTestAssignerTest extends BaseTestCase {
   private FailedTestAssigner myTestedFailedTestAssigner;
   private SBuild mySBuild;
   private TargetProjectFinder myTargetProjectFinderMock;
-  private AbstractFavoriteBuildAssigner  myFavoriteBuildAssigner;
+  private FavoriteBuildAssigner myFavoriteBuildAssigner;
 
   @BeforeMethod
   @Override
@@ -80,10 +80,7 @@ public class FailedTestAssignerTest extends BaseTestCase {
     when(mySBuild.getCommitters(any())).thenReturn(userSetMock);
     when(mySBuild.getParametersProvider()).thenReturn(Mockito.mock(ParametersProvider.class));
 
-    final FavoriteBuildsManager favoriteBuildsManager = Mockito.mock(FavoriteBuildsManager.class);
-    myFavoriteBuildAssigner = Mockito.mock(FavoriteBuildAssigner.class,
-                                           Mockito.withSettings().useConstructor(favoriteBuildsManager)
-                                                  .defaultAnswer(Mockito.CALLS_REAL_METHODS));
+    myFavoriteBuildAssigner = Mockito.mock(FavoriteBuildAssigner.class);
     doNothing().when(myFavoriteBuildAssigner).markAsFavorite(any(), any());
 
     myTargetProjectFinderMock = Mockito.mock(TargetProjectFinder.class);

@@ -16,21 +16,39 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.processing;
 
+import java.util.Arrays;
+import java.util.List;
 import jetbrains.buildServer.favoriteBuilds.FavoriteBuildsManager;
+import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.users.SUser;
 import org.jetbrains.annotations.NotNull;
 
-public class FavoriteBuildAssigner extends AbstractFavoriteBuildAssigner {
+public class FavoriteBuildAssigner {
 
-  public FavoriteBuildAssigner(@NotNull final FavoriteBuildsManager favoriteBuildsManager) {
-    super(favoriteBuildsManager);
+  private static final List<String> tagLabels = Arrays.asList(FavoriteBuildsManager.FAVORITE_BUILD_TAG, Constants.INVESTIGATION_LABEL);
+
+  public FavoriteBuildAssigner() {
   }
 
-  @Override
+
+  /**
+   * Check if it is possible to mark as favorite an important build.
+   * @param user {@link SUser} object used for querying specific internal properties.
+   * @return a boolean representing if it is possible to mark continue the procedure of marking.
+   */
+  private boolean shouldMarkAsFavorite(@NotNull final SUser user) {
+    return user.getBooleanProperty(Constants.USER_CHECKBOX_VALUE);
+  }
+
+  /**
+   * Mark the input build as favorite for the input user.
+   * @param sBuild {@link  SBuild} object that represents the current build.
+   * @param user {@link SUser} the user for whom the build should be marked as favorite.
+   */
   public void markAsFavorite(@NotNull final SBuild sBuild, @NotNull final SUser user) {
     if (shouldMarkAsFavorite(user)) {
-      myFavoriteBuildsManager.tagBuild(sBuild.getBuildPromotion(), user);
+      sBuild.getBuildPromotion().setPrivateTags(tagLabels, user);
     }
   }
 }

@@ -30,13 +30,13 @@ public class FailedTestAssigner implements BaseAssigner {
   private final WebLinks myWebLinks;
   private final StatisticsReporter myStatisticsReporter;
   private final TargetProjectFinder myTargetProjectFinder;
-  private final AbstractFavoriteBuildAssigner myFavoriteBuildAssigner;
+  private final FavoriteBuildAssigner myFavoriteBuildAssigner;
 
   public FailedTestAssigner(@NotNull final TestNameResponsibilityFacade testNameResponsibilityFacade,
                             @NotNull final WebLinks webLinks,
                             @NotNull final StatisticsReporter statisticsReporter,
                             @NotNull final TargetProjectFinder targetProjectFinder,
-                            @NotNull final AbstractFavoriteBuildAssigner favoriteBuildAssigner) {
+                            @NotNull final FavoriteBuildAssigner favoriteBuildAssigner) {
     myTestNameResponsibilityFacade = testNameResponsibilityFacade;
     myWebLinks = webLinks;
     myStatisticsReporter = statisticsReporter;

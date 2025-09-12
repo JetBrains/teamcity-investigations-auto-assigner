@@ -43,7 +43,7 @@ public class BuildProblemsAssignerTest extends BaseTestCase {
   private User myUser2;
   private SBuild mySBuild;
   private BuildProblemsAssigner myBuildProblemsAssigner;
-  private AbstractFavoriteBuildAssigner myFavoriteBuildAssigner;
+  private FavoriteBuildAssigner myFavoriteBuildAssigner;
 
   @BeforeMethod
   @Override
@@ -71,9 +71,7 @@ public class BuildProblemsAssignerTest extends BaseTestCase {
     when(userSetMock.getUsers()).thenReturn(new HashSet<>(Arrays.asList(myUser1, myUser2)));
     when(mySBuild.getCommitters(any())).thenReturn(userSetMock);
 
-    myFavoriteBuildAssigner = Mockito.mock(FavoriteBuildAssigner.class,
-                                           Mockito.withSettings().useConstructor(Mockito.mock(FavoriteBuildsManager.class))
-                                                  .defaultAnswer(Mockito.CALLS_REAL_METHODS));
+    myFavoriteBuildAssigner = Mockito.mock(FavoriteBuildAssigner.class);
     doNothing().when(myFavoriteBuildAssigner).markAsFavorite(any(), any());
 
     myBuildProblemsAssigner = new BuildProblemsAssigner(myBuildProblemResponsibilityFacade,

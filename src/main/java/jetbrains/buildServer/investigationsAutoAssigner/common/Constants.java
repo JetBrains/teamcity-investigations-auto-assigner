@@ -4,6 +4,7 @@ package jetbrains.buildServer.investigationsAutoAssigner.common;
 
 import com.intellij.openapi.diagnostic.Logger ;
 import jetbrains.buildServer.ArtifactsConstants;
+import jetbrains.buildServer.users.SimplePropertyKey;
 
 public class Constants {
   // Plugin's ids
@@ -24,6 +25,8 @@ public class Constants {
   public static final String SHOULD_PERSIST_FILTERED_TESTS_DESCRIPTION = "teamcity.investigationsAutoAssigner.persistFilteredTests";
   public static final String SHOULD_ASSIGN_RESOLVE_MANUALLY = "investigationsAutoAssigner.assignResolveManually";
   public static final String USER_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE_INTERNAL_PROPERTY = "automaticallyMarkImportantBuildsAsFavorite";
+  public static final String INVESTIGATION_LABEL = "investigation";
+  public static final SimplePropertyKey USER_CHECKBOX_VALUE = new SimplePropertyKey(Constants.USER_AUTOMATICALLY_MARK_IMPORTANT_BUILDS_AS_FAVORITE_INTERNAL_PROPERTY);
 
   // Server internal properties
   public static final String PROCESSING_DELAY_IN_SECONDS = "teamcity.investigationsAutoAssigner.scheduledTaskInterval.seconds";
