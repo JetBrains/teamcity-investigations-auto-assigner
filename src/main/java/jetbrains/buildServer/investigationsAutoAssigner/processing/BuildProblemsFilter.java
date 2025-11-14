@@ -22,11 +22,15 @@ import org.springframework.stereotype.Component;
 public class BuildProblemsFilter {
 
   private static final Logger LOGGER = Constants.LOGGER;
+  private final static Set<String> IGNORABLE_BUILD_PROBLEMS = Collections.singleton(BuildProblemTypes.TC_EXECUTION_TIMEOUT_TYPE);
+
   public final static Set<String> supportedEverywhereTypes = Collections.unmodifiableSet(
     new HashSet<>(Arrays.asList(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE, BuildProblemTypes.TC_EXIT_CODE_TYPE)));
+
   public final static Set<String> snapshotDependencyErrorTypes = Collections.unmodifiableSet(
     new HashSet<>(Arrays.asList(ErrorData.SNAPSHOT_DEPENDENCY_ERROR_BUILD_PROCEEDS_TYPE,
                                 ErrorData.SNAPSHOT_DEPENDENCY_ERROR_TYPE)));
+
   private final BuildProblemUtils myBuildProblemUtils;
   private final CustomParameters myCustomParameters;
   private final InvestigationsManager myInvestigationsManager;
@@ -87,7 +91,7 @@ public class BuildProblemsFilter {
       reason = "is already under an investigation";
     } else if (BuildProblemTypes.TC_FAILED_TESTS_TYPE.equals(problem.getBuildProblemData().getType())) {
       reason = "has unsupported failed tests build problem type";
-    } else if (myCustomParameters.getBuildProblemTypesToIgnore(sBuild).contains(buildProblemType)) {
+    } else if (myCustomParameters.getBuildProblemTypesToIgnore(sBuild).contains(buildProblemType) || IGNORABLE_BUILD_PROBLEMS.contains(buildProblemType)) {
       reason = "is among build problem types to ignore";
     }
 

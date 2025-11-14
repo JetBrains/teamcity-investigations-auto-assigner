@@ -20,6 +20,7 @@ import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.impl.problems.BuildProblemImpl;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
+import jetbrains.buildServer.util.TestFor;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -165,5 +166,14 @@ public class BuildProblemsFilterTest extends BaseTestCase {
       myBuildProblemsFilter.apply(myFailedBuildInfo, mySProject, myBuildProblemWrapper);
 
     Assert.assertEquals(applicableBuildProblems.size(), 1);
+  }
+
+  @TestFor(issues = "TW-96926")
+  public void Test_AvoidBuildTimeOutProblems() {
+    when(myBuildProblemData.getType()).thenReturn(BuildProblemTypes.TC_EXECUTION_TIMEOUT_TYPE);
+    List<BuildProblem> applicableBuildProblems =
+      myBuildProblemsFilter.apply(myFailedBuildInfo, mySProject, myBuildProblemWrapper);
+
+    assertEmpty(applicableBuildProblems);
   }
 }
