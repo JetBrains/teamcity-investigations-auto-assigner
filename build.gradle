@@ -4,7 +4,7 @@ import com.github.jk1.license.filter.LicenseBundleNormalizer
 
 plugins {
   id 'io.github.rodm.teamcity-server' version '1.5.2'
-  id 'org.jetbrains.kotlin.jvm' version '1.3.41'
+  id 'org.jetbrains.kotlin.jvm' version '2.2.21'
   id "com.github.jk1.dependency-license-report" version "1.17"
 }
 
@@ -23,8 +23,6 @@ def localRepo = anyParamPath('TC_LOCAL_REPO')
 group = 'jetbrains.buildServer.investigationsAutoAssigner'
 
 version = versionNumber
-
-
 
 // Remove repositories added by plugins
 project.plugins.withType(JavaPlugin) {
@@ -48,11 +46,11 @@ configurations {
 
 dependencies {
   provided(group: 'org.jetbrains.teamcity.internal', name: 'server', version: "${teamcityVersion}")
-  testCompile 'org.mockito:mockito-core:2.18.0'
-  testCompile 'org.assertj:assertj-core:2.2.0'
-  testCompile 'com.google.jimfs:jimfs:1.1'
-  testCompile "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-  testCompile 'org.awaitility:awaitility:3.1.6'
+  testImplementation 'org.mockito:mockito-core:2.18.0'
+  testImplementation 'org.assertj:assertj-core:2.2.0'
+  testImplementation 'com.google.jimfs:jimfs:1.1'
+  provided "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+  testImplementation 'org.awaitility:awaitility:3.1.6'
 }
 
 sourceCompatibility = "1.8"
@@ -142,7 +140,7 @@ def anyParam(String... names) {
 def initializeWorkspace() {
   if (System.getProperty("idea.active") != null) {
     println "Attempt to configure workspace in IDEA"
-    def coreVersionProperties = project.projectDir.toPath().parent.parent.parent.resolve(".version.properties")
+    def coreVersionProperties = project.projectDir.toPath().parent.parent.resolve(".version.properties")
     if (coreVersionProperties.toFile().exists()) {
       def p = new Properties().tap {
         it.load(new FileInputStream(coreVersionProperties.toFile()))
