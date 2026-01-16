@@ -3,7 +3,7 @@ import com.github.jk1.license.render.JsonReportRenderer
 import com.github.jk1.license.filter.LicenseBundleNormalizer
 
 plugins {
-  id 'io.github.rodm.teamcity-server' version '1.5.2'
+  id 'io.github.rodm.teamcity-server' version '1.5.6'
   id 'org.jetbrains.kotlin.jvm' version '2.2.21'
   id "com.github.jk1.dependency-license-report" version "1.17"
 }
@@ -53,9 +53,6 @@ dependencies {
   testImplementation 'org.awaitility:awaitility:3.1.6'
 }
 
-sourceCompatibility = "1.8"
-targetCompatibility = "1.8"
-
 test {
   useTestNG()
 }
@@ -86,8 +83,7 @@ teamcity {
 
 }
 
-// Do not include version into plugin archive name
-serverPlugin.version = null
+serverPlugin.archiveFileName = "${project.name}.zip"
 
 idea {
   module {
@@ -97,16 +93,13 @@ idea {
 }
 
 
-compileKotlin {
-  kotlinOptions {
-    jvmTarget = "1.8"
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(21)
   }
 }
-
-compileTestKotlin {
-  kotlinOptions {
-    jvmTarget = "1.8"
-  }
+kotlin {
+  jvmToolchain(21)
 }
 
 licenseReport {
