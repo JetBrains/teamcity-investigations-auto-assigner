@@ -13,14 +13,14 @@ import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-class StatisticsDao {
+public class StatisticsDao {
 
   private final Path myStatisticsPath;
   private final Path myPluginDataDirectory;
   private final Gson myGson;
   private Statistics myStatisticsOnDisc;
 
-  StatisticsDao(@NotNull final Path pluginDataDir) {
+  public StatisticsDao(@NotNull final Path pluginDataDir) {
     myGson = new Gson();
     myPluginDataDirectory = pluginDataDir.resolve(Constants.PLUGIN_DATA_DIR);
     myStatisticsPath = myPluginDataDirectory.resolve(Constants.STATISTICS_FILE_NAME);
