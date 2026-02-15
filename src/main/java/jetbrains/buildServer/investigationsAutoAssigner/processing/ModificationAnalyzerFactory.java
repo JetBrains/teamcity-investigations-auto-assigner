@@ -82,15 +82,13 @@ public class ModificationAnalyzerFactory {
 
   @Nullable
   private static String findBrokenFile(@NotNull final SVcsModification vcsChange, @NotNull final String problemText) {
-    for (VcsFileModification modification : vcsChange.getChanges()) {
-      final String filePath = modification.getRelativeFileName();
-      for (String pattern : getPatterns(filePath)) {
-        if (problemText.contains(pattern)) {
-          return filePath;
-        }
-      }
-    }
-    return null;
+    return vcsChange.getChanges()
+      .stream()
+      .map(VcsFileModification::getRelativeFileName)
+      .filter(filePath -> getPatterns(filePath).stream()
+                                               .anyMatch(problemText::contains))
+      .findFirst()
+      .orElse(null);
   }
 
   /**
