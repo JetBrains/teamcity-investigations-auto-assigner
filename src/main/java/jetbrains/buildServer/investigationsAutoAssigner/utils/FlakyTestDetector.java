@@ -2,21 +2,9 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.utils;
 
-import javax.management.*;
-
-import static java.lang.String.format;
-import static java.lang.management.ManagementFactory.getPlatformMBeanServer;
+import jetbrains.buildServer.web.functions.flakyTestDetector.FlakyTestDetectorFunctions;
 
 public class FlakyTestDetector {
-  /**
-   * The JMX ObjectName's used by the Flaky Test Detector MXBean.
-   */
-  private static final String OBJECT_NAME = "com.jetbrains.teamcity:type=FlakyTestDetector";
-  /**
-   * Whether InstanceNotFoundException has been caught.
-   */
-  private boolean instanceNotFound = false;
-  private final com.intellij.openapi.diagnostic.Logger LOGGER = com.intellij.openapi.diagnostic.Logger.getInstance(FlakyTestDetector.class.getName());
 
   /**
    * If Flaky Test Detector plug-in is not installed, returns false
@@ -25,20 +13,6 @@ public class FlakyTestDetector {
    * @return whether the test specified by testNameId is flaky.
    */
   public boolean isFlaky(final long testNameId) {
-    if (instanceNotFound) return false;
-
-    final MBeanServer mBeanServer = getPlatformMBeanServer();
-    try {
-      return (Boolean)mBeanServer.invoke(new ObjectName(OBJECT_NAME),
-                                         "isFlaky",
-                                         new Long[]{testNameId},
-                                         new String[]{"long"});
-    } catch (final InstanceNotFoundException ignored) {
-      instanceNotFound = true;
-      LOGGER.warn(format("Flaky Test Detector is not available at %s", OBJECT_NAME));
-    } catch (final MBeanException | ReflectionException | MalformedObjectNameException e) {
-      LOGGER.warn(e);
-    }
-    return false;
+    return FlakyTestDetectorFunctions.isFlaky(testNameId);
   }
 }
