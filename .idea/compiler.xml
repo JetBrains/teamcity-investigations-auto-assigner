@@ -13,7 +13,7 @@
       <entry name="?*.tld" />
       <entry name="?*.ftl" />
     </wildcardResourcePatterns>
-    <bytecodeTargetLevel>
+    <bytecodeTargetLevel target="1.8">
       <module name="investigations-auto-assigner_main" target="1.8" />
       <module name="investigations-auto-assigner_test" target="1.8" />
     </bytecodeTargetLevel>

@@ -100,6 +100,9 @@ class SuggestionsDaoTest {
     private fun readGold(resourceName: String): String {
         val resource = SuggestionsDao::class.java.getResource("/gold/$resourceName")
 
-        return resource.readText()
+        if (resource != null) {
+            return resource.readText()
+        }
+        return ""
     }
 }

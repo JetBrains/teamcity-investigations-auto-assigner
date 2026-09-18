@@ -13,7 +13,7 @@ import jetbrains.buildServer.util.StringUtil;
 
 public class StatisticsReporter {
   private final StatisticsDao myStatisticsDao;
-  private Statistics myStatistics;
+  private final Statistics myStatistics;
 
   public StatisticsReporter(StatisticsDaoFactory statisticsDaoFactory,
                             ExecutorServices executorServices) {

@@ -37,7 +37,6 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
   private FailedBuildInfo myFailedBuildInfo;
   private HeuristicResult myNotEmptyHeuristicResult;
   private FailedTestAssigner myFailedTestAssigner;
-  private ParametersProvider myParametersProvider;
   private SUser mySUser;
   private BuildProblemsAssigner myBuildProblemsAssigner;
   private BuildProblemsFilter myBuildProblemsFilter;
@@ -84,7 +83,7 @@ public class FailedTestAndBuildProblemsProcessorTest extends BaseTestCase {
     when(mySBuildType.getProject()).thenReturn(sProject);
 
     //configure parameters provider
-    myParametersProvider = Mockito.mock(ParametersProvider.class);
+    ParametersProvider myParametersProvider = Mockito.mock(ParametersProvider.class);
 
     //configure build
     mySBuild = Mockito.mock(BuildEx.class);

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -57,7 +58,7 @@ public class StatisticsDaoTest {
 
     Statistics statistics = myStatisticsDao.read();
 
-    Assert.assertEquals(new Statistics(), statistics);
+    Assert.assertEquals(statistics, new Statistics());
   }
 
   @Test
@@ -70,14 +71,14 @@ public class StatisticsDaoTest {
 
     Statistics statistics = myStatisticsDao.read();
 
-    Assert.assertEquals(new Statistics(), statistics);
+    Assert.assertEquals(statistics, new Statistics());
   }
 
   @Test
   public void testReadNotExistDirectory() {
     Statistics statistics = myStatisticsDao.read();
 
-    Assert.assertEquals(new Statistics(), statistics);
+    Assert.assertEquals(statistics, new Statistics());
   }
 
   @Test
@@ -87,11 +88,11 @@ public class StatisticsDaoTest {
 
     Statistics statistics = myStatisticsDao.read();
 
-    Assert.assertEquals(new Statistics(), statistics);
+    Assert.assertEquals(statistics, new Statistics());
   }
 
   private String readGold(String resourceName) {
-    File resource = new File(SuggestionsDao.class.getResource("/gold/" + resourceName).getFile());
+    File resource = new File(Objects.requireNonNull(SuggestionsDao.class.getResource("/gold/" + resourceName)).getFile());
 
     try {
       return new String(Files.readAllBytes(resource.toPath()));

@@ -96,32 +96,11 @@ public class AutoAssignerDetailsController extends BaseController {
 
     @Nullable SBuild firstFailedBuild = myServer.findBuildInstanceById(ffiData.getFirstFailedInId());
     Responsibility responsibility = myAssignerArtifactDao.get(firstFailedBuild, sTestRun);
+
     if (responsibility != null) {
-      final ModelAndView modelAndView = new ModelAndView(myDynamicTestDetailsExtensionPath);
-
-      boolean isFilteredTestDescription = TeamCityProperties.getBoolean(SHOULD_PERSIST_FILTERED_TESTS_DESCRIPTION) &&
-                                          responsibility.getDescription().startsWith(Constants.ASSIGNEE_FILTERED_DESCRIPTION_PREFIX);
-      if (assignShouldNotBeShow && !isFilteredTestDescription) {
-        return null;
-      }
-
-      modelAndView.getModel().put("isFilteredDescription", isFilteredTestDescription);
-      modelAndView.getModel().put("userId", responsibility.getUser().getId());
-      modelAndView.getModel().put("userName", responsibility.getUser().getDescriptiveName());
-      String shownDescription = responsibility.getDescription();
-      if (firstFailedBuild != null && firstFailedBuild.getBuildId() != buildId && shownDescription.endsWith("build")) {
-        shownDescription = shownDescription + " with the first test failure";
-      }
-      modelAndView.getModel().put("shownDescription", shownDescription);
-      modelAndView.getModel().put("investigationDescription", responsibility.getDescription());
-      modelAndView.getModel().put("buildId", buildId);
-      modelAndView.getModel().put("projectId", build.getProjectId());
-      modelAndView.getModel().put("test", sTestRun.getTest());
-      modelAndView.getModel().put("myCssPath", request.getContextPath() + myCssPath);
-      myStatisticsReporter.reportShownButton();
-
-      return modelAndView;
+      return createModelAndView(request, responsibility, buildId, build, sTestRun, assignShouldNotBeShow, firstFailedBuild);
     }
+
 
     return null;
   }
@@ -145,4 +124,48 @@ public class AutoAssignerDetailsController extends BaseController {
 
     return investigationEntry != null;
   }
+
+  @Nullable
+  private ModelAndView createModelAndView(HttpServletRequest request,
+                                          Responsibility responsibility,
+                                          long buildId,
+                                          SBuild build,
+                                          STestRun sTestRun,
+                                          boolean assignShouldNotBeShow,
+                                          @Nullable SBuild firstFailedBuild) {
+    final ModelAndView modelAndView = new ModelAndView(myDynamicTestDetailsExtensionPath);
+
+    boolean isFilteredTestDescription = TeamCityProperties.getBoolean(SHOULD_PERSIST_FILTERED_TESTS_DESCRIPTION) &&
+                                        responsibility.getDescription().startsWith(Constants.ASSIGNEE_FILTERED_DESCRIPTION_PREFIX);
+
+    if (assignShouldNotBeShow && !isFilteredTestDescription) {
+      return null;
+    }
+
+    modelAndView.getModel().put("isFilteredDescription", isFilteredTestDescription);
+    modelAndView.getModel().put("userId", responsibility.getUser().getId());
+    modelAndView.getModel().put("userName", responsibility.getUser().getDescriptiveName());
+
+    String shownDescription = responsibility.getDescription();
+    if (firstFailedBuild != null &&
+        firstFailedBuild.getBuildId() != buildId &&
+        shownDescription.endsWith("build")) {
+      shownDescription = shownDescription + " with the first test failure";
+    }
+
+    modelAndView.getModel().put("shownDescription", shownDescription);
+    modelAndView.getModel().put("investigationDescription", responsibility.getDescription());
+    modelAndView.getModel().put("buildId", buildId);
+    modelAndView.getModel().put("projectId", build.getProjectId());
+    modelAndView.getModel().put("test", sTestRun.getTest());
+    modelAndView.getModel().put("myCssPath", request.getContextPath() + myCssPath);
+
+    myStatisticsReporter.reportShownButton();
+
+    return modelAndView;
+  }
+
+
+
 }
+

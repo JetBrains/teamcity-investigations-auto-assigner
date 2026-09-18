@@ -9,10 +9,6 @@ import java.util.Collections;
 import java.util.List;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
-import jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerArtifactDao;
-import jetbrains.buildServer.investigationsAutoAssigner.persistent.AssignerResultsFilePath;
-import jetbrains.buildServer.investigationsAutoAssigner.persistent.ResponsibilityPersistentInfo;
-import jetbrains.buildServer.investigationsAutoAssigner.persistent.SuggestionsDao;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.STest;
 import jetbrains.buildServer.serverSide.STestRun;
@@ -131,7 +127,7 @@ public class AssignerArtifactDaoTest {
     Assert.assertEquals(mySuggestedDaoChecker.setInfoToAdd.get(1).reason, reason);
   }
 
-  private class MySuggestedDaoChecker extends SuggestionsDao {
+  private static class MySuggestedDaoChecker extends SuggestionsDao {
 
     Path setResultsFilePath;
     List<ResponsibilityPersistentInfo> setInfoToAdd;

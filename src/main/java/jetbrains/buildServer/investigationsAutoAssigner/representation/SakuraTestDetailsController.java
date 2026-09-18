@@ -38,7 +38,7 @@ public class SakuraTestDetailsController extends BaseController {
 
   @Nullable
   @Override
-  protected ModelAndView doHandle(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response) throws Exception {
+  protected ModelAndView doHandle(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response){
     final ModelAndView mv = new ModelAndView(myPluginDescriptor.getPluginResourcesPath("testDetailsExtension.jsp"));
     final Map<String, Object> model = mv.getModel();
     PluginUIContext pluginUIContext = PluginUIContext.getFromRequest(request);
