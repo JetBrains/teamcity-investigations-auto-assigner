@@ -10,13 +10,14 @@ import jetbrains.buildServer.investigationsAutoAssigner.utils.CustomParameters;
 import jetbrains.buildServer.serverSide.TeamCityProperties;
 import jetbrains.buildServer.serverSide.executors.ExecutorServices;
 import jetbrains.buildServer.util.StringUtil;
+import org.jetbrains.annotations.NotNull;
 
 public class StatisticsReporter {
   private final StatisticsDao myStatisticsDao;
-  private Statistics myStatistics;
+  private final Statistics myStatistics;
 
-  public StatisticsReporter(StatisticsDaoFactory statisticsDaoFactory,
-                            ExecutorServices executorServices) {
+  public StatisticsReporter(@NotNull StatisticsDaoFactory statisticsDaoFactory,
+                            @NotNull ExecutorServices executorServices) {
     myStatisticsDao = statisticsDaoFactory.get();
     myStatistics = myStatisticsDao.read();
     StatisticsReporter instance = this;

@@ -15,13 +15,14 @@ import org.springframework.web.servlet.ModelAndView;
 public class ClickAssignButtonReportController extends BaseController {
 
   private final StatisticsReporter myStatisticsReporter;
+  private final static String CONTROLLER_URL = "/autoAssignerStatisticsReporter.html";
 
   public ClickAssignButtonReportController(@NotNull final SBuildServer server,
                                            @NotNull final WebControllerManager controllerManager,
                                            @NotNull final StatisticsReporter statisticsReporter) {
     super(server);
     myStatisticsReporter = statisticsReporter;
-    controllerManager.registerController("/autoAssignerStatisticsReporter.html", this);
+    controllerManager.registerController(CONTROLLER_URL, this);
   }
 
   @Nullable
