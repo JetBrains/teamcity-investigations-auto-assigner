@@ -113,4 +113,40 @@ public class FailedTestAndBuildProblemsProcessor extends BaseProcessor {
 
     failedBuildInfo.addHeuristicsResult(heuristicsResult);
   }
+
+
+  // The 2 functions that are missing:
+  private void logProblemsNumber(@NotNull SBuild sBuild,
+                                 List<STestRun> applicableFailedTests,
+                                 List<BuildProblem> applicableProblems) {
+    if (LOGGER.isDebugEnabled()) {
+      // Get total counts for context.
+      int totalBuildProblems = ((BuildEx) sBuild).getBuildProblems().size();
+      int totalFailedTests = requestBrokenTestsWithStats(sBuild).size();
+      LOGGER.debug(String.format("Build #%d: Total build problems: %d, Applicable build problems: %d; " +
+                                 "Total failed tests: %d, Applicable failed tests: %d",
+                                 sBuild.getBuildId(),
+                                 totalBuildProblems,
+                                 applicableProblems.size(),
+                                 totalFailedTests,
+                                 applicableFailedTests.size()));
+    }
+  }
+
+  private void logChangedProblemsNumber(@NotNull SBuild sBuild,
+                                        List<STestRun> applicableFailedTests,
+                                        List<STestRun> testsForAssign,
+                                        List<BuildProblem> applicableProblems,
+                                        List<BuildProblem> problemsForAssign) {
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug(String.format("Build #%d: Changed failed tests count from %d to %d; " +
+                                 "Changed build problems count from %d to %d",
+                                 sBuild.getBuildId(),
+                                 applicableFailedTests.size(),
+                                 testsForAssign.size(),
+                                 applicableProblems.size(),
+                                 problemsForAssign.size()));
+    }
+  }
+
 }
