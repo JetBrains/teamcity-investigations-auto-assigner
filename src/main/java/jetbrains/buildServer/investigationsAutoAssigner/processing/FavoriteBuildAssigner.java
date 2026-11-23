@@ -21,6 +21,8 @@ import java.util.List;
 import jetbrains.buildServer.favoriteBuilds.FavoriteBuildsManager;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.serverSide.SBuild;
+import jetbrains.buildServer.serverSide.TagData;
+import jetbrains.buildServer.tags.TagsManager;
 import jetbrains.buildServer.users.SUser;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,7 +30,10 @@ public class FavoriteBuildAssigner {
 
   private static final List<String> tagLabels = Arrays.asList(FavoriteBuildsManager.FAVORITE_BUILD_TAG, Constants.INVESTIGATION_LABEL);
 
-  public FavoriteBuildAssigner() {
+  private final TagsManager myTagsManager;
+
+  public FavoriteBuildAssigner(@NotNull final TagsManager tagsManager) {
+    myTagsManager = tagsManager;
   }
 
 
@@ -48,7 +53,8 @@ public class FavoriteBuildAssigner {
    */
   public void markAsFavorite(@NotNull final SBuild sBuild, @NotNull final SUser user) {
     if (shouldMarkAsFavorite(user)) {
-      sBuild.getBuildPromotion().setPrivateTags(tagLabels, user);
+      // TagsManager.addTagDatas, unlike BuildPromotion.addTagDatas, exists in the TeamCity API this plugin builds against by default
+      myTagsManager.addTagDatas(sBuild.getBuildPromotion(), TagData.createPrivateTags(user, tagLabels.toArray(new String[0])));
     }
   }
 }
