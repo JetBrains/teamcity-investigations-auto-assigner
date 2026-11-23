@@ -59,7 +59,7 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
     when(myUser2.getUsername()).thenReturn("testUser 2");
     UserSet userSetMock = Mockito.mock(UserSet.class);
     when(userSetMock.getUsers()).thenReturn(new HashSet<>(Collections.singletonList(myUser)));
-    when(mySBuild.getCommitters(any())).thenReturn(userSetMock);
+    when(mySBuild.getCommitters(any())).thenReturn((UserSet<SUser>) userSetMock);
 
     myHeuristic = new PreviousResponsibleHeuristic(myInvestigationsManager);
     when(myBuildProblem.getBuildProblemData()).thenReturn(myBuildProblemData);
@@ -84,7 +84,7 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
                                                   Collections.emptySet());
   }
 
-  public void TestBuildProblemInfo_ResponsibleFound() {
+  public void testBuildProblemInfo_ResponsibleFound() {
     when(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, myBuildProblem)).thenReturn(myUser);
 
     HeuristicResult result = myHeuristic.findResponsibleUser(myBuildHeuristicContext);
@@ -95,7 +95,7 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
     Assert.assertEquals(responsibility.getUser(), myUser);
   }
 
-  public void TestBuildProblemInfo_IncompatibleType() {
+  public void testBuildProblemInfo_IncompatibleType() {
     when(myBuildProblemData.getType()).thenReturn("any_another_type");
     when(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, myBuildProblem)).thenReturn(myUser);
 
@@ -104,7 +104,7 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
     Assert.assertTrue(result.isEmpty());
   }
 
-  public void Test_FoundResponsibleNotAmongCommiters() {
+  public void test_FoundResponsibleNotAmongCommiters() {
     when(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, myBuildProblem)).thenReturn(myUser2);
 
     HeuristicResult result = myHeuristic.findResponsibleUser(myBuildHeuristicContext);
@@ -112,7 +112,7 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
     Assert.assertTrue(result.isEmpty());
   }
 
-  public void TestBuildProblemInfo_ResponsibleNotFound() {
+  public void testBuildProblemInfo_ResponsibleNotFound() {
     when(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, myBuildProblem)).thenReturn(null);
 
     HeuristicResult result = myHeuristic.findResponsibleUser(myBuildHeuristicContext);
@@ -120,7 +120,7 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
     Assert.assertTrue(result.isEmpty());
   }
 
-  public void TestTestProblemInfo_ResponsibleFound() {
+  public void testTestProblemInfo_ResponsibleFound() {
     when(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, mySTest)).thenReturn(myUser);
 
     HeuristicResult result = myHeuristic.findResponsibleUser(myTestHeuristicContext);
@@ -132,7 +132,7 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
     Assert.assertEquals(responsibility.getUser(), myUser);
   }
 
-  public void TestTestProblemInfo_ResponsibleNotFound() {
+  public void testTestProblemInfo_ResponsibleNotFound() {
     when(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, mySTest)).thenReturn(null);
 
     HeuristicResult result = myHeuristic.findResponsibleUser(myTestHeuristicContext);
@@ -140,7 +140,7 @@ public class PreviousResponsibleHeuristicTest extends BaseTestCase {
     Assert.assertTrue(result.isEmpty());
   }
 
-  public void TestWhiteList() {
+  public void testWhiteList() {
     when(myInvestigationsManager.findPreviousResponsible(mySProject, mySBuild, mySTest)).thenReturn(myUser);
     HeuristicContext testHC = new HeuristicContext(mySBuild,
                                                    mySProject,

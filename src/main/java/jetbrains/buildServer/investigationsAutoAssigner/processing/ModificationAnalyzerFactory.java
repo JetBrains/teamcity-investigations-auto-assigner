@@ -22,7 +22,7 @@ import static com.intellij.openapi.util.text.StringUtil.join;
  * Both public methods have three @result states:
  * - non-null result when something was found;
  * - null when nothing was found;
- * - HeuristicNotApplicableException when more then one committers were found (so we cannot chose from them with these heuristics.
+ * - HeuristicNotApplicableException when more than one committer was found (so we cannot choose from them with these heuristics).
  */
 public class ModificationAnalyzerFactory {
   private static final int TOO_SMALL_PATTERN_THRESHOLD = 15;
@@ -95,10 +95,10 @@ public class ModificationAnalyzerFactory {
 
   /**
    * This method is required to separate path1/path2/fileName with path3/path4/fileName.
-   * Also it allows to handle different separators. Currently supported: '.','/','\' separators.
+   * Also, it allows to handle different separators. Currently supported: '.', '/', '\' separators.
    *
    * @param filePath - filePath of the modification
-   * @return various combination of fileName and its parents(up to 2th level) with separators.
+   * @return various combination of fileName and its parents(up to 2nd level) with separators.
    */
   @NotNull
   private static List<String> getPatterns(@NotNull final String filePath) {

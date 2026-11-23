@@ -73,7 +73,7 @@ public class FailedTestAndBuildProblemsDispatcher {
       public void buildProblemsChanged(@NotNull SBuild sBuild,
                                        @NotNull List<BuildProblemData> before,
                                        @NotNull List<BuildProblemData> after) {
-        if (!canSendNotifications()) return;
+        if (canSendNotifications()) return;
 
         if (myFailedBuilds.contains(sBuild.getBuildId()) || shouldIgnore(sBuild)) {
           return;
@@ -89,7 +89,7 @@ public class FailedTestAndBuildProblemsDispatcher {
 
       @Override
       public void buildFinished(@NotNull SRunningBuild build) {
-        if (shouldIgnore(build) || !canSendNotifications()) {
+        if (shouldIgnore(build) || canSendNotifications()) {
           myFailedBuilds.remove(build.getBuildId());
           return;
         }
@@ -172,8 +172,8 @@ public class FailedTestAndBuildProblemsDispatcher {
     SBuildType buildType = nextBuild.getBuildType();
     if (buildType != null) {
       Long delayedAssignmentsBuildId = myDelayedAssignments.get(buildType.getInternalId());
-      if (delayedAssignmentsBuildId == null) return;
-      if (delayedAssignmentsBuildId == nextBuild.getBuildId()) return;
+
+      if ((delayedAssignmentsBuildId == null) || (delayedAssignmentsBuildId == nextBuild.getBuildId())) return;
 
       SBuild delayedAssignmentsBuild = myBuildsManager.findBuildInstanceById(delayedAssignmentsBuildId);
       if (delayedAssignmentsBuild == null) {
@@ -185,6 +185,9 @@ public class FailedTestAndBuildProblemsDispatcher {
         myDelayedAssignments.remove(buildType.getInternalId());
         processDelayedAssignments(new FailedBuildInfo(delayedAssignmentsBuild), nextBuild);
       }
+
+
+
     }
   }
 
@@ -244,7 +247,7 @@ public class FailedTestAndBuildProblemsDispatcher {
   }
 
   private void processBrokenBuilds() {
-    if (!canSendNotifications()) {
+    if (canSendNotifications()) {
       myFailedBuilds.clear();
       return;
     }
@@ -255,7 +258,7 @@ public class FailedTestAndBuildProblemsDispatcher {
   }
 
   private boolean canSendNotifications() {
-    return myServerResponsibility.canSendNotifications();
+    return !myServerResponsibility.canSendNotifications();
   }
 
   private synchronized void processBrokenBuild(final FailedBuildInfo failedBuildInfo) {

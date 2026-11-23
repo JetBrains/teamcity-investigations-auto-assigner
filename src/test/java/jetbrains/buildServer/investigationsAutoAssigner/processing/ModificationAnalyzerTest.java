@@ -25,7 +25,7 @@ public class ModificationAnalyzerTest extends BaseTestCase {
   private UserEx mySecondUser;
   private SVcsModification myMod;
   private ModificationAnalyzerFactory.ModificationAnalyzer myWrappedVcsChange;
-  private String myFilePath =  "./path1/path1/path1/filename";
+  private final String myFilePath =  "./path1/path1/path1/filename";
 
   @BeforeMethod
   @Override

@@ -2,7 +2,7 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.utils;
 
-import jetbrains.buildServer.serverSide.Parameter;
+
 import jetbrains.buildServer.serverSide.ProjectManager;
 import jetbrains.buildServer.serverSide.SProject;
 import jetbrains.buildServer.serverSide.auth.Permission;
