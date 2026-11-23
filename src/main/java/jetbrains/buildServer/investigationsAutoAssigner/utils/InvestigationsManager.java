@@ -124,7 +124,7 @@ public class InvestigationsManager {
   }
 
   @NotNull
-  public HashMap<Long, User> findInAudit(@NotNull final Iterable<STestRun> sTestRuns, @NotNull SProject project) {
+  public Map<Long, User> findInAudit(@NotNull final Iterable<STestRun> sTestRuns, @NotNull SProject project) {
     AuditLogBuilder builder = myAuditLogProvider.getBuilder();
     builder.setActionTypes(ActionType.TEST_MARK_AS_FIXED, ActionType.TEST_INVESTIGATION_ASSIGN);
     List<String> projectIds = collectProjectHierarchyIds(project);
@@ -139,7 +139,7 @@ public class InvestigationsManager {
     }
     builder.setObjectIds(objectIds);
     List<AuditLogAction> lastActions = builder.getLogActions(-1);
-    HashMap<Long, User> result = new HashMap<>();
+    Map<Long, User> result = new HashMap<>();
     for (AuditLogAction action : lastActions) {
       for (ObjectWrapper obj : action.getObjects()) {
         Object user = obj.getObject();

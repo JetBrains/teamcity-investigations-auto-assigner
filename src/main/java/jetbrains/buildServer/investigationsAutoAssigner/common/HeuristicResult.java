@@ -12,8 +12,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class HeuristicResult {
 
-  private HashMap<Integer, Responsibility> testRun2Responsibility;
-  private HashMap<Integer, Responsibility> buildProblem2Responsibility;
+  private final HashMap<Integer, Responsibility> testRun2Responsibility;
+  private final HashMap<Integer, Responsibility> buildProblem2Responsibility;
 
   public HeuristicResult() {
     testRun2Responsibility = new HashMap<>();

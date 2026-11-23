@@ -3,7 +3,7 @@
 package jetbrains.buildServer.investigationsAutoAssigner.heuristics;
 
 import com.intellij.openapi.diagnostic.Logger;
-import java.util.HashMap;
+import java.util.Map;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
 import jetbrains.buildServer.investigationsAutoAssigner.common.HeuristicResult;
 import jetbrains.buildServer.investigationsAutoAssigner.common.Responsibility;
@@ -40,7 +40,7 @@ public class PreviousResponsibleHeuristic implements Heuristic {
     SProject sProject = heuristicContext.getProject();
     Iterable<STestRun> sTestRuns = heuristicContext.getTestRuns();
 
-    HashMap<Long, User> testId2Responsible = myInvestigationsManager.findInAudit(sTestRuns, sProject);
+    Map<Long, User> testId2Responsible = myInvestigationsManager.findInAudit(sTestRuns, sProject);
     for (STestRun sTestRun : heuristicContext.getTestRuns()) {
       STest sTest = sTestRun.getTest();
 

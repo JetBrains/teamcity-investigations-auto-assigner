@@ -2,19 +2,13 @@
 
 package jetbrains.buildServer.investigationsAutoAssigner.utils;
 
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import jetbrains.buildServer.BuildProblemTypes;
-import jetbrains.buildServer.investigationsAutoAssigner.common.Constants;
+import jetbrains.buildServer.investigationsAutoAssigner.utils.errors.BuildProblemProcessorFactory;
+import jetbrains.buildServer.investigationsAutoAssigner.utils.errors.BuildProblemProcessorNotFoundException;
 import jetbrains.buildServer.serverSide.SBuild;
 import jetbrains.buildServer.serverSide.STest;
 import jetbrains.buildServer.serverSide.STestRun;
-import jetbrains.buildServer.serverSide.TeamCityProperties;
-import jetbrains.buildServer.serverSide.buildLog.LogMessage;
-import jetbrains.buildServer.serverSide.problems.BuildLogCompileErrorCollector;
 import jetbrains.buildServer.serverSide.problems.BuildProblem;
 import jetbrains.buildServer.tests.TestName;
-import jetbrains.buildServer.util.ItemProcessor;
 import jetbrains.buildServer.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -23,24 +17,10 @@ import static jetbrains.buildServer.serverSide.impl.problems.types.CompilationEr
 
 public class ProblemTextExtractor {
   public String getBuildProblemText(@NotNull final BuildProblem problem, @NotNull final SBuild build) {
-    StringBuilder problemSpecificText = new StringBuilder();
-
-    // todo make an extension point here
-    if (problem.getBuildProblemData().getType().equals(BuildProblemTypes.TC_COMPILATION_ERROR_TYPE)) {
-      final Integer compileBlockIndex = getCompileBlockIndex(problem);
-      if (compileBlockIndex != null) {
-        AtomicInteger maxErrors = new AtomicInteger(TeamCityProperties.getInteger(Constants.MAX_COMPILE_ERRORS_TO_PROCESS, 100));
-        BuildLogCompileErrorCollector.collectCompileErrors(compileBlockIndex, build, new ItemProcessor<LogMessage>() {
-          @Override
-          public boolean processItem(final LogMessage item) {
-            problemSpecificText.append(item.getText()).append(" ");
-            return maxErrors.decrementAndGet() > 0;
-          }
-        });
-      }
-    }
-
-    return problemSpecificText + " " + problem.getBuildProblemDescription();
+    return BuildProblemProcessorFactory.getProcessor(problem.getBuildProblemData().getType())
+      .map(processor -> processor.process(problem, build, getCompileBlockIndex(problem)))
+      .map(text -> text + " " + problem.getBuildProblemDescription())
+      .orElseThrow(() -> new BuildProblemProcessorNotFoundException("Processor not found for problem type: " + problem.getBuildProblemData().getType()));
   }
 
   @Nullable
